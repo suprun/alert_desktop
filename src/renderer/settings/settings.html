@@ -15,15 +15,48 @@
     </header>
 
     <main class="settings-body">
-      <!-- Розділ вибору місцевості -->
+      <!-- Розділ вибору місцевості з пошуком -->
       <section class="settings-group">
-        <label for="locationSelect" class="group-label">Місцевість для моніторингу</label>
-        <div class="select-wrapper">
-          <select id="locationSelect" class="form-select">
-            <option value="" disabled selected>Оберіть область або місто...</option>
-          </select>
+        <label for="locationSearchInput" class="group-label">Місцевість для моніторингу</label>
+        <div class="combobox-wrapper" id="comboboxWrapper">
+          <div class="search-input-container">
+            <span class="search-icon" aria-hidden="true">
+              <!-- Linear search SVG icon -->
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="11" cy="11" r="8"/>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+              </svg>
+            </span>
+            <input 
+              type="text" 
+              id="locationSearchInput" 
+              class="form-input search-input" 
+              placeholder="Почніть вводити назву міста, району чи громади..." 
+              autocomplete="off"
+            >
+            <button type="button" id="btnClearLocation" class="btn-clear" title="Очистити поле" style="display: none;">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"/>
+                <line x1="6" y1="6" x2="18" y2="18"/>
+              </svg>
+            </button>
+          </div>
+
+          <!-- Випадаючий список результатів пошуку -->
+          <div id="locationDropdown" class="combobox-dropdown" style="display: none;">
+            <div id="locationList" class="location-list"></div>
+            <div id="locationNoResults" class="location-no-results" style="display: none;">
+              Нічого не знайдено за цим запитом
+            </div>
+          </div>
         </div>
-        <p class="field-hint">Статус тривоги у системному треї оновлюватиметься для обраного регіону.</p>
+
+        <div id="selectedLocationBadge" class="selected-badge" style="display: none;">
+          <span class="selected-badge-label">Обрано:</span>
+          <span id="selectedBadgeText" class="selected-badge-text"></span>
+          <span id="selectedBadgeType" class="selected-badge-type"></span>
+        </div>
+        <p class="field-hint">Доступно понад 1600 областей, районів та територіальних громад України.</p>
       </section>
 
       <!-- Розділ звукових сповіщень -->

@@ -40,7 +40,9 @@ alert_desktop/
 │   ├── download_assets.js                # Завантаження шрифтів Inter у репозиторій
 │   ├── generate_audio.js                 # Генерація чистих синтезованих звуків сирени/відбою
 │   ├── generate_icons.js                 # Генерація PNG-іконок через Electron nativeImage
-│   └── generate_ui_icons.js              # Генерація лінійних SVG піктограм інтерфейсу
+│   ├── generate_ui_icons.js              # Генерація лінійних SVG піктограм інтерфейсу
+│   ├── parse_locations.js                # Завантаження та парсинг 1622 локацій з Google Spreadsheets
+│   └── smoke_test.js                     # Smoke-тест ініціалізації компонентів
 │
 └── src/                                  # Вихідний код застосунку
     ├── main/                             # Головний процес (Node.js / Electron Main)
@@ -48,10 +50,10 @@ alert_desktop/
     │   ├── window.js                     # Менеджер головного вікна (BrowserWindow + WebContentsView)
     │   ├── settings-window.js            # Менеджер діалогового вікна налаштувань
     │   ├── tray.js                       # Керування системним треєм (іконка, tooltip, меню)
-    │   ├── api.js                        # HTTP polling сервера devs.alerts.in.ua / ретранслятора
+    │   ├── api.js                        # HTTP polling сервера api.alerts.in.ua / ретранслятора
     │   ├── config.js                     # Робота з config.json, .env та автозапуском ОС
     │   ├── notifier.js                   # Системні сповіщення Windows та запуск звуку
-    │   └── locations.json                # Довідник областей та міст України (UID та назви)
+    │   └── locations.json                # Повний довідник 1622 локацій України (UID, назви, типи)
     │
     ├── preload/                          # Безпечний ізольований Preload-шар (contextBridge)
     │   ├── preload-main.js               # API для статус-панелі головного вікна

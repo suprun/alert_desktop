@@ -38,10 +38,18 @@ class AlertApiService extends EventEmitter {
   }
 
   async checkNow() {
-    const serverUrl = config.get('serverUrl') || 'https://devs.alerts.in.ua/api/v1/alerts/active.json';
+    let requestUrl = serverUrl || 'https://api.alerts.in.ua/v1/alerts/active.json';
     const apiKey = config.get('apiKey') || '';
     const selectedUid = String(config.get('locationUid') || '');
     const selectedTitle = (config.get('locationTitle') || '').toLowerCase().trim();
+
+    // Якщо вказано API ключ, додаємо його до запиту (через token query параметр та headers)
+    if (apiKey) {
+      if (!requestUrl.includes('token=')) {
+        const sep = requestUrl.includes('?') ? '&' : '?';
+        requestUrl = `${requestUrl}${sep}token=${encodeURIComponent(apiKey)}`;
+      }
+    }
 
     const headers = {
       'Accept': 'application/json',
@@ -57,7 +65,7 @@ class AlertApiService extends EventEmitter {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 10000);
 
-      const response = await fetch(serverUrl, {
+      const response = await fetch(requestUrl, {
         method: 'GET',
         headers,
         signal: controller.signal

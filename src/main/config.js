@@ -14,7 +14,7 @@ class ConfigManager extends EventEmitter {
       soundEnabled: true,
       volume: 80,
       autoStart: false,
-      serverUrl: process.env.ALERTS_API_URL || 'https://devs.alerts.in.ua/api/v1/alerts/active.json',
+      serverUrl: process.env.ALERTS_API_URL || 'https://api.alerts.in.ua/v1/alerts/active.json',
       apiKey: process.env.ALERTS_API_KEY || '',
       pollingInterval: Number(process.env.ALERTS_POLL_INTERVAL) || 15000,
       isFirstLaunch: true
