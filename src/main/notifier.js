@@ -12,8 +12,16 @@ class NotifierService {
   }
 
   notifyStatusChange({ isAlert, alertType, locationTitle, alertScope }) {
-    const soundEnabled = config.get('soundEnabled');
-    const volume = config.get('volume');
+    const volume = config.get('volume') !== undefined ? config.get('volume') : 80;
+    const soundAlertEnabled = config.get('soundAlertEnabled') !== undefined 
+      ? config.get('soundAlertEnabled') 
+      : config.get('soundEnabled') !== false;
+    const soundAllClearEnabled = config.get('soundAllClearEnabled') !== undefined 
+      ? config.get('soundAllClearEnabled') 
+      : config.get('soundEnabled') !== false;
+
+    const alertSound = config.get('alertSound') || 'siren';
+    const allClearSound = config.get('allClearSound') || 'chime';
 
     const iconPath = path.join(
       __dirname,
@@ -28,6 +36,8 @@ class NotifierService {
     let title = '';
     let body = '';
     let soundType = '';
+    let soundId = '';
+    let isSoundAllowed = false;
 
     const scopeNote = alertScope ? ` (${alertScope})` : '';
 
@@ -36,10 +46,14 @@ class NotifierService {
       title = `${typeText} — ${locationTitle}${scopeNote}`;
       body = 'Негайно пройдіть в найближче укриття!';
       soundType = 'alert';
+      soundId = alertSound;
+      isSoundAllowed = soundAlertEnabled;
     } else {
       title = `Відбій тривоги — ${locationTitle}`;
       body = 'Загроза минула. Слідкуйте за офіційними повідомленнями.';
       soundType = 'all-clear';
+      soundId = allClearSound;
+      isSoundAllowed = soundAllClearEnabled;
     }
 
     // Системне спливаюче сповіщення Windows
@@ -54,8 +68,8 @@ class NotifierService {
     }
 
     // Програвання звуку через аудіо-модуль
-    if (soundEnabled && this.audioCallback) {
-      this.audioCallback(soundType, volume);
+    if (isSoundAllowed && this.audioCallback) {
+      this.audioCallback(soundType, soundId, volume);
     }
   }
 

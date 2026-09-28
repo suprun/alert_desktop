@@ -14,7 +14,11 @@ class ConfigManager extends EventEmitter {
     this.defaults = {
       locationUid: '31', // За замовчуванням м. Київ
       locationTitle: 'м. Київ',
-      soundEnabled: true,
+      soundEnabled: true, // Збережено для зворотної сумісності
+      soundAlertEnabled: true,
+      soundAllClearEnabled: true,
+      alertSound: 'siren',
+      allClearSound: 'chime',
       volume: 80,
       autoStart: false,
       devMode: false,
@@ -58,6 +62,25 @@ class ConfigManager extends EventEmitter {
         const parsed = JSON.parse(data);
         const config = { ...this.defaults, ...parsed };
         let needsSave = false;
+
+        // Автоматична міграція параметрів звуку:
+        // Якщо раніше було soundEnabled, але немає окремих прапорців
+        if (parsed.soundAlertEnabled === undefined) {
+          config.soundAlertEnabled = parsed.soundEnabled !== false;
+          needsSave = true;
+        }
+        if (parsed.soundAllClearEnabled === undefined) {
+          config.soundAllClearEnabled = parsed.soundEnabled !== false;
+          needsSave = true;
+        }
+        if (!config.alertSound) {
+          config.alertSound = 'siren';
+          needsSave = true;
+        }
+        if (!config.allClearSound) {
+          config.allClearSound = 'chime';
+          needsSave = true;
+        }
 
         // Автоматична міграція на роботу через проксі-ретранслятор:
         // Якщо devMode не було задано, вимикаємо його за замовчуванням

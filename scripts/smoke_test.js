@@ -37,6 +37,29 @@ for (const icon of requiredIcons) {
 }
 console.log(`OK: all ${requiredIcons.length} icons exist and are non-empty`);
 
+// 1.2 Check audio presets
+const requiredAudio = [
+  'alert-siren.wav',
+  'alert-pulse.wav',
+  'alert-chime.wav',
+  'alert-radar.wav',
+  'alert.wav',
+  'all-clear-chime.wav',
+  'all-clear-bell.wav',
+  'all-clear-marimba.wav',
+  'all-clear-gong.wav',
+  'all-clear.wav'
+];
+const audioDir = path.join(__dirname, '..', 'assets', 'audio');
+for (const audio of requiredAudio) {
+  const p = path.join(audioDir, audio);
+  if (!fs.existsSync(p) || fs.statSync(p).size === 0) {
+    console.error(`FAIL: audio preset ${audio} is missing or 0 bytes`);
+    process.exit(1);
+  }
+}
+console.log(`OK: all ${requiredAudio.length} audio presets exist and are non-empty`);
+
 // 2. Check config
 const cfg = config.getAll();
 if (!cfg.pollingInterval || !cfg.serverUrl) {

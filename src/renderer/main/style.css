@@ -112,7 +112,9 @@ body {
   background-color: var(--bg-color);
   color: var(--text-main);
   overflow: hidden;
-  height: 56px;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
   -webkit-app-region: drag;
   transition: background-color 0.2s ease, color 0.2s ease;
 }
@@ -273,4 +275,138 @@ body {
 
 .btn-icon:active {
   transform: scale(0.96);
+}
+
+/* Індикатор прогресу підключення до карти під шапкою */
+.map-progress-bar {
+  height: 2px;
+  width: 100%;
+  background-color: transparent;
+  position: relative;
+  overflow: hidden;
+  flex-shrink: 0;
+  transition: opacity 0.3s ease;
+}
+
+.map-progress-bar.active::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -40%;
+  height: 100%;
+  width: 40%;
+  background: linear-gradient(90deg, transparent, #3b82f6, #60a5fa, transparent);
+  animation: map-progress 1.4s infinite cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.map-progress-bar:not(.active) {
+  opacity: 0;
+}
+
+@keyframes map-progress {
+  0% { left: -40%; }
+  100% { left: 100%; }
+}
+
+/* Область-прелоадер / скелетон під картою */
+.map-placeholder {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px;
+  background-color: var(--bg-color);
+  -webkit-app-region: no-drag;
+}
+
+.map-state-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  max-width: 420px;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.loader-spinner {
+  position: relative;
+  width: 56px;
+  height: 56px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.spinner-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 3px solid rgba(59, 130, 246, 0.2);
+  border-top-color: #3b82f6;
+  animation: spin 1s infinite linear;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.spinner-icon {
+  color: #3b82f6;
+  opacity: 0.85;
+}
+
+.error-icon-box {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background-color: rgba(239, 68, 68, 0.12);
+  color: #ef4444;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 18px;
+}
+
+.map-state-title {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: var(--text-main);
+}
+
+.map-state-subtitle {
+  font-size: 13px;
+  color: var(--updated-color);
+  line-height: 1.5;
+  margin-bottom: 20px;
+}
+
+.btn-retry-map {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 18px;
+  font-size: 13px;
+  font-weight: 500;
+  border-radius: 8px;
+  border: 1px solid var(--btn-border);
+  background-color: rgba(59, 130, 246, 0.1);
+  color: #3b82f6;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-retry-map:hover {
+  background-color: rgba(59, 130, 246, 0.2);
+  border-color: #3b82f6;
+}
+
+.btn-retry-map:active {
+  transform: scale(0.97);
 }

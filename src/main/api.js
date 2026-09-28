@@ -20,6 +20,7 @@ class AlertApiService extends EventEmitter {
     super();
     this.timer = null;
     this.isChecking = false;
+    this.isInitialCheck = true;
     this.lastState = {
       isAlert: false,
       alertType: 'none',
@@ -195,18 +196,23 @@ class AlertApiService extends EventEmitter {
         lastChecked: new Date().toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
       };
 
-      // Перевірка зміни статусу або рівня тривоги для сповіщення
-      if (previousIsAlert !== isAlert || (isAlert && (this.lastState.alertType !== alertType || previousLevel !== alertLevel))) {
-        this.emit('status-changed', {
-          isAlert,
-          alertType,
-          alertLevel,
-          alertScope: newState.alertScope,
-          threats,
-          previousIsAlert,
-          locationTitle: newState.locationTitle,
-          startedAt
-        });
+      // Перевірка зміни статусу або рівня тривоги для сповіщення.
+      // При першому опитуванні після запуску застосунку (isInitialCheck) звук не програється.
+      if (!this.isInitialCheck) {
+        if (previousIsAlert !== isAlert || (isAlert && (this.lastState.alertType !== alertType || previousLevel !== alertLevel))) {
+          this.emit('status-changed', {
+            isAlert,
+            alertType,
+            alertLevel,
+            alertScope: newState.alertScope,
+            threats,
+            previousIsAlert,
+            locationTitle: newState.locationTitle,
+            startedAt
+          });
+        }
+      } else {
+        this.isInitialCheck = false;
       }
 
       this.lastState = newState;

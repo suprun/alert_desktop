@@ -31,8 +31,8 @@ if (!gotTheLock) {
   }
 
   // Налаштування зв'язку нотифікатора та аудіо через головне вікно
-  notifier.setAudioCallback((soundType, volume) => {
-    windowManager.playAudioInWindow(soundType, volume);
+  notifier.setAudioCallback((soundType, soundId, volume) => {
+    windowManager.playAudioInWindow(soundType, soundId, volume);
   });
 
   // Підписка на оновлення стану тривог
@@ -76,6 +76,10 @@ if (!gotTheLock) {
 
   ipcMain.on('close-settings', () => {
     settingsWindowManager.close();
+  });
+
+  ipcMain.on('reload-map', () => {
+    windowManager.reloadMap();
   });
 
   app.whenReady().then(() => {

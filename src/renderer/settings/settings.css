@@ -431,18 +431,52 @@ body {
   color: var(--text-primary);
 }
 
-.sound-subcontrols {
+.sound-item-group {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
+  padding-bottom: 10px;
+  border-bottom: 1px dashed var(--border-color);
+}
+
+.sound-item-group:last-of-type {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.sound-item-controls {
   padding-left: 26px;
-  margin-top: 4px;
   transition: opacity 0.2s ease;
 }
 
-.sound-subcontrols.disabled {
-  opacity: 0.4;
+.sound-item-controls.disabled {
+  opacity: 0.35;
   pointer-events: none;
+}
+
+.sound-select-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sound-select {
+  flex: 1;
+}
+
+.btn-test-sound {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.volume-container {
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px solid var(--border-color);
 }
 
 .volume-row {

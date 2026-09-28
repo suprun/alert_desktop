@@ -11,13 +11,22 @@ const selectOblast = document.getElementById('selectOblast');
 const selectRaion = document.getElementById('selectRaion');
 const selectHromada = document.getElementById('selectHromada');
 
-const chkSoundEnabled = document.getElementById('chkSoundEnabled');
-const soundControls = document.getElementById('soundControls');
+const chkSoundAlertEnabled = document.getElementById('chkSoundAlertEnabled');
+const alertSoundControls = document.getElementById('alertSoundControls');
+const selectAlertSound = document.getElementById('selectAlertSound');
+const btnPlayAlertTest = document.getElementById('btnPlayAlertTest');
+const playAlertIcon = document.getElementById('playAlertIcon');
+const playAlertText = document.getElementById('playAlertText');
+
+const chkSoundAllClearEnabled = document.getElementById('chkSoundAllClearEnabled');
+const allClearSoundControls = document.getElementById('allClearSoundControls');
+const selectAllClearSound = document.getElementById('selectAllClearSound');
+const btnPlayAllClearTest = document.getElementById('btnPlayAllClearTest');
+const playAllClearIcon = document.getElementById('playAllClearIcon');
+const playAllClearText = document.getElementById('playAllClearText');
+
 const volumeSlider = document.getElementById('volumeSlider');
 const volumeValue = document.getElementById('volumeValue');
-const btnPlayTest = document.getElementById('btnPlayTest');
-const playIcon = document.getElementById('playIcon');
-const playText = document.getElementById('playText');
 const chkAutoStart = document.getElementById('chkAutoStart');
 const chkDevMode = document.getElementById('chkDevMode');
 const devSettingsControls = document.getElementById('devSettingsControls');
@@ -31,56 +40,67 @@ const audioTest = document.getElementById('audioTest');
 const DEFAULT_PROXY_URL = 'https://api.applink.pp.ua/v1/alerts/active.json';
 
 const playSvg = `
-  <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
     <polygon points="5 3 19 12 5 21 5 3"/>
   </svg>`;
 
 const pauseSvg = `
-  <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
     <rect x="6" y="4" width="4" height="16"/>
     <rect x="14" y="4" width="4" height="16"/>
   </svg>`;
 
-let isPlaying = false;
+let activeTestType = null; // 'alert' | 'all-clear' | null
 let allLocations = [];
 let selectedUid = '31';
 let selectedTitle = 'м. Київ';
 let selectedType = 'Місто з спеціальним статусом';
 let highlightedIndex = -1;
 
-function setPlayingState(playing) {
-  isPlaying = playing;
-  if (isPlaying) {
-    playIcon.innerHTML = pauseSvg;
-    playText.textContent = 'Зупинити';
-  } else {
-    playIcon.innerHTML = playSvg;
-    playText.textContent = 'Перевірити звук';
+function stopAudioTest() {
+  if (audioTest) {
+    audioTest.pause();
+    audioTest.currentTime = 0;
   }
+  activeTestType = null;
+  if (playAlertIcon) playAlertIcon.innerHTML = playSvg;
+  if (playAlertText) playAlertText.textContent = 'Перевірити';
+  if (playAllClearIcon) playAllClearIcon.innerHTML = playSvg;
+  if (playAllClearText) playAllClearText.textContent = 'Перевірити';
 }
 
 function updateSoundControlsState() {
-  const enabled = chkSoundEnabled.checked;
-  if (enabled) {
-    soundControls.classList.remove('disabled');
-    volumeSlider.disabled = false;
-    btnPlayTest.disabled = false;
+  const alertEnabled = chkSoundAlertEnabled.checked;
+  const allClearEnabled = chkSoundAllClearEnabled.checked;
+
+  if (alertEnabled) {
+    alertSoundControls.classList.remove('disabled');
+    selectAlertSound.disabled = false;
+    btnPlayAlertTest.disabled = false;
   } else {
-    soundControls.classList.add('disabled');
-    volumeSlider.disabled = true;
-    btnPlayTest.disabled = true;
-    if (isPlaying) {
-      audioTest.pause();
-      audioTest.currentTime = 0;
-      setPlayingState(false);
-    }
+    alertSoundControls.classList.add('disabled');
+    selectAlertSound.disabled = true;
+    btnPlayAlertTest.disabled = true;
+    if (activeTestType === 'alert') stopAudioTest();
   }
+
+  if (allClearEnabled) {
+    allClearSoundControls.classList.remove('disabled');
+    selectAllClearSound.disabled = false;
+    btnPlayAllClearTest.disabled = false;
+  } else {
+    allClearSoundControls.classList.add('disabled');
+    selectAllClearSound.disabled = true;
+    btnPlayAllClearTest.disabled = true;
+    if (activeTestType === 'all-clear') stopAudioTest();
+  }
+
+  volumeSlider.disabled = !alertEnabled && !allClearEnabled;
 }
 
-// Зміна чекбоксу звуку
-chkSoundEnabled.addEventListener('change', () => {
-  updateSoundControlsState();
-});
+// Зміна чекбоксів звуку
+chkSoundAlertEnabled.addEventListener('change', updateSoundControlsState);
+chkSoundAllClearEnabled.addEventListener('change', updateSoundControlsState);
 
 // Перемикання режиму розробника
 function updateDevModeState() {
@@ -104,32 +124,55 @@ if (btnResetToProxy) {
 volumeSlider.addEventListener('input', () => {
   const val = volumeSlider.value;
   volumeValue.textContent = `${val}%`;
-  if (isPlaying) {
+  if (audioTest && activeTestType) {
     audioTest.volume = val / 100;
   }
 });
 
-// Кнопка Play/Pause для тесту аудіо
-btnPlayTest.addEventListener('click', () => {
-  if (isPlaying) {
-    audioTest.pause();
-    audioTest.currentTime = 0;
-    setPlayingState(false);
+// Кнопка тесту звуку тривоги
+btnPlayAlertTest.addEventListener('click', () => {
+  if (activeTestType === 'alert') {
+    stopAudioTest();
   } else {
+    stopAudioTest();
+    const soundId = selectAlertSound.value || 'siren';
+    audioTest.src = `../../../assets/audio/alert-${soundId}.wav`;
     audioTest.volume = Math.max(0, Math.min(1, volumeSlider.value / 100));
     audioTest.currentTime = 0;
     audioTest.play().then(() => {
-      setPlayingState(true);
+      activeTestType = 'alert';
+      playAlertIcon.innerHTML = pauseSvg;
+      playAlertText.textContent = 'Зупинити';
     }).catch((err) => {
-      console.warn('Не вдалося відтворити тестовий звук:', err.message);
-      setPlayingState(false);
+      console.warn('Не вдалося відтворити тестовий звук тривоги:', err.message);
+      stopAudioTest();
     });
   }
 });
 
-audioTest.addEventListener('ended', () => {
-  setPlayingState(false);
+// Кнопка тесту звуку відбою
+btnPlayAllClearTest.addEventListener('click', () => {
+  if (activeTestType === 'all-clear') {
+    stopAudioTest();
+  } else {
+    stopAudioTest();
+    const soundId = selectAllClearSound.value || 'chime';
+    audioTest.src = `../../../assets/audio/all-clear-${soundId}.wav`;
+    audioTest.volume = Math.max(0, Math.min(1, volumeSlider.value / 100));
+    audioTest.currentTime = 0;
+    audioTest.play().then(() => {
+      activeTestType = 'all-clear';
+      playAllClearIcon.innerHTML = pauseSvg;
+      playAllClearText.textContent = 'Зупинити';
+    }).catch((err) => {
+      console.warn('Не вдалося відтворити тестовий звук відбою:', err.message);
+      stopAudioTest();
+    });
+  }
 });
+
+audioTest.addEventListener('ended', stopAudioTest);
+audioTest.addEventListener('error', stopAudioTest);
 
 // Функції пошукового Combobox та ієрархії
 function populateOblasts() {
@@ -473,7 +516,19 @@ async function init() {
       btnClearLocation.style.display = 'none';
     }
 
-    chkSoundEnabled.checked = cfg.soundEnabled !== false;
+    const alertOn = cfg.soundAlertEnabled !== undefined ? cfg.soundAlertEnabled : (cfg.soundEnabled !== false);
+    const allClearOn = cfg.soundAllClearEnabled !== undefined ? cfg.soundAllClearEnabled : (cfg.soundEnabled !== false);
+
+    chkSoundAlertEnabled.checked = alertOn;
+    chkSoundAllClearEnabled.checked = allClearOn;
+
+    if (cfg.alertSound && selectAlertSound) {
+      selectAlertSound.value = cfg.alertSound;
+    }
+    if (cfg.allClearSound && selectAllClearSound) {
+      selectAllClearSound.value = cfg.allClearSound;
+    }
+
     volumeSlider.value = cfg.volume !== undefined ? cfg.volume : 80;
     volumeValue.textContent = `${volumeSlider.value}%`;
     chkAutoStart.checked = Boolean(cfg.autoStart);
@@ -493,6 +548,8 @@ async function init() {
 btnSave.addEventListener('click', async () => {
   if (!window.settingsAPI) return;
 
+  stopAudioTest();
+
   // Якщо користувач ввів текст у поле вручну і не вибрав зі списку, шукаємо прямий збіг
   const inputText = locationSearchInput.value.trim().toLowerCase();
   if (inputText) {
@@ -508,7 +565,11 @@ btnSave.addEventListener('click', async () => {
   const newConfig = {
     locationUid: selectedUid,
     locationTitle: selectedTitle,
-    soundEnabled: chkSoundEnabled.checked,
+    soundEnabled: chkSoundAlertEnabled.checked || chkSoundAllClearEnabled.checked,
+    soundAlertEnabled: chkSoundAlertEnabled.checked,
+    soundAllClearEnabled: chkSoundAllClearEnabled.checked,
+    alertSound: selectAlertSound ? selectAlertSound.value : 'siren',
+    allClearSound: selectAllClearSound ? selectAllClearSound.value : 'chime',
     volume: parseInt(volumeSlider.value, 10),
     autoStart: chkAutoStart.checked,
     devMode: isDevMode,
@@ -522,10 +583,7 @@ btnSave.addEventListener('click', async () => {
 
 // Скасування / закриття
 btnCancel.addEventListener('click', () => {
-  if (isPlaying) {
-    audioTest.pause();
-    audioTest.currentTime = 0;
-  }
+  stopAudioTest();
   if (window.settingsAPI) {
     window.settingsAPI.closeSettings();
   }

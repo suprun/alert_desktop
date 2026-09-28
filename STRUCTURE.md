@@ -16,8 +16,14 @@ alert_desktop/
 │
 ├── assets/                               # Локальні ресурси (без зовнішніх CDN)
 │   ├── audio/                            # Автономні системні звукові сигнали (WAV)
-│   │   ├── alert.wav                     # Сигнал початку повітряної тривоги
-│   │   └── all-clear.wav                 # Сигнал відбою тривоги
+│   │   ├── alert-siren.wav / alert.wav   # Класична двохтонова сирена
+│   │   ├── alert-pulse.wav               # Електронний пульс тривоги
+│   │   ├── alert-chime.wav               # М'який офісний дзвін тривоги
+│   │   ├── alert-radar.wav               # Радарний імпульс тривоги
+│   │   ├── all-clear-chime.wav / .wav    # Гармонійний акорд відбою
+│   │   ├── all-clear-bell.wav            # Подвійний дзвіночок відбою
+│   │   ├── all-clear-marimba.wav         # Висхідна марімба відбою
+│   │   └── all-clear-gong.wav            # Спокійний гонг відбою
 │   ├── fonts/                            # Локальні файли шрифту Inter (Cyrillic + Latin)
 │   │   ├── Inter-Regular.woff2
 │   │   ├── Inter-Medium.woff2

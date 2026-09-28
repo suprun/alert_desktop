@@ -7,6 +7,7 @@ class WindowManager {
     this.mapView = null;
     this.headerHeight = 56;
     this.isQuitting = false;
+    this.isMapReady = false;
 
     // Слідкуємо за системною зміною теми Windows (light/dark)
     nativeTheme.on('updated', () => {
@@ -84,6 +85,7 @@ class WindowManager {
     if (WebContentsView && this.mainWindow.contentView && this.mainWindow.contentView.addChildView) {
       this.mapView = new WebContentsView({
         webPreferences: {
+          partition: 'persist:alerts_map',
           contextIsolation: true,
           nodeIntegration: false,
           preload: mapPreloadPath
@@ -95,6 +97,7 @@ class WindowManager {
       // Сумісність для старіших версій Electron
       this.mapView = new BrowserView({
         webPreferences: {
+          partition: 'persist:alerts_map',
           contextIsolation: true,
           nodeIntegration: false,
           preload: mapPreloadPath
@@ -106,6 +109,7 @@ class WindowManager {
   }
 
   configureMapWebContents(mapWebContents, mapUrl) {
+    this.sendMapLoadingState('loading');
     mapWebContents.loadURL(mapUrl);
 
     // Скрипт блокування Picture-in-Picture та приховування кнопок запуску міні-мапи
@@ -148,12 +152,30 @@ class WindowManager {
       } catch (e) {}
     `;
 
+    mapWebContents.on('did-start-loading', () => {
+      this.sendMapLoadingState('loading');
+    });
+
     mapWebContents.on('dom-ready', () => {
       mapWebContents.executeJavaScript(disablePipScript).catch(() => {});
+      this.isMapReady = true;
+      this.updateViewBounds();
+      this.sendMapLoadingState('ready');
     });
 
     mapWebContents.on('did-finish-load', () => {
       mapWebContents.executeJavaScript(disablePipScript).catch(() => {});
+      this.isMapReady = true;
+      this.updateViewBounds();
+      this.sendMapLoadingState('ready');
+    });
+
+    mapWebContents.on('did-fail-load', (_event, errorCode, errorDescription, _validatedURL, isMainFrame) => {
+      if (isMainFrame && errorCode !== -3) {
+        this.isMapReady = false;
+        this.updateViewBounds();
+        this.sendMapLoadingState('failed', errorDescription || 'Помилка підключення до сервера карти');
+      }
     });
 
     // Відкриття сторонніх посилань у системному браузері
@@ -170,16 +192,42 @@ class WindowManager {
     });
   }
 
+  reloadMap() {
+    if (this.mapView && this.mapView.webContents) {
+      this.isMapReady = false;
+      this.updateViewBounds();
+      this.sendMapLoadingState('loading');
+      this.mapView.webContents.loadURL('https://alerts.in.ua/');
+    }
+  }
+
+  sendMapLoadingState(state, errorMsg = '') {
+    if (this.mainWindow && !this.mainWindow.isDestroyed()) {
+      this.mainWindow.webContents.send('map-loading-state', { state, errorMsg });
+    }
+  }
+
   updateViewBounds() {
     if (!this.mainWindow || !this.mapView) return;
 
     const [width, height] = this.mainWindow.getContentSize();
-    const bounds = {
-      x: 0,
-      y: this.headerHeight,
-      width: width,
-      height: Math.max(0, height - this.headerHeight)
-    };
+    if (this.mapView.setVisible) {
+      this.mapView.setVisible(this.isMapReady);
+    }
+
+    const bounds = this.isMapReady
+      ? {
+          x: 0,
+          y: this.headerHeight,
+          width: width,
+          height: Math.max(0, height - this.headerHeight)
+        }
+      : {
+          x: 0,
+          y: this.headerHeight,
+          width: 0,
+          height: 0
+        };
 
     if (this.mapView.setBounds) {
       this.mapView.setBounds(bounds);
@@ -216,9 +264,9 @@ class WindowManager {
     }
   }
 
-  playAudioInWindow(soundType, volume) {
+  playAudioInWindow(soundType, soundId, volume) {
     if (this.mainWindow && !this.mainWindow.isDestroyed()) {
-      this.mainWindow.webContents.send('play-audio', { soundType, volume });
+      this.mainWindow.webContents.send('play-audio', { soundType, soundId, volume });
     }
   }
 

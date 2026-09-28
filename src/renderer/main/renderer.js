@@ -4,8 +4,12 @@ const statusLocation = document.getElementById('statusLocation');
 const statusText = document.getElementById('statusText');
 const lastUpdated = document.getElementById('lastUpdated');
 const btnSettings = document.getElementById('btnSettings');
-const audioAlert = document.getElementById('audioAlert');
-const audioAllClear = document.getElementById('audioAllClear');
+const mapProgressBar = document.getElementById('mapProgressBar');
+const mapLoadingState = document.getElementById('mapLoadingState');
+const mapErrorState = document.getElementById('mapErrorState');
+const mapErrorDescription = document.getElementById('mapErrorDescription');
+const btnRetryMap = document.getElementById('btnRetryMap');
+const audioPlayer = document.getElementById('audioPlayer');
 
 // Лінійні SVG іконки
 const icons = {
@@ -92,16 +96,40 @@ function updateUI(status) {
   }
 }
 
-function playAudio(soundType, volume = 80) {
-  try {
-    const audio = soundType === 'alert' ? audioAlert : audioAllClear;
-    if (audio) {
-      audio.currentTime = 0;
-      audio.volume = Math.max(0, Math.min(1, (volume || 80) / 100));
-      audio.play().catch((err) => {
-        console.warn('Не вдалося автоматично відтворити звук:', err.message);
-      });
+function setMapLoadingState(state, errorMsg = '') {
+  if (state === 'loading') {
+    if (mapProgressBar) mapProgressBar.classList.add('active');
+    if (mapLoadingState) mapLoadingState.style.display = 'flex';
+    if (mapErrorState) mapErrorState.style.display = 'none';
+  } else if (state === 'ready') {
+    if (mapProgressBar) mapProgressBar.classList.remove('active');
+    if (mapLoadingState) mapLoadingState.style.display = 'none';
+    if (mapErrorState) mapErrorState.style.display = 'none';
+  } else if (state === 'failed') {
+    if (mapProgressBar) mapProgressBar.classList.remove('active');
+    if (mapLoadingState) mapLoadingState.style.display = 'none';
+    if (mapErrorState) {
+      mapErrorState.style.display = 'flex';
+      if (mapErrorDescription && errorMsg) {
+        mapErrorDescription.textContent = errorMsg;
+      }
     }
+  }
+}
+
+function playAudio(soundType, soundId, volume = 80) {
+  try {
+    if (!audioPlayer) return;
+    const file = soundType === 'alert'
+      ? (soundId ? `alert-${soundId}.wav` : 'alert.wav')
+      : (soundId ? `all-clear-${soundId}.wav` : 'all-clear.wav');
+
+    audioPlayer.src = `../../../assets/audio/${file}`;
+    audioPlayer.currentTime = 0;
+    audioPlayer.volume = Math.max(0, Math.min(1, (volume !== undefined ? volume : 80) / 100));
+    audioPlayer.play().catch((err) => {
+      console.warn('Не вдалося автоматично відтворити звук:', err.message);
+    });
   } catch (err) {
     console.error('Помилка аудіо:', err);
   }
@@ -123,14 +151,29 @@ if (statusLocationWrapper) {
   });
 }
 
+if (btnRetryMap) {
+  btnRetryMap.addEventListener('click', () => {
+    setMapLoadingState('loading');
+    if (window.alertAPI && window.alertAPI.reloadMap) {
+      window.alertAPI.reloadMap();
+    }
+  });
+}
+
 if (window.alertAPI) {
   window.alertAPI.onStatusUpdate((status) => {
     updateUI(status);
   });
 
-  window.alertAPI.onPlayAudio(({ soundType, volume }) => {
-    playAudio(soundType, volume);
+  window.alertAPI.onPlayAudio(({ soundType, soundId, volume }) => {
+    playAudio(soundType, soundId, volume);
   });
+
+  if (window.alertAPI.onMapLoadingState) {
+    window.alertAPI.onMapLoadingState(({ state, errorMsg }) => {
+      setMapLoadingState(state, errorMsg);
+    });
+  }
 
   // Завантаження початкового стану
   window.alertAPI.getCurrentStatus().then((status) => {
