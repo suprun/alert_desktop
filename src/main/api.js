@@ -97,13 +97,18 @@ class AlertApiService extends EventEmitter {
       }
 
       const previousIsAlert = this.lastState.isAlert;
+      const previousLevel = this.lastState.alertLevel;
       const isAlert = Boolean(matchedAlert);
       const alertType = matchedAlert ? (matchedAlert.alert_type || 'air_raid') : 'none';
+      const alertLevel = matchedAlert ? (matchedAlert.alert_level || 'red') : 'none';
+      const threats = matchedAlert && Array.isArray(matchedAlert.threats) ? matchedAlert.threats : [];
       const startedAt = matchedAlert ? (matchedAlert.started_at || matchedAlert.created_at || new Date().toISOString()) : null;
 
       const newState = {
         isAlert,
         alertType,
+        alertLevel, // 'red', 'yellow' або 'none'
+        threats,
         startedAt,
         locationTitle: config.get('locationTitle'),
         allAlertsCount: alerts.length,
@@ -111,11 +116,13 @@ class AlertApiService extends EventEmitter {
         lastChecked: new Date().toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
       };
 
-      // Перевірка зміни статусу тривоги для сповіщення
-      if (previousIsAlert !== isAlert || (isAlert && this.lastState.alertType !== alertType)) {
+      // Перевірка зміни статусу або рівня тривоги для сповіщення
+      if (previousIsAlert !== isAlert || (isAlert && (this.lastState.alertType !== alertType || previousLevel !== alertLevel))) {
         this.emit('status-changed', {
           isAlert,
           alertType,
+          alertLevel,
+          threats,
           previousIsAlert,
           locationTitle: newState.locationTitle,
           startedAt

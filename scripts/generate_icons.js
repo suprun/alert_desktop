@@ -19,7 +19,7 @@ app.whenReady().then(async () => {
           <path d="m9 11.5 2 2 4-4" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>`
     },
-    // 2. Повітряна тривога (air_raid) - червоний щит із знаком оклику
+    // 2. Червона тривога (alert_level: red) - яскраво-червоний щит із білим знаком оклику
     {
       name: 'tray-air-raid',
       size: 32,
@@ -29,7 +29,27 @@ app.whenReady().then(async () => {
           <path d="M12 7.5v6M12 16.5v.5" stroke="#ffffff" stroke-width="2.2" stroke-linecap="round"/>
         </svg>`
     },
-    // 3. Загроза артобстрілу (artillery_shelling) - помаранчевий вибух
+    // 3. Жовта тривога (alert_level: yellow) - насичений жовтий щит із контрастним темним знаком оклику
+    {
+      name: 'tray-air-raid-yellow',
+      size: 32,
+      svg: `
+        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none">
+          <path d="M12 21s7-3.5 7-9V5.5l-7-2.5-7 2.5V12c0 5.5 7 9 7 9z" fill="#eab308" stroke="#a16207" stroke-width="1.2"/>
+          <path d="M12 7.5v6M12 16.5v.5" stroke="#0f172a" stroke-width="2.4" stroke-linecap="round"/>
+        </svg>`
+    },
+    // 4. Жовтий рівень загрози (альтернативна універсальна назва)
+    {
+      name: 'tray-yellow',
+      size: 32,
+      svg: `
+        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none">
+          <path d="M12 21s7-3.5 7-9V5.5l-7-2.5-7 2.5V12c0 5.5 7 9 7 9z" fill="#eab308" stroke="#a16207" stroke-width="1.2"/>
+          <path d="M12 7.5v6M12 16.5v.5" stroke="#0f172a" stroke-width="2.4" stroke-linecap="round"/>
+        </svg>`
+    },
+    // 5. Загроза артобстрілу (artillery_shelling) - помаранчевий вибух
     {
       name: 'tray-artillery',
       size: 32,
@@ -39,7 +59,7 @@ app.whenReady().then(async () => {
           <path d="M12 5l1.5 4.5H18l-3.8 2.8 1.4 4.5L12 14l-3.6 2.8 1.4-4.5L6 9.5h4.5z" fill="#ffffff"/>
         </svg>`
     },
-    // 4. Вуличні бої (urban_fights) - темно-помаранчевий приціл/щит
+    // 6. Вуличні бої (urban_fights) - темно-помаранчевий приціл
     {
       name: 'tray-urban-fights',
       size: 32,
@@ -53,7 +73,7 @@ app.whenReady().then(async () => {
           <line x1="16.5" y1="12" x2="20" y2="12" stroke="#ffffff" stroke-width="2" stroke-linecap="round"/>
         </svg>`
     },
-    // 5. Хімічна небезпека (chemical) - фіолетовий знак небезпеки
+    // 7. Хімічна небезпека (chemical) - фіолетовий трикутник
     {
       name: 'tray-chemical',
       size: 32,
@@ -64,7 +84,7 @@ app.whenReady().then(async () => {
           <line x1="10" y1="9" x2="14" y2="9" stroke="#ffffff" stroke-width="1.5"/>
         </svg>`
     },
-    // 6. Радіаційна загроза (nuclear) - золотавий трилисник радіації
+    // 8. Радіаційна загроза (nuclear) - золотавий трилисник радіації
     {
       name: 'tray-nuclear',
       size: 32,
@@ -77,7 +97,7 @@ app.whenReady().then(async () => {
           <path d="M9.5 13.5l-2.6 1.5A7 7 0 0 0 13 18.5v-3a4 4 0 0 1-3.5-2z" fill="#0f172a"/>
         </svg>`
     },
-    // 7. Офлайн (offline) - нейтрально-сірий перекреслений круг
+    // 9. Офлайн (offline) - нейтрально-сірий перекреслений круг
     {
       name: 'tray-offline',
       size: 32,
@@ -87,7 +107,7 @@ app.whenReady().then(async () => {
           <line x1="6" y1="6" x2="18" y2="18" stroke="#ffffff" stroke-width="2.2" stroke-linecap="round"/>
         </svg>`
     },
-    // 8. Головна іконка додатку (app-icon)
+    // 10. Головна іконка додатку (app-icon)
     {
       name: 'app-icon',
       size: 128,
@@ -101,7 +121,6 @@ app.whenReady().then(async () => {
     }
   ];
 
-  // Створюємо одне вікно для рендерингу
   const win = new BrowserWindow({
     show: false,
     width: 200,

@@ -30,6 +30,12 @@ const icons = {
       <line x1="12" y1="8" x2="12" y2="12"/>
       <line x1="12" y1="16" x2="12.01" y2="16"/>
     </svg>`,
+  yellow: `
+    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+      <line x1="12" y1="8" x2="12" y2="12"/>
+      <line x1="12" y1="16" x2="12.01" y2="16"/>
+    </svg>`,
   offline: `
     <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
       <line x1="1" y1="1" x2="23" y2="23"/>
@@ -58,10 +64,20 @@ function updateUI(status) {
     statusIcon.innerHTML = icons.offline;
     statusText.textContent = 'Офлайн (немає зв’язку)';
   } else if (status.isAlert) {
+    const isYellow = status.alertLevel === 'yellow';
     if (status.alertType === 'artillery_shelling') {
       statusBadge.classList.add('artillery');
       statusIcon.innerHTML = icons.artillery;
       statusText.textContent = 'Загроза артобстрілу!';
+    } else if (isYellow) {
+      statusBadge.classList.add('alert-yellow');
+      statusIcon.innerHTML = icons.yellow;
+      const timeStr = status.startedAt ? new Date(status.startedAt).toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit' }) : '';
+      let threatMsg = '';
+      if (Array.isArray(status.threats) && status.threats.length > 0 && status.threats[0].source_message) {
+        threatMsg = ` [${status.threats[0].source_message}]`;
+      }
+      statusText.textContent = `Жовтий рівень загрози!${threatMsg}${timeStr ? ` (з ${timeStr})` : ''}`;
     } else {
       statusBadge.classList.add('alert');
       statusIcon.innerHTML = icons.alert;

@@ -18,6 +18,8 @@ console.log(`OK: locations loaded (${locations.length} items)`);
 const requiredIcons = [
   'tray-normal.png',
   'tray-air-raid.png',
+  'tray-air-raid-yellow.png',
+  'tray-yellow.png',
   'tray-artillery.png',
   'tray-urban-fights.png',
   'tray-chemical.png',

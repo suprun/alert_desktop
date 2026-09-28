@@ -69,7 +69,9 @@ class TrayManager {
     this.tray.setContextMenu(contextMenu);
   }
 
-  getAlertInfo(alertType) {
+  getAlertInfo(alertType, alertLevel = 'red') {
+    const isYellow = alertLevel === 'yellow';
+
     switch (alertType) {
       case 'artillery_shelling':
         return { icon: 'tray-artillery', title: 'Загроза артобстрілу!' };
@@ -81,11 +83,14 @@ class TrayManager {
         return { icon: 'tray-nuclear', title: 'Радіаційна загроза!' };
       case 'air_raid':
       default:
-        return { icon: 'tray-air-raid', title: 'Повітряна тривога!' };
+        return {
+          icon: isYellow ? 'tray-air-raid-yellow' : 'tray-air-raid',
+          title: isYellow ? 'Жовтий рівень загрози!' : 'Повітряна тривога (червоний рівень)!'
+        };
     }
   }
 
-  updateStatus({ isAlert, alertType, locationTitle, startedAt, isOffline }) {
+  updateStatus({ isAlert, alertType, alertLevel, threats, locationTitle, startedAt, isOffline }) {
     if (!this.tray) return;
 
     let iconName = 'tray-normal';
@@ -95,10 +100,16 @@ class TrayManager {
       iconName = 'tray-offline';
       tooltip = `alert_desktop — ${locationTitle || 'Україна'}: Офлайн (немає зв'язку)`;
     } else if (isAlert) {
-      const alertInfo = this.getAlertInfo(alertType);
+      const alertInfo = this.getAlertInfo(alertType, alertLevel);
       iconName = alertInfo.icon;
       const timeStr = startedAt ? new Date(startedAt).toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit' }) : '';
-      tooltip = `alert_desktop — ${locationTitle}: ${alertInfo.title}${timeStr ? ` (з ${timeStr})` : ''}`;
+      
+      let threatText = '';
+      if (Array.isArray(threats) && threats.length > 0 && threats[0].source_message) {
+        threatText = ` [${threats[0].source_message}]`;
+      }
+      
+      tooltip = `alert_desktop — ${locationTitle}: ${alertInfo.title}${threatText}${timeStr ? ` (з ${timeStr})` : ''}`;
     }
 
     try {
