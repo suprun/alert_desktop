@@ -65,6 +65,9 @@ async function run() {
   const locations = [];
   let headerFound = false;
 
+  let currentOblast = null;
+  let currentRaion = null;
+
   for (const line of lines) {
     const trimmed = line.trim();
     if (!trimmed) continue;
@@ -84,10 +87,43 @@ async function run() {
 
     // Valid entry must have a numeric UID and non-empty title
     if (uid && /^\d+$/.test(uid) && title) {
+      let itemOblastUid = null;
+      let itemOblastTitle = null;
+      let itemRaionUid = null;
+      let itemRaionTitle = null;
+
+      if (type.includes('спеціальним') || type === 'Область') {
+        if (uid === '29' && currentOblast && currentOblast.uid === '8') {
+          // Автономна Республіка Крим (ряд. 7) розміщена між Волинською обл. та її районами
+          itemOblastUid = uid;
+          itemOblastTitle = title;
+        } else {
+          currentOblast = { uid, title };
+          currentRaion = null;
+          itemOblastUid = uid;
+          itemOblastTitle = title;
+        }
+      } else if (type === 'Район') {
+        currentRaion = { uid, title };
+        itemOblastUid = currentOblast ? currentOblast.uid : null;
+        itemOblastTitle = currentOblast ? currentOblast.title : null;
+        itemRaionUid = uid;
+        itemRaionTitle = title;
+      } else if (type === 'Громада') {
+        itemOblastUid = currentOblast ? currentOblast.uid : null;
+        itemOblastTitle = currentOblast ? currentOblast.title : null;
+        itemRaionUid = currentRaion ? currentRaion.uid : null;
+        itemRaionTitle = currentRaion ? currentRaion.title : null;
+      }
+
       locations.push({
         uid: String(uid),
         title,
         type,
+        oblastUid: itemOblastUid,
+        oblastTitle: itemOblastTitle,
+        raionUid: itemRaionUid,
+        raionTitle: itemRaionTitle,
         notes: notes || undefined
       });
     }

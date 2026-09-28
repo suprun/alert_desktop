@@ -24,7 +24,7 @@ class WindowManager {
       height: 760,
       minWidth: 700,
       minHeight: 500,
-      title: 'Повітряні тривоги — alert_desktop',
+      title: 'Повітряні тривоги',
       icon: iconPath,
       show: false,
       autoHideMenuBar: true,

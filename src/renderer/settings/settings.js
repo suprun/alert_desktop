@@ -7,6 +7,9 @@ const comboboxWrapper = document.getElementById('comboboxWrapper');
 const selectedLocationBadge = document.getElementById('selectedLocationBadge');
 const selectedBadgeText = document.getElementById('selectedBadgeText');
 const selectedBadgeType = document.getElementById('selectedBadgeType');
+const selectOblast = document.getElementById('selectOblast');
+const selectRaion = document.getElementById('selectRaion');
+const selectHromada = document.getElementById('selectHromada');
 
 const chkSoundEnabled = document.getElementById('chkSoundEnabled');
 const soundControls = document.getElementById('soundControls');
@@ -105,8 +108,69 @@ audioTest.addEventListener('ended', () => {
   setPlayingState(false);
 });
 
-// Функції пошукового Combobox
-function selectLocation(loc) {
+// Функції пошукового Combobox та ієрархії
+function populateOblasts() {
+  if (!selectOblast) return;
+  const oblasts = allLocations.filter(l => l.type === 'Область' || (l.type && l.type.includes('спеціальним')));
+  oblasts.sort((a, b) => {
+    if (a.uid === '31') return -1;
+    if (b.uid === '31') return 1;
+    return a.title.localeCompare(b.title, 'uk');
+  });
+  selectOblast.innerHTML = '<option value="">(Оберіть область / місто)</option>' +
+    oblasts.map(o => `<option value="${o.uid}">${o.title}</option>`).join('');
+}
+
+function populateRaions(oblastUid) {
+  if (!selectRaion) return;
+  if (!oblastUid) {
+    selectRaion.innerHTML = '<option value="">(Оберіть район)</option>';
+    selectRaion.disabled = true;
+    if (selectHromada) {
+      selectHromada.innerHTML = '<option value="">(Оберіть громаду)</option>';
+      selectHromada.disabled = true;
+    }
+    return;
+  }
+
+  const raions = allLocations.filter(l => l.type === 'Район' && String(l.oblastUid) === String(oblastUid));
+  if (raions.length === 0) {
+    selectRaion.innerHTML = '<option value="">(Немає районів)</option>';
+    selectRaion.disabled = true;
+    if (selectHromada) {
+      selectHromada.innerHTML = '<option value="">(Немає громад)</option>';
+      selectHromada.disabled = true;
+    }
+  } else {
+    raions.sort((a, b) => a.title.localeCompare(b.title, 'uk'));
+    selectRaion.innerHTML = '<option value="">(Оберіть район)</option>' +
+      raions.map(r => `<option value="${r.uid}">${r.title}</option>`).join('');
+    selectRaion.disabled = false;
+  }
+}
+
+function populateHromadas(raionUid) {
+  if (!selectHromada) return;
+  if (!raionUid) {
+    selectHromada.innerHTML = '<option value="">(Оберіть громаду)</option>';
+    selectHromada.disabled = true;
+    return;
+  }
+
+  const hromadas = allLocations.filter(l => l.type === 'Громада' && String(l.raionUid) === String(raionUid));
+  if (hromadas.length === 0) {
+    selectHromada.innerHTML = '<option value="">(Немає громад)</option>';
+    selectHromada.disabled = true;
+  } else {
+    hromadas.sort((a, b) => a.title.localeCompare(b.title, 'uk'));
+    selectHromada.innerHTML = '<option value="">(Оберіть громаду)</option>' +
+      hromadas.map(h => `<option value="${h.uid}">${h.title}</option>`).join('');
+    selectHromada.disabled = false;
+  }
+}
+
+function selectLocation(loc, syncHierarchy = true) {
+  if (!loc) return;
   selectedUid = String(loc.uid);
   selectedTitle = loc.title;
   selectedType = loc.type || '';
@@ -116,6 +180,30 @@ function selectLocation(loc) {
   selectedBadgeType.textContent = loc.type || '';
   selectedLocationBadge.style.display = 'flex';
   btnClearLocation.style.display = 'flex';
+
+  if (syncHierarchy && selectOblast) {
+    if (loc.type === 'Область' || (loc.type && loc.type.includes('спеціальним'))) {
+      selectOblast.value = String(loc.uid);
+      populateRaions(loc.uid);
+      if (selectRaion) selectRaion.value = '';
+      if (selectHromada) {
+        selectHromada.innerHTML = '<option value="">(Оберіть громаду)</option>';
+        selectHromada.disabled = true;
+      }
+    } else if (loc.type === 'Район') {
+      selectOblast.value = String(loc.oblastUid || '');
+      populateRaions(loc.oblastUid);
+      if (selectRaion) selectRaion.value = String(loc.uid);
+      populateHromadas(loc.uid);
+      if (selectHromada) selectHromada.value = '';
+    } else if (loc.type === 'Громада') {
+      selectOblast.value = String(loc.oblastUid || '');
+      populateRaions(loc.oblastUid);
+      if (selectRaion) selectRaion.value = String(loc.raionUid || '');
+      populateHromadas(loc.raionUid);
+      if (selectHromada) selectHromada.value = String(loc.uid);
+    }
+  }
 
   closeDropdown();
 }
@@ -218,9 +306,71 @@ btnClearLocation.addEventListener('click', (e) => {
   e.stopPropagation();
   locationSearchInput.value = '';
   btnClearLocation.style.display = 'none';
+  selectedLocationBadge.style.display = 'none';
+  if (selectOblast) selectOblast.value = '';
+  populateRaions(null);
   locationSearchInput.focus();
   openDropdown();
 });
+
+// Слухачі подій для ієрархічних списків вибору
+if (selectOblast) {
+  selectOblast.addEventListener('change', () => {
+    const oUid = selectOblast.value;
+    if (!oUid) {
+      populateRaions(null);
+      return;
+    }
+    populateRaions(oUid);
+    if (selectHromada) {
+      selectHromada.innerHTML = '<option value="">(Оберіть громаду)</option>';
+      selectHromada.disabled = true;
+    }
+
+    const oLoc = allLocations.find(l => String(l.uid) === String(oUid));
+    if (oLoc) {
+      selectLocation(oLoc, false);
+    }
+  });
+}
+
+if (selectRaion) {
+  selectRaion.addEventListener('change', () => {
+    const rUid = selectRaion.value;
+    if (!rUid) {
+      populateHromadas(null);
+      const oLoc = allLocations.find(l => String(l.uid) === String(selectOblast.value));
+      if (oLoc) {
+        selectLocation(oLoc, false);
+      }
+      return;
+    }
+    populateHromadas(rUid);
+
+    const rLoc = allLocations.find(l => String(l.uid) === String(rUid));
+    if (rLoc) {
+      selectLocation(rLoc, false);
+    }
+  });
+}
+
+if (selectHromada) {
+  selectHromada.addEventListener('change', () => {
+    const hUid = selectHromada.value;
+    if (!hUid) {
+      const rLoc = allLocations.find(l => String(l.uid) === String(selectRaion.value));
+      if (rLoc) {
+        selectLocation(rLoc, false);
+      }
+      return;
+    }
+
+    const hLoc = allLocations.find(l => String(l.uid) === String(hUid));
+    if (hLoc) {
+      selectLocation(hLoc, false);
+    }
+  });
+}
 
 // Клавіатурна навігація у списку результатів
 locationSearchInput.addEventListener('keydown', (e) => {
@@ -276,6 +426,7 @@ async function init() {
 
     // 1. Завантаження повного довідника локацій
     allLocations = await window.settingsAPI.getLocations();
+    populateOblasts();
 
     // 2. Завантаження поточної конфігурації
     const cfg = await window.settingsAPI.getConfig();
@@ -284,7 +435,7 @@ async function init() {
       selectedUid = String(cfg.locationUid);
       const found = allLocations.find(l => String(l.uid) === selectedUid);
       if (found) {
-        selectLocation(found);
+        selectLocation(found, true);
       } else if (cfg.locationTitle) {
         selectedTitle = cfg.locationTitle;
         locationSearchInput.value = cfg.locationTitle;

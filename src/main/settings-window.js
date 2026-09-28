@@ -22,7 +22,7 @@ class SettingsWindowManager {
       resizable: false,
       maximizable: false,
       minimizable: false,
-      title: 'Налаштування — alert_desktop',
+      title: 'Налаштування — Повітряні тривоги',
       icon: iconPath,
       parent: parentWindow || undefined,
       modal: false,

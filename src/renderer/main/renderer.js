@@ -113,6 +113,15 @@ btnSettings.addEventListener('click', () => {
   }
 });
 
+const statusLocationWrapper = document.getElementById('statusLocationWrapper');
+if (statusLocationWrapper) {
+  statusLocationWrapper.addEventListener('click', () => {
+    if (window.alertAPI && window.alertAPI.openSettings) {
+      window.alertAPI.openSettings();
+    }
+  });
+}
+
 if (window.alertAPI) {
   window.alertAPI.onStatusUpdate((status) => {
     updateUI(status);

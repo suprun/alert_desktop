@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; font-src 'self'; style-src 'self' 'unsafe-inline'; media-src 'self'; img-src 'self' data:;">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>alert_desktop</title>
+  <title>Повітряні тривоги</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -18,7 +18,14 @@
             <path d="m9 12 2 2 4-4"/>
           </svg>
         </span>
-        <span id="statusLocation" class="status-location">м. Київ</span>
+        <span id="statusLocationWrapper" class="status-location-wrapper" title="Змінити місцевість (Налаштування)">
+          <span id="statusLocation" class="status-location">м. Київ</span>
+          <span class="location-edit-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/>
+            </svg>
+          </span>
+        </span>
         <span class="status-separator">·</span>
         <span id="statusText" class="status-text">Немає тривоги</span>
       </div>

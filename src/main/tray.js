@@ -18,7 +18,7 @@ class TrayManager {
 
     this.tray = new Tray(icon);
     this.currentIconName = 'tray-normal';
-    this.tray.setToolTip('alert_desktop — Очікування даних...');
+    this.tray.setToolTip('Повітряні тривоги — Очікування даних...');
 
     this.updateContextMenu();
 
@@ -94,11 +94,11 @@ class TrayManager {
     if (!this.tray) return;
 
     let iconName = 'tray-normal';
-    let tooltip = `alert_desktop — ${locationTitle || 'Україна'}: Немає тривоги`;
+    let tooltip = `Повітряні тривоги — ${locationTitle || 'Україна'}: Немає тривоги`;
 
     if (isOffline) {
       iconName = 'tray-offline';
-      tooltip = `alert_desktop — ${locationTitle || 'Україна'}: Офлайн (немає зв'язку)`;
+      tooltip = `Повітряні тривоги — ${locationTitle || 'Україна'}: Офлайн (немає зв'язку)`;
     } else if (isAlert) {
       const alertInfo = this.getAlertInfo(alertType, alertLevel);
       iconName = alertInfo.icon;
@@ -109,7 +109,7 @@ class TrayManager {
         threatText = ` [${threats[0].source_message}]`;
       }
       
-      tooltip = `alert_desktop — ${locationTitle}: ${alertInfo.title}${threatText}${timeStr ? ` (з ${timeStr})` : ''}`;
+      tooltip = `Повітряні тривоги — ${locationTitle}: ${alertInfo.title}${threatText}${timeStr ? ` (з ${timeStr})` : ''}`;
     }
 
     try {

@@ -112,9 +112,42 @@ body {
   justify-content: center;
 }
 
+.status-location-wrapper {
+  -webkit-app-region: no-drag;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+  padding: 2px 6px;
+  margin: -2px -4px;
+  border-radius: 6px;
+  transition: all 0.18s ease;
+}
+
+.status-location-wrapper:hover {
+  background-color: rgba(255, 255, 255, 0.14);
+}
+
 .status-location {
   font-weight: 600;
   color: #ffffff;
+  transition: opacity 0.15s ease;
+}
+
+.location-edit-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #94a3b8;
+  opacity: 0;
+  transform: translateX(-2px) scale(0.9);
+  transition: opacity 0.2s ease, transform 0.2s ease, color 0.2s ease;
+}
+
+.status-location-wrapper:hover .location-edit-icon {
+  opacity: 1;
+  transform: translateX(0) scale(1);
+  color: #f8fafc;
 }
 
 .status-separator {
