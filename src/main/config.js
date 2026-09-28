@@ -4,6 +4,8 @@ const path = require('path');
 const { EventEmitter } = require('events');
 const autostart = require('./autostart');
 
+const DEFAULT_PROXY_URL = 'https://api.applink.pp.ua/v1/alerts/active.json';
+
 class ConfigManager extends EventEmitter {
   constructor() {
     super();
@@ -15,7 +17,8 @@ class ConfigManager extends EventEmitter {
       soundEnabled: true,
       volume: 80,
       autoStart: false,
-      serverUrl: process.env.ALERTS_API_URL || 'https://api.alerts.in.ua/v1/alerts/active.json',
+      devMode: false,
+      serverUrl: process.env.ALERTS_API_URL || DEFAULT_PROXY_URL,
       apiKey: process.env.ALERTS_API_KEY || '',
       pollingInterval: Number(process.env.ALERTS_POLL_INTERVAL) || 15000,
       isFirstLaunch: true
@@ -54,15 +57,30 @@ class ConfigManager extends EventEmitter {
         const data = fs.readFileSync(this.configPath, 'utf8');
         const parsed = JSON.parse(data);
         const config = { ...this.defaults, ...parsed };
+        let needsSave = false;
 
-        // Автоматична міграція застарілих / некоректних URL API
-        if (!config.serverUrl || config.serverUrl.includes('devs.alerts.in.ua') || config.serverUrl.includes('/api/v1/alerts/active.json')) {
-          config.serverUrl = process.env.ALERTS_API_URL || 'https://api.alerts.in.ua/v1/alerts/active.json';
+        // Автоматична міграція на роботу через проксі-ретранслятор:
+        // Якщо devMode не було задано, вимикаємо його за замовчуванням
+        if (parsed.devMode === undefined) {
+          config.devMode = false;
+          needsSave = true;
         }
 
-        // Синхронізація ключа з .env якщо в конфізі порожній
-        if (!config.apiKey && process.env.ALERTS_API_KEY) {
-          config.apiKey = process.env.ALERTS_API_KEY;
+        // Якщо режим розробника вимкнено — використовуємо актуальний URL ретранслятора
+        if (!config.devMode) {
+          const targetProxyUrl = process.env.ALERTS_API_URL || DEFAULT_PROXY_URL;
+          if (config.serverUrl !== targetProxyUrl) {
+            config.serverUrl = targetProxyUrl;
+            needsSave = true;
+          }
+        }
+
+        if (needsSave) {
+          try {
+            fs.writeFileSync(this.configPath, JSON.stringify(config, null, 2), 'utf8');
+          } catch (writeErr) {
+            console.warn('Не вдалося зберегти мігрований config.json:', writeErr.message);
+          }
         }
 
         return config;

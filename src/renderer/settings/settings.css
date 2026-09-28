@@ -556,3 +556,25 @@ body {
   display: flex;
   align-items: center;
 }
+
+/* Блок налаштувань для розробників */
+.dev-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--border-color);
+  margin-top: 4px;
+}
+
+.dev-actions-row {
+  display: flex;
+  justify-content: flex-start;
+  margin-top: 2px;
+}
+
+.btn-sm {
+  padding: 5px 11px;
+  font-size: 11.5px;
+  border-radius: 5px;
+}

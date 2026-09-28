@@ -19,6 +19,7 @@ class AlertApiService extends EventEmitter {
   constructor() {
     super();
     this.timer = null;
+    this.isChecking = false;
     this.lastState = {
       isAlert: false,
       alertType: 'none',
@@ -54,31 +55,35 @@ class AlertApiService extends EventEmitter {
   }
 
   async checkNow() {
-    const serverUrl = config.get('serverUrl') || 'https://api.alerts.in.ua/v1/alerts/active.json';
-    let requestUrl = serverUrl;
-    const apiKey = config.get('apiKey') || '';
-    const selectedUid = String(config.get('locationUid') || '');
-    const selectedTitle = (config.get('locationTitle') || '').toLowerCase().trim();
-
-    // Якщо вказано API ключ, додаємо його до запиту (через token query параметр та headers)
-    if (apiKey) {
-      if (!requestUrl.includes('token=')) {
-        const sep = requestUrl.includes('?') ? '&' : '?';
-        requestUrl = `${requestUrl}${sep}token=${encodeURIComponent(apiKey)}`;
-      }
-    }
-
-    const headers = {
-      'Accept': 'application/json',
-      'User-Agent': 'alert_desktop/1.0'
-    };
-
-    if (apiKey) {
-      headers['X-API-Key'] = apiKey;
-      headers['Authorization'] = `Bearer ${apiKey}`;
-    }
+    if (this.isChecking) return;
+    this.isChecking = true;
 
     try {
+      const devMode = config.get('devMode') === true;
+      const defaultProxyUrl = process.env.ALERTS_API_URL || 'https://api.applink.pp.ua/v1/alerts/active.json';
+      let requestUrl = devMode ? (config.get('serverUrl') || defaultProxyUrl) : defaultProxyUrl;
+      const apiKey = devMode ? (config.get('apiKey') || '') : '';
+      const selectedUid = String(config.get('locationUid') || '');
+      const selectedTitle = (config.get('locationTitle') || '').toLowerCase().trim();
+
+      // Якщо вказано API ключ (у режимі розробника), додаємо його до запиту
+      if (apiKey) {
+        if (!requestUrl.includes('token=')) {
+          const sep = requestUrl.includes('?') ? '&' : '?';
+          requestUrl = `${requestUrl}${sep}token=${encodeURIComponent(apiKey)}`;
+        }
+      }
+
+      const headers = {
+        'Accept': 'application/json',
+        'User-Agent': 'alert_desktop/1.0'
+      };
+
+      if (apiKey) {
+        headers['X-API-Key'] = apiKey;
+        headers['Authorization'] = `Bearer ${apiKey}`;
+      }
+
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 10000);
 
@@ -215,6 +220,8 @@ class AlertApiService extends EventEmitter {
         lastChecked: new Date().toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
       };
       this.emit('status-updated', this.lastState);
+    } finally {
+      this.isChecking = false;
     }
   }
 

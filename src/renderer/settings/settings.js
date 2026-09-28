@@ -19,11 +19,16 @@ const btnPlayTest = document.getElementById('btnPlayTest');
 const playIcon = document.getElementById('playIcon');
 const playText = document.getElementById('playText');
 const chkAutoStart = document.getElementById('chkAutoStart');
+const chkDevMode = document.getElementById('chkDevMode');
+const devSettingsControls = document.getElementById('devSettingsControls');
+const btnResetToProxy = document.getElementById('btnResetToProxy');
 const inputServerUrl = document.getElementById('inputServerUrl');
 const inputApiKey = document.getElementById('inputApiKey');
 const btnCancel = document.getElementById('btnCancel');
 const btnSave = document.getElementById('btnSave');
 const audioTest = document.getElementById('audioTest');
+
+const DEFAULT_PROXY_URL = 'https://api.applink.pp.ua/v1/alerts/active.json';
 
 const playSvg = `
   <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -76,6 +81,24 @@ function updateSoundControlsState() {
 chkSoundEnabled.addEventListener('change', () => {
   updateSoundControlsState();
 });
+
+// Перемикання режиму розробника
+function updateDevModeState() {
+  if (!chkDevMode || !devSettingsControls) return;
+  const isDev = chkDevMode.checked;
+  devSettingsControls.style.display = isDev ? 'flex' : 'none';
+}
+
+if (chkDevMode) {
+  chkDevMode.addEventListener('change', updateDevModeState);
+}
+
+if (btnResetToProxy) {
+  btnResetToProxy.addEventListener('click', () => {
+    inputServerUrl.value = DEFAULT_PROXY_URL;
+    inputApiKey.value = '';
+  });
+}
 
 // Зміна слайдера гучності
 volumeSlider.addEventListener('input', () => {
@@ -454,10 +477,12 @@ async function init() {
     volumeSlider.value = cfg.volume !== undefined ? cfg.volume : 80;
     volumeValue.textContent = `${volumeSlider.value}%`;
     chkAutoStart.checked = Boolean(cfg.autoStart);
-    inputServerUrl.value = cfg.serverUrl || 'https://api.alerts.in.ua/v1/alerts/active.json';
+    chkDevMode.checked = Boolean(cfg.devMode);
+    inputServerUrl.value = cfg.serverUrl || DEFAULT_PROXY_URL;
     inputApiKey.value = cfg.apiKey || '';
 
     updateSoundControlsState();
+    updateDevModeState();
 
   } catch (err) {
     console.error('Помилка ініціалізації налаштувань:', err);
@@ -478,14 +503,17 @@ btnSave.addEventListener('click', async () => {
     }
   }
 
+  const isDevMode = chkDevMode ? chkDevMode.checked : false;
+
   const newConfig = {
     locationUid: selectedUid,
     locationTitle: selectedTitle,
     soundEnabled: chkSoundEnabled.checked,
     volume: parseInt(volumeSlider.value, 10),
     autoStart: chkAutoStart.checked,
-    serverUrl: inputServerUrl.value.trim() || 'https://api.alerts.in.ua/v1/alerts/active.json',
-    apiKey: inputApiKey.value.trim()
+    devMode: isDevMode,
+    serverUrl: isDevMode ? (inputServerUrl.value.trim() || DEFAULT_PROXY_URL) : DEFAULT_PROXY_URL,
+    apiKey: isDevMode ? inputApiKey.value.trim() : (inputApiKey.value.trim() || '')
   };
 
   await window.settingsAPI.saveConfig(newConfig);

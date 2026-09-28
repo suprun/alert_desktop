@@ -124,16 +124,28 @@
         </div>
       </section>
 
-      <!-- Розділ сервера та ретранслятора -->
-      <section class="settings-group">
-        <span class="group-label">Сервер та API</span>
-        <div class="form-field">
-          <label for="inputServerUrl" class="field-label">URL сервера або ретранслятора</label>
-          <input type="url" id="inputServerUrl" class="form-input" placeholder="https://devs.alerts.in.ua/api/v1/alerts/active.json">
+      <!-- Опціональні налаштування для розробників -->
+      <section class="settings-group dev-settings-group">
+        <div class="checkbox-control">
+          <input type="checkbox" id="chkDevMode" class="form-checkbox">
+          <label for="chkDevMode" class="checkbox-label group-label">Налаштування для розробників</label>
         </div>
-        <div class="form-field">
-          <label for="inputApiKey" class="field-label">API ключ (опціонально)</label>
-          <input type="password" id="inputApiKey" class="form-input" placeholder="Ключ для devs.alerts.in.ua">
+        <p class="field-hint">За замовчуванням додаток працює через швидкий ретранслятор і не потребує токена. Увімкніть цю опцію для прямого підключення до API з власним ключем.</p>
+
+        <div id="devSettingsControls" class="dev-controls" style="display: none;">
+          <div class="form-field">
+            <label for="inputServerUrl" class="field-label">URL сервера або ретранслятора</label>
+            <input type="url" id="inputServerUrl" class="form-input" placeholder="https://api.applink.pp.ua/v1/alerts/active.json">
+          </div>
+          <div class="form-field">
+            <label for="inputApiKey" class="field-label">API ключ (токен alerts.in.ua)</label>
+            <input type="password" id="inputApiKey" class="form-input" placeholder="Введіть особистий токен">
+          </div>
+          <div class="dev-actions-row">
+            <button type="button" id="btnResetToProxy" class="btn-secondary btn-sm">
+              Скинути до ретранслятора за замовчуванням
+            </button>
+          </div>
         </div>
       </section>
     </main>
