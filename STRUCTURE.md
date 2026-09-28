@@ -46,6 +46,7 @@ alert_desktop/
 │
 ├── scripts/                              # Допоміжні скрипти генерації та обслуговування
 │   ├── build_installer.js                # Автоматична збірка інсталятора (Packager + Inno Setup ISCC)
+│   ├── deploy_remote.py                  # Автоматизоване SSH/SFTP розгортання проксі-сервера на Ubuntu
 │   ├── download_assets.js                # Завантаження шрифтів Inter у репозиторій
 │   ├── generate_audio.js                 # Генерація чистих синтезованих звуків сирени/відбою
 │   ├── generate_ico.js                   # Генерація Windows .ico з 6 роздільними здатностями
