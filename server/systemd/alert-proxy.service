@@ -1,0 +1,29 @@
+[Unit]
+Description=Alerts.in.ua Python Proxy Server for alert_desktop
+Documentation=https://github.com
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=www-data
+Group=www-data
+WorkingDirectory=/opt/alert_proxy
+EnvironmentFile=-/opt/alert_proxy/.env
+ExecStart=/opt/alert_proxy/venv/bin/python -m uvicorn main:app --host 0.0.0.0 --port 8080 --no-access-log
+Restart=always
+RestartSec=5s
+
+# Обмеження безпеки
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=true
+
+# Логування в journald
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=alert-proxy
+
+[Install]
+WantedBy=multi-user.target
