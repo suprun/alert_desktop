@@ -92,6 +92,13 @@ if (!gotTheLock) {
     // Запускаємо фонове опитування сервера тривог
     api.startPolling();
 
+    // Синхронізуємо автозапуск із налаштуваннями
+    const autostart = require('./autostart');
+    const autoStartEnabled = config.get('autoStart');
+    if (typeof autoStartEnabled === 'boolean') {
+      autostart.setAutoStart(autoStartEnabled);
+    }
+
     // Перевірка першого запуску: якщо перший старт — відкриваємо вікно налаштувань для вибору місцевості
     const isFirstLaunch = config.get('isFirstLaunch');
     if (isFirstLaunch) {

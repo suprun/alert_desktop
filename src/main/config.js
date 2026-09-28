@@ -2,6 +2,7 @@ const { app } = require('electron');
 const fs = require('fs');
 const path = require('path');
 const { EventEmitter } = require('events');
+const autostart = require('./autostart');
 
 class ConfigManager extends EventEmitter {
   constructor() {
@@ -77,12 +78,9 @@ class ConfigManager extends EventEmitter {
       this.config = { ...this.config, ...newConfig };
       fs.writeFileSync(this.configPath, JSON.stringify(this.config, null, 2), 'utf8');
       
-      // Налаштування автозапуску в системі
+      // Налаштування автозапуску в системі через спеціалізований менеджер
       if (typeof newConfig.autoStart === 'boolean') {
-        app.setLoginItemSettings({
-          openAtLogin: this.config.autoStart,
-          name: 'alert_desktop'
-        });
+        autostart.setAutoStart(this.config.autoStart);
       }
 
       this.emit('changed', this.config);

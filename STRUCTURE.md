@@ -55,6 +55,7 @@ alert_desktop/
     │   ├── settings-window.js            # Менеджер діалогового вікна налаштувань
     │   ├── tray.js                       # Керування системним треєм (іконка, tooltip, меню)
     │   ├── api.js                        # HTTP polling сервера api.alerts.in.ua / ретранслятора
+    │   ├── autostart.js                  # Менеджер автозапуску Windows (Electron API + HKCU Run)
     │   ├── config.js                     # Робота з config.json, .env та автозапуском ОС
     │   ├── notifier.js                   # Системні сповіщення Windows та запуск звуку
     │   └── locations.json                # Повний довідник 1622 локацій України (UID, назви, типи)

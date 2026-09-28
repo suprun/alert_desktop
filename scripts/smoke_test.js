@@ -53,5 +53,13 @@ if (state === undefined || state.isAlert === undefined) {
 }
 console.log('OK: api service initialized');
 
+// 4. Check Autostart module
+const autostart = require('../src/main/autostart');
+if (typeof autostart.setAutoStart !== 'function' || typeof autostart.isEnabled !== 'function') {
+  console.error('FAIL: autostart module methods missing');
+  process.exit(1);
+}
+console.log(`OK: autostart module initialized (currently enabled: ${autostart.isEnabled()})`);
+
 console.log('All smoke checks passed successfully!');
 process.exit(0);
