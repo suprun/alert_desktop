@@ -24,6 +24,7 @@
 
 :root {
   /* Темна тема за замовчуванням: plain color #232529 */
+  color-scheme: dark;
   --bg-color: #232529;
   --border-color: rgba(255, 255, 255, 0.08);
   --text-main: #f8fafc;
@@ -62,6 +63,7 @@
 @media (prefers-color-scheme: light) {
   :root {
     /* Світла тема: plain color #eff0f2 */
+    color-scheme: light;
     --bg-color: #eff0f2;
     --border-color: #d1d5db;
     --text-main: #1e293b;

@@ -24,6 +24,7 @@
 
 :root {
   /* Світла тема за замовчуванням */
+  color-scheme: light;
   --bg-page: #eff0f2;
   --bg-card: #ffffff;
   --border-color: #e2e8f0;
@@ -47,11 +48,17 @@
   --btn-sec-text: #1e293b;
   --btn-sec-border: #cbd5e1;
   --btn-sec-hover-bg: #f1f5f9;
+
+  /* Скролбар для світлої теми */
+  --scrollbar-thumb: #cbd5e1;
+  --scrollbar-thumb-hover: #94a3b8;
+  --scrollbar-track: transparent;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
     /* Темна тема під OS */
+    color-scheme: dark;
     --bg-page: #18191c;
     --bg-card: #232529;
     --border-color: #33373e;
@@ -75,6 +82,11 @@
     --btn-sec-text: #f8fafc;
     --btn-sec-border: #475569;
     --btn-sec-hover-bg: #2d3137;
+
+    /* Скролбар для темної теми */
+    --scrollbar-thumb: #475569;
+    --scrollbar-thumb-hover: #64748b;
+    --scrollbar-track: transparent;
   }
 }
 
@@ -83,6 +95,26 @@
   margin: 0;
   padding: 0;
   user-select: none;
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--scrollbar-track);
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: var(--scrollbar-thumb);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--scrollbar-thumb-hover);
 }
 
 body {
