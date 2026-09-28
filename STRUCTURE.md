@@ -23,6 +23,7 @@ alert_desktop/
 │   │   ├── Inter-Medium.woff2
 │   │   └── Inter-SemiBold.woff2
 │   └── icons/                            # Векторні SVG та растрові PNG іконки
+│       ├── app-icon.ico                  # Багаторозмірна Windows-іконка (16..256px) для інсталятора та EXE
 │       ├── app-icon.png / app-icon.svg   # Головна іконка застосунку
 │       ├── tray-normal.png / .svg        # Іконка трею: тривоги немає (зелений щит)
 │       ├── tray-air-raid.png / .svg      # Іконка трею: червона повітряна тривога (червоний щит)
@@ -40,9 +41,14 @@ alert_desktop/
 │           ├── siren.svg                 # Лінійна іконка тривоги
 │           └── volume.svg                # Іконка повзунка гучності
 │
+├── installer/                            # Конфігурація інсталятора
+│   └── setup.iss                         # Скрипт Inno Setup 6 (українська/англійська, автозапуск, ярлики)
+│
 ├── scripts/                              # Допоміжні скрипти генерації та обслуговування
+│   ├── build_installer.js                # Автоматична збірка інсталятора (Packager + Inno Setup ISCC)
 │   ├── download_assets.js                # Завантаження шрифтів Inter у репозиторій
 │   ├── generate_audio.js                 # Генерація чистих синтезованих звуків сирени/відбою
+│   ├── generate_ico.js                   # Генерація Windows .ico з 6 роздільними здатностями
 │   ├── generate_icons.js                 # Генерація PNG-іконок через Electron nativeImage
 │   ├── generate_ui_icons.js              # Генерація лінійних SVG піктограм інтерфейсу
 │   ├── parse_locations.js                # Завантаження та парсинг 1622 локацій з Google Spreadsheets
