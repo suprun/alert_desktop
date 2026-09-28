@@ -11,7 +11,7 @@ class NotifierService {
     this.audioCallback = cb;
   }
 
-  notifyStatusChange({ isAlert, alertType, locationTitle }) {
+  notifyStatusChange({ isAlert, alertType, locationTitle, alertScope }) {
     const soundEnabled = config.get('soundEnabled');
     const volume = config.get('volume');
 
@@ -29,9 +29,11 @@ class NotifierService {
     let body = '';
     let soundType = '';
 
+    const scopeNote = alertScope ? ` (${alertScope})` : '';
+
     if (isAlert) {
       const typeText = this.getAlertTypeText(alertType);
-      title = `${typeText} — ${locationTitle}`;
+      title = `${typeText} — ${locationTitle}${scopeNote}`;
       body = 'Негайно пройдіть в найближче укриття!';
       soundType = 'alert';
     } else {

@@ -90,7 +90,7 @@ class TrayManager {
     }
   }
 
-  updateStatus({ isAlert, alertType, alertLevel, threats, locationTitle, startedAt, isOffline }) {
+  updateStatus({ isAlert, alertType, alertLevel, alertScope, threats, locationTitle, startedAt, isOffline }) {
     if (!this.tray) return;
 
     let iconName = 'tray-normal';
@@ -109,7 +109,8 @@ class TrayManager {
         threatText = ` [${threats[0].source_message}]`;
       }
       
-      tooltip = `Повітряні тривоги — ${locationTitle}: ${alertInfo.title}${threatText}${timeStr ? ` (з ${timeStr})` : ''}`;
+      const scopeNote = alertScope ? ` (${alertScope})` : '';
+      tooltip = `Повітряні тривоги — ${locationTitle}: ${alertInfo.title}${scopeNote}${threatText}${timeStr ? ` (з ${timeStr})` : ''}`;
     }
 
     try {

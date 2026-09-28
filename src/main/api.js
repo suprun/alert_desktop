@@ -1,5 +1,19 @@
 const { EventEmitter } = require('events');
 const config = require('./config');
+const locationsData = require('./locations.json');
+
+// Індексація локацій для швидкого пошуку ієрархічних зв'язків
+const locationByUid = new Map();
+const locationByTitle = new Map();
+
+for (const loc of locationsData) {
+  if (loc.uid) {
+    locationByUid.set(String(loc.uid), loc);
+  }
+  if (loc.title) {
+    locationByTitle.set(loc.title.toLowerCase().trim(), loc);
+  }
+}
 
 class AlertApiService extends EventEmitter {
   constructor() {
@@ -8,6 +22,8 @@ class AlertApiService extends EventEmitter {
     this.lastState = {
       isAlert: false,
       alertType: 'none',
+      alertLevel: 'none',
+      alertScope: null,
       startedAt: null,
       locationTitle: config.get('locationTitle'),
       allAlertsCount: 0,
@@ -80,20 +96,77 @@ class AlertApiService extends EventEmitter {
       const data = await response.json();
       const alerts = Array.isArray(data) ? data : (data.alerts || []);
 
-      // Пошук активної тривоги для вибраної локації
-      let matchedAlert = null;
+      // Пошук об'єкта обраної локації для побудови ієрархії (громада -> район -> область)
+      let currentLocation = locationByUid.get(selectedUid);
+      if (!currentLocation && selectedTitle) {
+        currentLocation = locationByTitle.get(selectedTitle);
+      }
+      if (!currentLocation && selectedTitle) {
+        currentLocation = locationsData.find(l => {
+          const t = l.title.toLowerCase().trim();
+          return t === selectedTitle || t.includes(selectedTitle) || selectedTitle.includes(t);
+        });
+      }
 
-      for (const alert of alerts) {
-        const alertUid = String(alert.location_uid || alert.uid || alert.id || '');
-        const alertTitle = (alert.location_title || alert.title || alert.location_oblast || '').toLowerCase().trim();
-
-        const matchUid = selectedUid && alertUid === selectedUid;
-        const matchTitle = selectedTitle && (alertTitle === selectedTitle || alertTitle.includes(selectedTitle) || selectedTitle.includes(alertTitle));
-
-        if (matchUid || matchTitle) {
-          matchedAlert = alert;
-          break;
+      // Формуємо пріоритетну ієрархію:
+      // 1. Пряма локація (громада / район / область / місто)
+      // 2. Батьківський район (для громади)
+      // 3. Батьківська область (для громади або району)
+      const targetHierarchy = [];
+      if (currentLocation) {
+        targetHierarchy.push({
+          level: 'direct',
+          uid: String(currentLocation.uid),
+          title: currentLocation.title.toLowerCase().trim(),
+          sourceTitle: currentLocation.title
+        });
+        if (currentLocation.raionUid && String(currentLocation.raionUid) !== String(currentLocation.uid)) {
+          targetHierarchy.push({
+            level: 'raion',
+            uid: String(currentLocation.raionUid),
+            title: (currentLocation.raionTitle || '').toLowerCase().trim(),
+            sourceTitle: currentLocation.raionTitle || 'Район'
+          });
         }
+        if (currentLocation.oblastUid && String(currentLocation.oblastUid) !== String(currentLocation.uid)) {
+          targetHierarchy.push({
+            level: 'oblast',
+            uid: String(currentLocation.oblastUid),
+            title: (currentLocation.oblastTitle || '').toLowerCase().trim(),
+            sourceTitle: currentLocation.oblastTitle || 'Область'
+          });
+        }
+      } else if (selectedUid || selectedTitle) {
+        targetHierarchy.push({
+          level: 'direct',
+          uid: selectedUid,
+          title: selectedTitle,
+          sourceTitle: config.get('locationTitle') || 'Локація'
+        });
+      }
+
+      // Шукаємо активну тривогу за спаданням специфічності (громада -> район -> область)
+      let matchedAlert = null;
+      let matchedScope = null;
+
+      for (const target of targetHierarchy) {
+        for (const alert of alerts) {
+          const alertUid = String(alert.location_uid || alert.uid || alert.id || '');
+          const alertTitle = (alert.location_title || alert.title || '').toLowerCase().trim();
+          const alertOblast = (alert.location_oblast || '').toLowerCase().trim();
+          const alertType = alert.location_type || '';
+
+          const matchUid = target.uid && alertUid === target.uid;
+          const matchTitle = target.title && (alertTitle === target.title || alertTitle.includes(target.title) || target.title.includes(alertTitle));
+          const matchOblast = target.level === 'oblast' && alertType === 'oblast' && target.title && alertOblast === target.title;
+
+          if (matchUid || matchTitle || matchOblast) {
+            matchedAlert = alert;
+            matchedScope = target.level !== 'direct' ? target.sourceTitle : null;
+            break;
+          }
+        }
+        if (matchedAlert) break;
       }
 
       const previousIsAlert = this.lastState.isAlert;
@@ -108,6 +181,7 @@ class AlertApiService extends EventEmitter {
         isAlert,
         alertType,
         alertLevel, // 'red', 'yellow' або 'none'
+        alertScope: matchedScope, // джерело тривоги, якщо вона поширюється з району чи області
         threats,
         startedAt,
         locationTitle: config.get('locationTitle'),
@@ -122,6 +196,7 @@ class AlertApiService extends EventEmitter {
           isAlert,
           alertType,
           alertLevel,
+          alertScope: newState.alertScope,
           threats,
           previousIsAlert,
           locationTitle: newState.locationTitle,

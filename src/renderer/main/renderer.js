@@ -65,10 +65,11 @@ function updateUI(status) {
     statusText.textContent = 'Офлайн (немає зв’язку)';
   } else if (status.isAlert) {
     const isYellow = status.alertLevel === 'yellow';
+    const scopeNote = status.alertScope ? ` (${status.alertScope})` : '';
     if (status.alertType === 'artillery_shelling') {
       statusBadge.classList.add('artillery');
       statusIcon.innerHTML = icons.artillery;
-      statusText.textContent = 'Загроза артобстрілу!';
+      statusText.textContent = `Загроза артобстрілу!${scopeNote}`;
     } else if (isYellow) {
       statusBadge.classList.add('alert-yellow');
       statusIcon.innerHTML = icons.yellow;
@@ -77,12 +78,12 @@ function updateUI(status) {
       if (Array.isArray(status.threats) && status.threats.length > 0 && status.threats[0].source_message) {
         threatMsg = ` [${status.threats[0].source_message}]`;
       }
-      statusText.textContent = `Жовтий рівень загрози!${threatMsg}${timeStr ? ` (з ${timeStr})` : ''}`;
+      statusText.textContent = `Жовтий рівень загрози!${scopeNote}${threatMsg}${timeStr ? ` (з ${timeStr})` : ''}`;
     } else {
       statusBadge.classList.add('alert');
       statusIcon.innerHTML = icons.alert;
       const timeStr = status.startedAt ? new Date(status.startedAt).toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit' }) : '';
-      statusText.textContent = `Повітряна тривога!${timeStr ? ` (з ${timeStr})` : ''}`;
+      statusText.textContent = `Повітряна тривога!${scopeNote}${timeStr ? ` (з ${timeStr})` : ''}`;
     }
   } else {
     statusBadge.classList.add('safe');
