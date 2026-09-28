@@ -1,6 +1,9 @@
-const { app, ipcMain } = require('electron');
+const { app, ipcMain, Menu } = require('electron');
 const path = require('path');
 const fs = require('fs');
+
+// Повністю вимикаємо стандартне меню (File, Edit...) для всіх вікон
+Menu.setApplicationMenu(null);
 
 const config = require('./config');
 const api = require('./api');

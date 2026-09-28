@@ -27,6 +27,7 @@ class SettingsWindowManager {
       parent: parentWindow || undefined,
       modal: false,
       show: false,
+      autoHideMenuBar: true,
       backgroundColor: '#f8fafc',
       webPreferences: {
         preload: path.join(__dirname, '..', 'preload', 'preload-settings.js'),
@@ -36,7 +37,8 @@ class SettingsWindowManager {
       }
     });
 
-    // Прибираємо стандартне меню вікна
+    // Повністю видаляємо меню вікна
+    this.settingsWindow.removeMenu();
     this.settingsWindow.setMenuBarVisibility(false);
 
     const settingsHtmlPath = path.join(__dirname, '..', 'renderer', 'settings', 'settings.html');

@@ -27,6 +27,7 @@ class WindowManager {
       title: 'Повітряні тривоги — alert_desktop',
       icon: iconPath,
       show: false,
+      autoHideMenuBar: true,
       backgroundColor: '#0f172a',
       webPreferences: {
         preload: path.join(__dirname, '..', 'preload', 'preload-main.js'),
@@ -35,6 +36,10 @@ class WindowManager {
         sandbox: true
       }
     });
+
+    // Видаляємо стандартне меню (File, Edit...)
+    this.mainWindow.removeMenu();
+    this.mainWindow.setMenuBarVisibility(false);
 
     // Завантажуємо локальну шапку зі статусом та кнопкою налаштувань
     const mainHtmlPath = path.join(__dirname, '..', 'renderer', 'main', 'index.html');
