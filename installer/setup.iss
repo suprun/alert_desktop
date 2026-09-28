@@ -40,9 +40,15 @@ UninstallDisplayIcon={app}\{#MyAppExeName}
 Name: "ukrainian"; MessagesFile: "compiler:Languages\Ukrainian.isl"
 Name: "english"; MessagesFile: "compiler:Default.isl"
 
+[CustomMessages]
+ukrainian.AutoStartName=Запускати автоматично при старті Windows
+ukrainian.SystemSettings=Параметри системи:
+english.AutoStartName=Start automatically when Windows starts
+english.SystemSettings=System settings:
+
 [Tasks]
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
-Name: "autostart"; Description: "Запускати автоматично при старті Windows"; GroupDescription: "Параметри системи:"; Flags: unchecked
+Name: "autostart"; Description: "{cm:AutoStartName}"; GroupDescription: "{cm:SystemSettings}"
 
 [Files]
 Source: "{#SourceDir}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
