@@ -1,9 +1,12 @@
-const { app, ipcMain, Menu } = require('electron');
+const { app, ipcMain, Menu, session } = require('electron');
 const path = require('path');
 const fs = require('fs');
 
 // Повністю вимикаємо стандартне меню (File, Edit...) для всіх вікон
 Menu.setApplicationMenu(null);
+
+// Вимикаємо функціонал Picture-in-Picture на рівні рушія Chromium
+app.commandLine.appendSwitch('disable-features', 'PictureInPicture,PictureInPictureAPI');
 
 const config = require('./config');
 const api = require('./api');
@@ -76,6 +79,18 @@ if (!gotTheLock) {
   });
 
   app.whenReady().then(() => {
+    // Блокуємо будь-які спроби запиту дозволу на Picture-in-Picture
+    if (session && session.defaultSession) {
+      session.defaultSession.setPermissionCheckHandler((_wc, permission) => {
+        if (permission === 'picture-in-picture') return false;
+        return true;
+      });
+      session.defaultSession.setPermissionRequestHandler((_wc, permission, callback) => {
+        if (permission === 'picture-in-picture') return callback(false);
+        callback(true);
+      });
+    }
+
     // Ініціалізація системного трею
     tray.init({
       onShowMap: () => windowManager.show(),

@@ -1,9 +1,17 @@
-const { BrowserWindow } = require('electron');
+const { BrowserWindow, nativeTheme } = require('electron');
 const path = require('path');
 
 class SettingsWindowManager {
   constructor() {
     this.settingsWindow = null;
+
+    // Слідкуємо за системною зміною теми Windows (light/dark)
+    nativeTheme.on('updated', () => {
+      if (this.settingsWindow && !this.settingsWindow.isDestroyed()) {
+        const themeBg = nativeTheme.shouldUseDarkColors ? '#232529' : '#eff0f2';
+        this.settingsWindow.setBackgroundColor(themeBg);
+      }
+    });
   }
 
   showSettingsWindow(parentWindow = null) {
@@ -15,6 +23,7 @@ class SettingsWindowManager {
     }
 
     const iconPath = path.join(__dirname, '..', '..', 'assets', 'icons', 'app-icon.png');
+    const initialBgColor = nativeTheme.shouldUseDarkColors ? '#232529' : '#eff0f2';
 
     this.settingsWindow = new BrowserWindow({
       width: 480,
@@ -28,7 +37,7 @@ class SettingsWindowManager {
       modal: false,
       show: false,
       autoHideMenuBar: true,
-      backgroundColor: '#f8fafc',
+      backgroundColor: initialBgColor,
       webPreferences: {
         preload: path.join(__dirname, '..', 'preload', 'preload-settings.js'),
         contextIsolation: true,

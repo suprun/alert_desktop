@@ -1,4 +1,4 @@
-const { BrowserWindow, WebContentsView, BrowserView, shell, app } = require('electron');
+const { BrowserWindow, WebContentsView, BrowserView, shell, nativeTheme } = require('electron');
 const path = require('path');
 
 class WindowManager {
@@ -7,6 +7,14 @@ class WindowManager {
     this.mapView = null;
     this.headerHeight = 56;
     this.isQuitting = false;
+
+    // Слідкуємо за системною зміною теми Windows (light/dark)
+    nativeTheme.on('updated', () => {
+      if (this.mainWindow && !this.mainWindow.isDestroyed()) {
+        const themeBg = nativeTheme.shouldUseDarkColors ? '#232529' : '#eff0f2';
+        this.mainWindow.setBackgroundColor(themeBg);
+      }
+    });
   }
 
   createMainWindow() {
@@ -18,6 +26,7 @@ class WindowManager {
     }
 
     const iconPath = path.join(__dirname, '..', '..', 'assets', 'icons', 'app-icon.png');
+    const initialBgColor = nativeTheme.shouldUseDarkColors ? '#232529' : '#eff0f2';
 
     this.mainWindow = new BrowserWindow({
       width: 1060,
@@ -28,7 +37,7 @@ class WindowManager {
       icon: iconPath,
       show: false,
       autoHideMenuBar: true,
-      backgroundColor: '#0f172a',
+      backgroundColor: initialBgColor,
       webPreferences: {
         preload: path.join(__dirname, '..', 'preload', 'preload-main.js'),
         contextIsolation: true,
@@ -69,13 +78,15 @@ class WindowManager {
 
   attachMapView() {
     const mapUrl = 'https://alerts.in.ua/';
+    const mapPreloadPath = path.join(__dirname, '..', 'preload', 'preload-map.js');
     
     // Перевірка підтримки сучасного WebContentsView (Electron 30+)
     if (WebContentsView && this.mainWindow.contentView && this.mainWindow.contentView.addChildView) {
       this.mapView = new WebContentsView({
         webPreferences: {
           contextIsolation: true,
-          nodeIntegration: false
+          nodeIntegration: false,
+          preload: mapPreloadPath
         }
       });
       this.mainWindow.contentView.addChildView(this.mapView);
@@ -85,7 +96,8 @@ class WindowManager {
       this.mapView = new BrowserView({
         webPreferences: {
           contextIsolation: true,
-          nodeIntegration: false
+          nodeIntegration: false,
+          preload: mapPreloadPath
         }
       });
       this.mainWindow.setBrowserView(this.mapView);
@@ -95,6 +107,54 @@ class WindowManager {
 
   configureMapWebContents(mapWebContents, mapUrl) {
     mapWebContents.loadURL(mapUrl);
+
+    // Скрипт блокування Picture-in-Picture та приховування кнопок запуску міні-мапи
+    const disablePipScript = `
+      try {
+        Object.defineProperty(document, 'pictureInPictureEnabled', {
+          get: () => false,
+          configurable: false
+        });
+        if (typeof HTMLVideoElement !== 'undefined' && HTMLVideoElement.prototype) {
+          HTMLVideoElement.prototype.requestPictureInPicture = function() {
+            return Promise.reject(new DOMException('Picture-in-Picture is disabled in desktop client', 'NotSupportedError'));
+          };
+        }
+        if (typeof document.exitPictureInPicture === 'function') {
+          document.exitPictureInPicture = function() {
+            return Promise.reject(new DOMException('Picture-in-Picture is disabled in desktop client', 'NotSupportedError'));
+          };
+        }
+        const hidePip = () => {
+          const selectors = [
+            'button[title*="Picture-in-picture" i]',
+            'button[title*="міні-мап" i]',
+            'button[title*="мини-карт" i]',
+            'button[title*="pip" i]',
+            'button[aria-label*="Picture-in-picture" i]',
+            'button[aria-label*="міні-мап" i]',
+            'button[aria-label*="мини-карт" i]',
+            'button[aria-label*="pip" i]',
+            '[data-action*="pip" i]',
+            '[data-action*="mini-map" i]',
+            '.pip-button',
+            '.mini-map-button'
+          ];
+          document.querySelectorAll(selectors.join(',')).forEach(el => {
+            el.style.display = 'none';
+          });
+        };
+        hidePip();
+      } catch (e) {}
+    `;
+
+    mapWebContents.on('dom-ready', () => {
+      mapWebContents.executeJavaScript(disablePipScript).catch(() => {});
+    });
+
+    mapWebContents.on('did-finish-load', () => {
+      mapWebContents.executeJavaScript(disablePipScript).catch(() => {});
+    });
 
     // Відкриття сторонніх посилань у системному браузері
     mapWebContents.setWindowOpenHandler(({ url }) => {

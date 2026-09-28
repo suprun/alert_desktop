@@ -68,7 +68,8 @@ alert_desktop/
     │
     ├── preload/                          # Безпечний ізольований Preload-шар (contextBridge)
     │   ├── preload-main.js               # API для статус-панелі головного вікна
-    │   └── preload-settings.js           # API для вікна налаштувань
+    │   ├── preload-settings.js           # API для вікна налаштувань
+    │   └── preload-map.js                # Блокування Picture-in-Picture та міні-мапи у WebContentsView
     │
     └── renderer/                         # Інтерфейс користувача (Renderer Process)
         ├── main/                         # Верхня панель керування головного вікна
