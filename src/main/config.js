@@ -52,7 +52,19 @@ class ConfigManager extends EventEmitter {
       if (fs.existsSync(this.configPath)) {
         const data = fs.readFileSync(this.configPath, 'utf8');
         const parsed = JSON.parse(data);
-        return { ...this.defaults, ...parsed };
+        const config = { ...this.defaults, ...parsed };
+
+        // Автоматична міграція застарілих / некоректних URL API
+        if (!config.serverUrl || config.serverUrl.includes('devs.alerts.in.ua') || config.serverUrl.includes('/api/v1/alerts/active.json')) {
+          config.serverUrl = process.env.ALERTS_API_URL || 'https://api.alerts.in.ua/v1/alerts/active.json';
+        }
+
+        // Синхронізація ключа з .env якщо в конфізі порожній
+        if (!config.apiKey && process.env.ALERTS_API_KEY) {
+          config.apiKey = process.env.ALERTS_API_KEY;
+        }
+
+        return config;
       }
     } catch (err) {
       console.error('Помилка читання config.json, використання значень за замовчуванням:', err.message);

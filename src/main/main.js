@@ -80,6 +80,9 @@ if (!gotTheLock) {
       onToggleWindow: () => windowManager.toggle()
     });
 
+    // Встановлюємо актуальний початковий статус
+    tray.updateStatus(api.getCurrentState());
+
     // Створюємо головне вікно у фоні
     windowManager.createMainWindow();
 

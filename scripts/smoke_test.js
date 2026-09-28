@@ -1,4 +1,5 @@
 const { app } = require('electron');
+const fs = require('fs');
 const path = require('path');
 const config = require('../src/main/config');
 const api = require('../src/main/api');
@@ -12,6 +13,27 @@ if (!Array.isArray(locations) || locations.length === 0) {
   process.exit(1);
 }
 console.log(`OK: locations loaded (${locations.length} items)`);
+
+// 1.1 Check icons
+const requiredIcons = [
+  'tray-normal.png',
+  'tray-air-raid.png',
+  'tray-artillery.png',
+  'tray-urban-fights.png',
+  'tray-chemical.png',
+  'tray-nuclear.png',
+  'tray-offline.png',
+  'app-icon.png'
+];
+const iconsDir = path.join(__dirname, '..', 'assets', 'icons');
+for (const icon of requiredIcons) {
+  const p = path.join(iconsDir, icon);
+  if (!fs.existsSync(p) || fs.statSync(p).size === 0) {
+    console.error(`FAIL: icon ${icon} is missing or 0 bytes`);
+    process.exit(1);
+  }
+}
+console.log(`OK: all ${requiredIcons.length} icons exist and are non-empty`);
 
 // 2. Check config
 const cfg = config.getAll();

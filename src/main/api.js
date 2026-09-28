@@ -38,7 +38,8 @@ class AlertApiService extends EventEmitter {
   }
 
   async checkNow() {
-    let requestUrl = serverUrl || 'https://api.alerts.in.ua/v1/alerts/active.json';
+    const serverUrl = config.get('serverUrl') || 'https://api.alerts.in.ua/v1/alerts/active.json';
+    let requestUrl = serverUrl;
     const apiKey = config.get('apiKey') || '';
     const selectedUid = String(config.get('locationUid') || '');
     const selectedTitle = (config.get('locationTitle') || '').toLowerCase().trim();

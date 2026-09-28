@@ -9,15 +9,15 @@ class TrayManager {
       onShowSettings: () => {},
       onToggleWindow: () => {}
     };
-    this.currentIconName = 'tray-normal';
+    this.currentIconName = '';
   }
 
   init(callbacks) {
     this.callbacks = { ...this.callbacks, ...callbacks };
-    const iconPath = this.getIconPath('tray-normal');
-    const icon = nativeImage.createFromPath(iconPath);
+    const icon = this.loadNativeIcon('tray-normal');
 
     this.tray = new Tray(icon);
+    this.currentIconName = 'tray-normal';
     this.tray.setToolTip('alert_desktop — Очікування даних...');
 
     this.updateContextMenu();
@@ -35,6 +35,16 @@ class TrayManager {
 
   getIconPath(name) {
     return path.join(__dirname, '..', '..', 'assets', 'icons', `${name}.png`);
+  }
+
+  loadNativeIcon(name) {
+    try {
+      const p = this.getIconPath(name);
+      return nativeImage.createFromPath(p);
+    } catch (err) {
+      console.error(`Помилка завантаження іконки ${name}:`, err.message);
+      return nativeImage.createEmpty();
+    }
   }
 
   updateContextMenu() {
@@ -59,6 +69,22 @@ class TrayManager {
     this.tray.setContextMenu(contextMenu);
   }
 
+  getAlertInfo(alertType) {
+    switch (alertType) {
+      case 'artillery_shelling':
+        return { icon: 'tray-artillery', title: 'Загроза артобстрілу!' };
+      case 'urban_fights':
+        return { icon: 'tray-urban-fights', title: 'Вуличні бої!' };
+      case 'chemical':
+        return { icon: 'tray-chemical', title: 'Хімічна небезпека!' };
+      case 'nuclear':
+        return { icon: 'tray-nuclear', title: 'Радіаційна загроза!' };
+      case 'air_raid':
+      default:
+        return { icon: 'tray-air-raid', title: 'Повітряна тривога!' };
+    }
+  }
+
   updateStatus({ isAlert, alertType, locationTitle, startedAt, isOffline }) {
     if (!this.tray) return;
 
@@ -69,23 +95,22 @@ class TrayManager {
       iconName = 'tray-offline';
       tooltip = `alert_desktop — ${locationTitle || 'Україна'}: Офлайн (немає зв'язку)`;
     } else if (isAlert) {
-      if (alertType === 'artillery_shelling') {
-        iconName = 'tray-artillery';
-        tooltip = `alert_desktop — ${locationTitle}: Загроза артобстрілу!`;
-      } else {
-        iconName = 'tray-air-raid';
-        const timeStr = startedAt ? new Date(startedAt).toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit' }) : '';
-        tooltip = `alert_desktop — ${locationTitle}: Повітряна тривога!${timeStr ? ` (з ${timeStr})` : ''}`;
+      const alertInfo = this.getAlertInfo(alertType);
+      iconName = alertInfo.icon;
+      const timeStr = startedAt ? new Date(startedAt).toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit' }) : '';
+      tooltip = `alert_desktop — ${locationTitle}: ${alertInfo.title}${timeStr ? ` (з ${timeStr})` : ''}`;
+    }
+
+    try {
+      if (this.currentIconName !== iconName) {
+        this.currentIconName = iconName;
+        const icon = this.loadNativeIcon(iconName);
+        this.tray.setImage(icon);
       }
+      this.tray.setToolTip(tooltip);
+    } catch (err) {
+      console.warn('Не вдалося оновити трей:', err.message);
     }
-
-    if (this.currentIconName !== iconName) {
-      this.currentIconName = iconName;
-      const icon = nativeImage.createFromPath(this.getIconPath(iconName));
-      this.tray.setImage(icon);
-    }
-
-    this.tray.setToolTip(tooltip);
   }
 
   destroy() {
