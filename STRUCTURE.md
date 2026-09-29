@@ -62,12 +62,12 @@ alert_desktop/
 │   ├── reset_config.js                   # Скидання та видалення файлу конфігурації у профілі користувача
 │   └── smoke_test.js                     # Smoke-тест ініціалізації компонентів
 │
-├── server/                               # Автономний шлюз тривог на Python для Ubuntu (Webhook & WebSocket)
-│   ├── .env.example                      # Шаблон конфігурації шлюзу (UkraineAlarm токен, webhook URL, порт)
+├── server/                               # Гібридний шлюз тривог на Python для Ubuntu (Webhook, WebSocket & Threats Enricher)
+│   ├── .env.example                      # Шаблон конфігурації шлюзу (UkraineAlarm та alerts.in.ua токени, webhook URL, порт)
 │   ├── requirements.txt                  # Залежності Python (FastAPI, Uvicorn, HTTPX)
-│   ├── config.py                         # Парсер та валідатор конфігурації середовища
-│   ├── proxy_service.py                  # Шлюз UkraineAlarm: прийом Webhook, WebSocket трансляція, кешування
-│   ├── main.py                           # Точка входу FastAPI: Webhook (/api/v3/webhook), WebSocket (/ws), REST
+│   ├── config.py                         # Парсер та валідатор конфігурації обох API
+│   ├── proxy_service.py                  # Гібридний шлюз: прийом Webhook від UkraineAlarm + фонове збагачення threats від alerts.in.ua
+│   ├── main.py                           # Точка входу FastAPI: Webhook (/api/v3/webhook), WebSocket (/ws), REST fallback
 │   ├── README.md                         # Інструкція з налаштування, запуску та тестування на Ubuntu
 │   ├── deploy/
 │   │   └── install.sh                    # Скрипт автоматичного розгортання на сервері Ubuntu
@@ -118,9 +118,9 @@ alert_desktop/
    - Лінійні мінімалістичні векторні іконки.
    - Локальний шрифт Inter, збережений у репозиторії.
    - Синтезовані автономні системні звукові файли.
-4. **Централізований шлюз UkraineAlarm (Webhook + WebSocket + REST fallback):**
+4. **Централізований гібридний шлюз (UkraineAlarm Webhook + alerts.in.ua Threats Enrichment):**
    - Автономний Python-сервіс для Linux/Ubuntu (`server/`).
-   - Автоматично реєструє Webhook в офіційному API `https://api.ukrainealarm.com` (`POST /api/v3/webhook`).
-   - При зміні тривоги приймає HTTP POST і миттєво транслює оновлення всім підключеним додаткам `alert_desktop` через WebSocket (0 секунд затримки).
-   - Кешує повну картину тривог у пам'яті та забезпечує зворотну сумісність через REST endpoint `GET /v1/alerts/active.json`.
-   - Автоматичний reconnect та періодична звірка цілісності кожні 5 хвилин для надійності при будь-яких збоях мережі.
+   - Автоматично реєструє Webhook в офіційному API `https://api.ukrainealarm.com` (`POST /api/v3/webhook`) для миттєвої реакції на тривогу та відбій (0 сек затримки).
+   - У фоновому режимі (раз на 8-10 сек) безпечно опитує `https://api.alerts.in.ua/v1/alerts/active.json`, збагачуючи активні тривоги масивом конкретних загроз (`threats`: дрони, ракети, балістика тощо).
+   - Транслює повні дані клієнтам `alert_desktop` через WebSocket (`/ws`) та забезпечує зворотну сумісність через REST endpoint `GET /v1/alerts/active.json`.
+   - Забезпечує автоматичний reconnect, захист від перевищення лімітів API та періодичну звірку цілісності кожні 5 хвилин.

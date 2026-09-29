@@ -73,11 +73,12 @@ async def root():
     """Інформаційна сторінка стану шлюзу."""
     health = proxy_service.get_health_status()
     return {
-        "service": "UkraineAlarm Webhook Gateway & Proxy",
+        "service": "UkraineAlarm Webhook & alerts.in.ua Hybrid Gateway",
         "status": health["status"],
         "active_alerts": health["active_alerts_count"],
         "connected_ws_clients": health["connected_ws_clients"],
-        "webhook_registered": health["webhook_registered"],
+        "ukrainealarm": health.get("ukrainealarm", {}),
+        "alerts_in_ua": health.get("alerts_in_ua", {}),
         "uptime_seconds": health["uptime_seconds"],
         "endpoints": {
             "webhook": "/api/v3/webhook",
@@ -141,7 +142,7 @@ async def get_active_alerts():
         content=payload,
         headers={
             "Cache-Control": "public, max-age=5",
-            "X-Proxy-Source": "ukrainealarm_webhook_gateway"
+            "X-Proxy-Source": "hybrid_gateway"
         }
     )
 
@@ -154,17 +155,20 @@ async def health_check():
     return JSONResponse(content=health, status_code=200)
 
 
-@app.post("/refresh", summary="Примусова звірка тривог з UkraineAlarm API")
-@app.get("/refresh", summary="Примусова звірка тривог з UkraineAlarm API (GET)")
+@app.post("/refresh", summary="Примусова звірка тривог та загроз")
+@app.get("/refresh", summary="Примусова звірка тривог та загроз (GET)")
 async def manual_refresh():
-    """Виконує негайну повну синхронізацію тривог з UkraineAlarm API."""
+    """Виконує негайну синхронізацію тривог UkraineAlarm та загроз alerts.in.ua."""
+    await proxy_service.sync_threats_from_alerts_in_ua()
     success = await proxy_service.sync_active_alerts()
     health = proxy_service.get_health_status()
     return {
         "success": success,
         "active_alerts_count": health["active_alerts_count"],
-        "last_error": health["last_error"],
-        "synced_at": health["last_sync_time"]
+        "threats_cached_count": health["alerts_in_ua"]["threats_cached_count"],
+        "last_error": health["ukrainealarm"]["last_error"],
+        "last_aiu_error": health["alerts_in_ua"]["last_error"],
+        "synced_at": health["ukrainealarm"]["last_sync_time"]
     }
 
 

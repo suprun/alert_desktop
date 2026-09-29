@@ -25,7 +25,10 @@ def load_server_env(env_path: Path) -> dict:
         "ip": "",
         "user": "",
         "password": "",
+        "UKRALARM_API_TOKEN": "",
         "ALERTS_API_TOKEN": "",
+        "ALERTS_IN_UA_URL": "https://api.alerts.in.ua/v1/alerts/active.json",
+        "ALERTS_IN_UA_POLL_INTERVAL": "8",
         "UPSTREAM_API_URL": "https://api.ukrainealarm.com",
         "PUBLIC_WEBHOOK_URL": "https://api.applink.pp.ua/api/v3/webhook",
         "RESYNC_INTERVAL_SECONDS": "300",
@@ -75,15 +78,20 @@ def main():
     host = cfg.get("ip")
     user = cfg.get("user")
     password = cfg.get("password")
-    api_token = cfg.get("ALERTS_API_TOKEN")
+    ukralarm_token = cfg.get("UKRALARM_API_TOKEN")
+    aiu_token = cfg.get("ALERTS_API_TOKEN")
     port = cfg.get("SERVER_PORT", "8080")
 
     if not host or not user or not password:
         print("Помилка: У файлі server/.env відсутні параметри ip, user або password.")
         sys.exit(1)
 
-    if not api_token or api_token == "your_token_here":
-        print("Помилка: У файлі server/.env не задано валідний ALERTS_API_TOKEN.")
+    if not ukralarm_token:
+        print("Помилка: У файлі server/.env не задано UKRALARM_API_TOKEN.")
+        sys.exit(1)
+
+    if not aiu_token:
+        print("Помилка: У файлі server/.env не задано ALERTS_API_TOKEN (alerts.in.ua).")
         sys.exit(1)
 
     print(f"[*] Підключення до {user}@{host}:22...")
@@ -170,7 +178,10 @@ def main():
 
         # Створення чистого бойового .env для сервера (без SSH-паролів)
         prod_env_content = (
-            f"ALERTS_API_TOKEN={api_token}\n"
+            f"UKRALARM_API_TOKEN={ukralarm_token}\n"
+            f"ALERTS_API_TOKEN={aiu_token}\n"
+            f"ALERTS_IN_UA_URL={cfg.get('ALERTS_IN_UA_URL', 'https://api.alerts.in.ua/v1/alerts/active.json')}\n"
+            f"ALERTS_IN_UA_POLL_INTERVAL={cfg.get('ALERTS_IN_UA_POLL_INTERVAL', '8')}\n"
             f"UPSTREAM_API_URL={cfg.get('UPSTREAM_API_URL', 'https://api.ukrainealarm.com')}\n"
             f"PUBLIC_WEBHOOK_URL={cfg.get('PUBLIC_WEBHOOK_URL', f'http://{host}:{port}/api/v3/webhook')}\n"
             f"RESYNC_INTERVAL_SECONDS={cfg.get('RESYNC_INTERVAL_SECONDS', '300')}\n"
@@ -248,7 +259,10 @@ def main():
             print(f"[+] ЗОВНІШНЯ ПЕРЕВІРКА УСПІШНА! Статус: {data.get('status')}")
             print(f"    - Активних тривог: {data.get('active_alerts_count')}")
             print(f"    - Uptime: {data.get('uptime_seconds')} сек")
-            print(f"    - Останнє опитування upstream: {data.get('last_success_time')}")
+            ua_info = data.get('ukrainealarm', {})
+            aiu_info = data.get('alerts_in_ua', {})
+            print(f"    - UkraineAlarm Webhook зареєстровано: {ua_info.get('webhook_registered')}")
+            print(f"    - alerts.in.ua кешовано загроз: {aiu_info.get('threats_cached_count')}")
     except Exception as e:
         print(f"[!] Увага: Не вдалося зробити зовнішній запит до {test_health_url}: {e}")
         print("    Можливо, порт заблоковано зовнішнім фаєрволом хостинг-провайдера (Security Group).")
