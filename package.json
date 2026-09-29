@@ -1,14 +1,15 @@
 {
   "name": "alert-desktop",
-  "version": "1.0.15",
+  "version": "1.0.16",
   "description": "Десктопний клієнт для моніторингу повітряних тривог на базі Electron",
   "main": "src/main/main.js",
   "scripts": {
     "start": "electron .",
-    "test": "node --check src/main/main.js && node --check src/main/config.js && node --check src/main/autostart.js && node --check src/main/api.js && node --check src/main/tray.js && node --check src/main/window.js && node --check src/main/settings-window.js && node --check src/main/notifier.js && node --check src/preload/preload-main.js && node --check src/preload/preload-settings.js && node --check src/preload/preload-map.js && node --check src/renderer/main/renderer.js && node --check src/renderer/settings/settings.js && node --check scripts/build_installer.js && electron scripts/smoke_test.js",
+    "test": "node --check src/main/main.js && node --check src/main/config.js && node --check src/main/autostart.js && node --check src/main/api.js && node --check src/main/tray.js && node --check src/main/window.js && node --check src/main/settings-window.js && node --check src/main/notifier.js && node --check src/preload/preload-main.js && node --check src/preload/preload-settings.js && node --check src/preload/preload-map.js && node --check src/renderer/main/renderer.js && node --check src/renderer/settings/settings.js && node --check scripts/reset_config.js && node --check scripts/build_installer.js && electron scripts/smoke_test.js",
     "build:ico": "electron scripts/generate_ico.js",
     "build:installer": "node scripts/build_installer.js",
-    "dist": "node scripts/build_installer.js"
+    "dist": "node scripts/build_installer.js",
+    "reset:config": "node scripts/reset_config.js"
   },
   "keywords": [
     "electron",

@@ -59,6 +59,7 @@ alert_desktop/
 │   ├── generate_icons.js                 # Генерація PNG-іконок через Electron nativeImage
 │   ├── generate_ui_icons.js              # Генерація лінійних SVG піктограм інтерфейсу
 │   ├── parse_locations.js                # Завантаження та парсинг 1622 локацій з Google Spreadsheets
+│   ├── reset_config.js                   # Скидання та видалення файлу конфігурації у профілі користувача
 │   └── smoke_test.js                     # Smoke-тест ініціалізації компонентів
 │
 ├── server/                               # Автономний кешуючий проксі-сервер на Python для Ubuntu
