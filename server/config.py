@@ -22,15 +22,18 @@ class Settings:
     def __init__(self):
         self.alerts_api_token: str = os.getenv("ALERTS_API_TOKEN", "").strip()
         self.upstream_api_url: str = os.getenv(
-            "UPSTREAM_API_URL", "https://api.alerts.in.ua/v1/alerts/active.json"
+            "UPSTREAM_API_URL", "https://api.ukrainealarm.com"
+        ).strip().rstrip("/")
+        self.public_webhook_url: str = os.getenv(
+            "PUBLIC_WEBHOOK_URL", "https://api.applink.pp.ua/api/v3/webhook"
         ).strip()
 
-        # Інтервал опитування: мінімум 10 секунд для захисту від блокування API
+        # Інтервал фонової повторної синхронізації тривог (у секундах)
         try:
-            interval = int(os.getenv("POLL_INTERVAL_SECONDS", "15"))
-            self.poll_interval_seconds: int = max(10, interval)
+            resync = int(os.getenv("RESYNC_INTERVAL_SECONDS", os.getenv("POLL_INTERVAL_SECONDS", "300")))
+            self.resync_interval_seconds: int = max(30, resync)
         except ValueError:
-            self.poll_interval_seconds: int = 15
+            self.resync_interval_seconds: int = 300
 
         self.server_host: str = os.getenv("SERVER_HOST", "0.0.0.0").strip()
 
@@ -46,11 +49,11 @@ class Settings:
         warnings: list[str] = []
         if not self.alerts_api_token:
             warnings.append(
-                "ALERTS_API_TOKEN не задано. Сервер не зможе отримувати дані з api.alerts.in.ua."
+                "ALERTS_API_TOKEN не задано. Сервер не зможе взаємодіяти з api.ukrainealarm.com."
             )
-        if self.poll_interval_seconds < 10:
+        if not self.public_webhook_url:
             warnings.append(
-                "POLL_INTERVAL_SECONDS менше 10 секунд. Встановлено значення 10 для дотримання лімітів."
+                "PUBLIC_WEBHOOK_URL не задано. Сервер не зможе підписатися на вебхуки."
             )
         return warnings
 

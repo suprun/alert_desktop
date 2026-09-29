@@ -1,16 +1,17 @@
-# Alerts.in.ua Proxy Server (Ubuntu / Linux)
+# UkraineAlarm Webhook & WebSocket Gateway (Ubuntu / Linux)
 
-Автономний кешуючий проксі-сервер та ретранслятор для API повітряних тривог України ([alerts.in.ua](https://alerts.in.ua/)).
-Призначений для централізованого опитування офіційного API з єдиним токеном та роздачі актуального стану тривог клієнтським додаткам `alert_desktop` або веб-клієнтам.
+Автономний шлюз для прийому офіційних Webhook від API [UkraineAlarm](https://api.ukrainealarm.com/) та миттєвої трансляції оновлень клієнтським десктопним додаткам `alert_desktop` через WebSocket (0 секунд затримки).
 
 ---
 
-## Переваги використання проксі
+## Архітектура та переваги шлюзу
 
-1. **Захист від блокування (Rate Limiting):** Офіційне API має суворі ліміти на частоту запитів. Проксі виконує лише 1 запит раз на 15 секунд до `api.alerts.in.ua`, обслуговуючи необмежену кількість клієнтів.
-2. **Безпека ключа:** API-токен зберігається виключно на вашому сервері. Додатки `alert_desktop` отримують дані безпосередньо від проксі без необхідності вказувати токен на кожному комп'ютері.
-3. **Миттєва відповідь:** Клієнти отримують дані з оперативної пам'яті (відповідь за ~1-2 мс).
-4. **Стійкість до збоїв:** У разі тимчасової недоступності або таймаутів `alerts.in.ua` проксі повертає збережений останній валідний кеш із прапорцем застарілості `is_stale: true`, захищаючи додатки від аварійних помилок.
+1. **Миттєві сповіщення (Push 0 сек):** UkraineAlarm надсилає HTTP POST на `/api/v3/webhook` у момент увімкнення або відбою тривоги. Шлюз моментально передає подію через відкриті канали WebSocket всім клієнтам `alert_desktop`.
+2. **Автоматична реєстрація Webhook:** При старті сервер автоматично підписується в API `api.ukrainealarm.com` (`POST /api/v3/webhook`) на свій публічний URL.
+3. **Безпека ключа:** Токен API зберігається виключно на VPS-сервері. Десктопні клієнти користувачів не потребують введення секретного токена.
+4. **Ієрархія та нормалізація:** Сервер завантажує довідник регіонів (`GET /api/v3/regions`), ідентифікує тип (область, район, громада) та транслює повністю структуровані об'єкти.
+5. **Стійкість та Fallback:** Поряд із WebSocket працює REST ендпоінт `GET /v1/alerts/active.json`. При розриві зв'язку або нестабільному інтернеті клієнт автоматично використовує REST опитування та відновлює сокет.
+6. **Періодична автозвірка:** Кожні 5 хвилин шлюз звіряє кеш із `GET /api/v3/alerts` для захисту від пропущених пакетів при мережевих збоях.
 
 ---
 
@@ -18,90 +19,53 @@
 
 - **ОС:** Ubuntu 20.04 LTS / 22.04 LTS / 24.04 LTS (або Debian 11/12).
 - **Python:** 3.10 або новіша версія.
-- **Мережа:** Доступ до інтернету для запитів до `api.alerts.in.ua`, відкритий вхідний порт (за замовчуванням `8080`).
+- **Мережа:** Публічна IP-адреса, відкритий порт `8080` (для Webhook від UkraineAlarm та WebSocket клієнтів).
 
 ---
 
-## Швидке встановлення на Ubuntu (Автоматично)
+## Швидке розгортання через SSH (з комп'ютера розробника)
 
-1. Скопіюйте папку `server/` на ваш сервер Ubuntu (наприклад, у домашній каталог або `/tmp`):
-   ```bash
-   scp -r server/ user@your-server-ip:/tmp/server
-   ```
-2. Підключіться до сервера по SSH:
-   ```bash
-   ssh user@your-server-ip
-   ```
-3. Запустіть скрипт автоматичного встановлення від імені root:
-   ```bash
-   sudo bash /tmp/server/deploy/install.sh
-   ```
-Скрипт автоматично:
-- встановить системні пакети `python3-venv`, `python3-pip`, `curl`;
-- створить директорію `/opt/alert_proxy` та віртуальне оточення `venv`;
-- встановить залежності `fastapi`, `uvicorn`, `httpx`, `python-dotenv`;
-- запропонує ввести ваш `ALERTS_API_TOKEN`;
-- зареєструє та запустить системну службу `alert-proxy.service` через `systemd`.
+У репозиторії є автоматичний скрипт розгортання:
+```bash
+python scripts/deploy_remote.py
+```
+Скрипт зчитує налаштування з `server/.env`, підключається по SSH, оновлює код, встановлює залежності, перезапускає службу `alert-proxy` та проводить верифікацію ендпоінтів.
 
 ---
 
-## Ручне встановлення на Ubuntu
+## Доступні HTTP та WebSocket ендпоінти
 
-Якщо ви бажаєте розгорнути сервіс вручну:
+| Метод | Ендпоінт | Опис |
+|---|---|---|
+| `POST` | `/api/v3/webhook` | **Прийом Webhook від UkraineAlarm:** обробка подій початку (`Activate`) та завершення (`DEACTIVATE`) тривог. |
+| `WS` | `/ws` | **WebSocket Gateway:** двосторонній канал зв'язку для додатків `alert_desktop` з миттєвою доставкою оновлень. |
+| `GET` | `/v1/alerts/active.json` | **REST Fallback:** кешований список активних тривог для зворотної сумісності. |
+| `GET` | `/health` | Діагностика: uptime, статус реєстрації вебхука, кількість сокетів, активні тривоги. |
+| `POST` | `/refresh` | Примусова повна синхронізація тривог з `api.ukrainealarm.com`. |
+| `POST` | `/webhook/register` | Примусова повторна реєстрація адреси Webhook в UkraineAlarm API. |
 
-1. **Встановіть залежності ОС:**
-   ```bash
-   sudo apt update
-   sudo apt install -y python3 python3-venv python3-pip curl
-   ```
+---
 
-2. **Підготуйте директорію:**
-   ```bash
-   sudo mkdir -p /opt/alert_proxy
-   sudo cp requirements.txt config.py proxy_service.py main.py .env.example /opt/alert_proxy/
-   cd /opt/alert_proxy
-   ```
+## Налаштування оточення (.env)
 
-3. **Створіть віртуальне оточення та встановіть бібліотеки:**
-   ```bash
-   sudo python3 -m venv venv
-   sudo ./venv/bin/pip install --upgrade pip
-   sudo ./venv/bin/pip install -r requirements.txt
-   ```
+```env
+# Обов'язково: токен API від api.ukrainealarm.com
+ALERTS_API_TOKEN=ваш_токен
 
-4. **Налаштуйте файл `.env`:**
-   ```bash
-   sudo cp .env.example .env
-   sudo nano .env
-   ```
-   Вкажіть ваш API-токен:
-   ```env
-   ALERTS_API_TOKEN=ваш_токен_тут
-   UPSTREAM_API_URL=https://api.alerts.in.ua/v1/alerts/active.json
-   POLL_INTERVAL_SECONDS=15
-   SERVER_HOST=0.0.0.0
-   SERVER_PORT=8080
-   LOG_LEVEL=INFO
-   ```
-   Захистіть права доступу:
-   ```bash
-   sudo chmod 600 .env
-   sudo chown -R www-data:www-data /opt/alert_proxy
-   ```
+# Upstream URL для взаємодії з UkraineAlarm
+UPSTREAM_API_URL=https://api.ukrainealarm.com
 
-5. **Налаштуйте systemd службу:**
-   ```bash
-   sudo cp systemd/alert-proxy.service /etc/systemd/system/alert-proxy.service
-   sudo systemctl daemon-reload
-   sudo systemctl enable alert-proxy
-   sudo systemctl start alert-proxy
-   ```
+# Публічний URL для прийому Webhook
+PUBLIC_WEBHOOK_URL=http://<IP_СЕРВЕРА>:8080/api/v3/webhook
 
-6. **Перевірте статус:**
-   ```bash
-   sudo systemctl status alert-proxy
-   curl http://127.0.0.1:8080/health
-   ```
+# Інтервал фонової планової звірки (секунди)
+RESYNC_INTERVAL_SECONDS=300
+
+# Хост та порт
+SERVER_HOST=0.0.0.0
+SERVER_PORT=8080
+LOG_LEVEL=INFO
+```
 
 ---
 
@@ -110,32 +74,4 @@
 - **Статус:** `sudo systemctl status alert-proxy`
 - **Перезапуск:** `sudo systemctl restart alert-proxy`
 - **Зупинка:** `sudo systemctl stop alert-proxy`
-- **Перегляд живих логів:** `sudo journalctl -u alert-proxy -f`
-
----
-
-## Доступні HTTP ендпоінти
-
-| Метод | Ендпоінт | Опис |
-|---|---|---|
-| `GET` | `/v1/alerts/active.json` | **Основний ендпоінт:** повертає кешований масив активних тривог (сумісний з `alerts.in.ua` та `alert_desktop`). |
-| `GET` | `/alerts` | Скорочений псевдонім основного ендпоінта. |
-| `GET` | `/health` (або `/status`) | Діагностика працездатності: uptime, кількість тривог, статус upstream, час останнього опитування. |
-| `POST`/`GET` | `/refresh` | Примусове позачергове опитування `api.alerts.in.ua`. |
-| `GET` | `/` | Загальна інформація про сервіс та стан кешу. |
-| `GET` | `/docs` | Інтерактивна OpenAPI Swagger-документація. |
-
----
-
-## Підключення клієнта `alert_desktop`
-
-1. Запустіть додаток `alert_desktop`.
-2. Відкрийте вікно **Налаштування** (кнопка шестерні у шапці або правий клік у треї -> "Налаштування").
-3. У блоці **"Зв'язок з сервером API"**:
-   - У полі **"URL сервера або ретранслятора"** введіть адресу проксі:
-     ```text
-     http://<IP_ВАШОГО_СЕРВЕРА>:8080/v1/alerts/active.json
-     ```
-   - Поле **"API Ключ"** залиште **порожнім** (проксі передає свій токен централізовано).
-4. Натисніть **"Зберегти налаштування"**.
-5. Додаток почне отримувати актуальний статус тривог від вашого власного Ubuntu-проксі!
+- **Живі логи:** `sudo journalctl -u alert-proxy -f`

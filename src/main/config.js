@@ -5,12 +5,14 @@ const { EventEmitter } = require('events');
 const autostart = require('./autostart');
 
 const DEFAULT_PROXY_URL = 'https://api.applink.pp.ua/v1/alerts/active.json';
+const DEFAULT_WS_URL = 'wss://api.applink.pp.ua/ws';
 
 class ConfigManager extends EventEmitter {
   constructor() {
     super();
     this.loadEnv();
-    this.configPath = path.join(app.getPath('userData'), 'config.json');
+    const userDir = (app && typeof app.getPath === 'function') ? app.getPath('userData') : process.cwd();
+    this.configPath = path.join(userDir, 'config.json');
     this.defaults = {
       locationUid: '31', // За замовчуванням м. Київ
       locationTitle: 'м. Київ',
@@ -23,6 +25,7 @@ class ConfigManager extends EventEmitter {
       autoStart: false,
       devMode: false,
       serverUrl: process.env.ALERTS_API_URL || DEFAULT_PROXY_URL,
+      wsUrl: process.env.ALERTS_WS_URL || DEFAULT_WS_URL,
       apiKey: process.env.ALERTS_API_KEY || '',
       pollingInterval: Number(process.env.ALERTS_POLL_INTERVAL) || 15000,
       isFirstLaunch: true
@@ -130,6 +133,26 @@ class ConfigManager extends EventEmitter {
       console.error('Помилка збереження config.json:', err.message);
       return { success: false, error: err.message };
     }
+  }
+
+  getWsUrl() {
+    if (this.config.devMode) {
+      if (this.config.wsUrl && this.config.wsUrl !== DEFAULT_WS_URL) {
+        return this.config.wsUrl;
+      }
+      if (this.config.serverUrl) {
+        try {
+          const u = new URL(this.config.serverUrl);
+          u.protocol = u.protocol === 'https:' ? 'wss:' : 'ws:';
+          u.pathname = '/ws';
+          u.search = '';
+          return u.toString();
+        } catch (e) {
+          // ignore error
+        }
+      }
+    }
+    return DEFAULT_WS_URL;
   }
 
   get(key) {

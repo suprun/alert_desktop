@@ -26,8 +26,9 @@ def load_server_env(env_path: Path) -> dict:
         "user": "",
         "password": "",
         "ALERTS_API_TOKEN": "",
-        "UPSTREAM_API_URL": "https://api.alerts.in.ua/v1/alerts/active.json",
-        "POLL_INTERVAL_SECONDS": "15",
+        "UPSTREAM_API_URL": "https://api.ukrainealarm.com",
+        "PUBLIC_WEBHOOK_URL": "https://api.applink.pp.ua/api/v3/webhook",
+        "RESYNC_INTERVAL_SECONDS": "300",
         "SERVER_HOST": "0.0.0.0",
         "SERVER_PORT": "8080",
         "LOG_LEVEL": "INFO",
@@ -170,8 +171,9 @@ def main():
         # Створення чистого бойового .env для сервера (без SSH-паролів)
         prod_env_content = (
             f"ALERTS_API_TOKEN={api_token}\n"
-            f"UPSTREAM_API_URL={cfg.get('UPSTREAM_API_URL', 'https://api.alerts.in.ua/v1/alerts/active.json')}\n"
-            f"POLL_INTERVAL_SECONDS={cfg.get('POLL_INTERVAL_SECONDS', '15')}\n"
+            f"UPSTREAM_API_URL={cfg.get('UPSTREAM_API_URL', 'https://api.ukrainealarm.com')}\n"
+            f"PUBLIC_WEBHOOK_URL={cfg.get('PUBLIC_WEBHOOK_URL', f'http://{host}:{port}/api/v3/webhook')}\n"
+            f"RESYNC_INTERVAL_SECONDS={cfg.get('RESYNC_INTERVAL_SECONDS', '300')}\n"
             f"SERVER_HOST={cfg.get('SERVER_HOST', '0.0.0.0')}\n"
             f"SERVER_PORT={port}\n"
             f"LOG_LEVEL={cfg.get('LOG_LEVEL', 'INFO')}\n"

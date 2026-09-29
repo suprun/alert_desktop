@@ -62,12 +62,12 @@ alert_desktop/
 │   ├── reset_config.js                   # Скидання та видалення файлу конфігурації у профілі користувача
 │   └── smoke_test.js                     # Smoke-тест ініціалізації компонентів
 │
-├── server/                               # Автономний кешуючий проксі-сервер на Python для Ubuntu
-│   ├── .env.example                      # Шаблон конфігурації проксі (API-токен, порт, інтервал)
+├── server/                               # Автономний шлюз тривог на Python для Ubuntu (Webhook & WebSocket)
+│   ├── .env.example                      # Шаблон конфігурації шлюзу (UkraineAlarm токен, webhook URL, порт)
 │   ├── requirements.txt                  # Залежності Python (FastAPI, Uvicorn, HTTPX)
 │   ├── config.py                         # Парсер та валідатор конфігурації середовища
-│   ├── proxy_service.py                  # Фоновий сервіс HTTP-опитування alerts.in.ua та кешування
-│   ├── main.py                           # Точка входу FastAPI: ендпоінти, CORS, обробка помилок
+│   ├── proxy_service.py                  # Шлюз UkraineAlarm: прийом Webhook, WebSocket трансляція, кешування
+│   ├── main.py                           # Точка входу FastAPI: Webhook (/api/v3/webhook), WebSocket (/ws), REST
 │   ├── README.md                         # Інструкція з налаштування, запуску та тестування на Ubuntu
 │   ├── deploy/
 │   │   └── install.sh                    # Скрипт автоматичного розгортання на сервері Ubuntu
@@ -80,7 +80,7 @@ alert_desktop/
     │   ├── window.js                     # Менеджер головного вікна (BrowserWindow + WebContentsView)
     │   ├── settings-window.js            # Менеджер діалогового вікна налаштувань
     │   ├── tray.js                       # Керування системним треєм (іконка, tooltip, меню)
-    │   ├── api.js                        # HTTP polling сервера api.alerts.in.ua / ретранслятора
+    │   ├── api.js                        # WebSocket зв'язок у реальному часі (0 сек) + HTTP fallback
     │   ├── autostart.js                  # Менеджер автозапуску Windows (Electron API + HKCU Run)
     │   ├── config.js                     # Робота з config.json, .env та автозапуском ОС
     │   ├── notifier.js                   # Системні сповіщення Windows та запуск звуку
@@ -95,7 +95,7 @@ alert_desktop/
         ├── main/                         # Верхня панель керування головного вікна
         │   ├── index.html                # Розмітка шапки зі статусом та кнопкою шестерні
         │   ├── style.css                 # Стилізація у темній темі з шрифтом Inter
-        │   └── renderer.js               # Відображення статусу, часу та запуск аудіо
+        │   └── renderer.js               # Відображення статусу, часу, ⚡ індикатора та запуск аудіо
         └── settings/                     # Діалогове вікно налаштувань
             ├── settings.html             # Форма налаштувань (регіон, звук, автозапуск, API)
             ├── settings.css              # Стилізація Windows Fluent з шрифтом Inter
@@ -118,8 +118,9 @@ alert_desktop/
    - Лінійні мінімалістичні векторні іконки.
    - Локальний шрифт Inter, збережений у репозиторії.
    - Синтезовані автономні системні звукові файли.
-4. **Централізований проксі-сервер (ретранслятор):**
+4. **Централізований шлюз UkraineAlarm (Webhook + WebSocket + REST fallback):**
    - Автономний Python-сервіс для Linux/Ubuntu (`server/`).
-   - Централізоване опитування офіційного API з єдиним токеном, що усуває проблему лімітів запитів (rate limiting).
-   - Кешування в оперативній пам'яті для миттєвої роздачі необмеженій кількості клієнтів `alert_desktop`.
-   - Автоматичне підтримання стабільності клієнтів навіть при тимчасових збоях зовнішнього API.
+   - Автоматично реєструє Webhook в офіційному API `https://api.ukrainealarm.com` (`POST /api/v3/webhook`).
+   - При зміні тривоги приймає HTTP POST і миттєво транслює оновлення всім підключеним додаткам `alert_desktop` через WebSocket (0 секунд затримки).
+   - Кешує повну картину тривог у пам'яті та забезпечує зворотну сумісність через REST endpoint `GET /v1/alerts/active.json`.
+   - Автоматичний reconnect та періодична звірка цілісності кожні 5 хвилин для надійності при будь-яких збоях мережі.

@@ -58,7 +58,9 @@ function updateUI(status) {
   statusLocation.textContent = status.locationTitle || 'Україна';
 
   if (status.lastChecked) {
-    lastUpdated.textContent = `Оновлено: ${status.lastChecked}`;
+    const liveTag = status.isRealtime ? ' ⚡' : '';
+    lastUpdated.textContent = `Оновлено: ${status.lastChecked}${liveTag}`;
+    lastUpdated.title = status.isRealtime ? 'Підключено через WebSocket у режимі реального часу (0 сек затримки)' : 'Звичайний режим оновлення';
   }
 
   statusBadge.className = 'status-badge';
