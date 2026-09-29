@@ -539,8 +539,33 @@ async function init() {
     updateSoundControlsState();
     updateDevModeState();
 
+    // 3. Синхронізація теми оформлення
+    if (window.settingsAPI.onThemeUpdated) {
+      window.settingsAPI.onThemeUpdated(({ isDark }) => {
+        applyTheme(isDark);
+      });
+    }
+
+    if (window.settingsAPI.getTheme) {
+      window.settingsAPI.getTheme().then((themeInfo) => {
+        if (themeInfo && typeof themeInfo.isDark === 'boolean') {
+          applyTheme(themeInfo.isDark);
+        }
+      }).catch(() => {});
+    }
+
   } catch (err) {
     console.error('Помилка ініціалізації налаштувань:', err);
+  }
+}
+
+function applyTheme(isDark) {
+  if (isDark) {
+    document.documentElement.classList.remove('theme-light');
+    document.documentElement.classList.add('theme-dark');
+  } else {
+    document.documentElement.classList.remove('theme-dark');
+    document.documentElement.classList.add('theme-light');
   }
 }
 

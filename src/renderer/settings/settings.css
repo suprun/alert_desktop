@@ -22,8 +22,42 @@
   src: url('../../../assets/fonts/Inter-SemiBold.woff2') format('woff2');
 }
 
-:root {
-  /* Світла тема за замовчуванням */
+:root,
+html.theme-dark {
+  /* Темна тема за замовчуванням */
+  color-scheme: dark;
+  --bg-page: #18191c;
+  --bg-card: #232529;
+  --border-color: #33373e;
+  --text-primary: #f8fafc;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  --input-bg: #18191c;
+  --input-border: #3b4048;
+  --input-text: #f8fafc;
+  --dropdown-bg: #232529;
+  --dropdown-border: #3b4048;
+  --item-hover-bg: #2e333a;
+  --item-selected-bg: #374151;
+  --type-badge-bg: #2d3137;
+  --type-badge-text: #cbd5e1;
+  --type-badge-border: #3e444e;
+  --hierarchy-border: #475569;
+  --hierarchy-border-hover: #94a3b8;
+  --hierarchy-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='%2394a3b8'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+  --btn-sec-bg: #232529;
+  --btn-sec-text: #f8fafc;
+  --btn-sec-border: #475569;
+  --btn-sec-hover-bg: #2d3137;
+
+  /* Скролбар для темної теми */
+  --scrollbar-thumb: #475569;
+  --scrollbar-thumb-hover: #64748b;
+  --scrollbar-track: transparent;
+}
+
+html.theme-light {
+  /* Світла тема */
   color-scheme: light;
   --bg-page: #eff0f2;
   --bg-card: #ffffff;
@@ -55,37 +89,37 @@
   --scrollbar-track: transparent;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    /* Темна тема під OS */
-    color-scheme: dark;
-    --bg-page: #18191c;
-    --bg-card: #232529;
-    --border-color: #33373e;
-    --text-primary: #f8fafc;
-    --text-secondary: #94a3b8;
-    --text-muted: #64748b;
-    --input-bg: #18191c;
-    --input-border: #3b4048;
-    --input-text: #f8fafc;
-    --dropdown-bg: #232529;
-    --dropdown-border: #3b4048;
-    --item-hover-bg: #2e333a;
-    --item-selected-bg: #374151;
-    --type-badge-bg: #2d3137;
-    --type-badge-text: #cbd5e1;
-    --type-badge-border: #3e444e;
-    --hierarchy-border: #475569;
-    --hierarchy-border-hover: #94a3b8;
-    --hierarchy-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='%2394a3b8'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
-    --btn-sec-bg: #232529;
-    --btn-sec-text: #f8fafc;
-    --btn-sec-border: #475569;
-    --btn-sec-hover-bg: #2d3137;
+@media (prefers-color-scheme: light) {
+  :root:not(.theme-dark) {
+    /* Світла тема під OS як фолбек */
+    color-scheme: light;
+    --bg-page: #eff0f2;
+    --bg-card: #ffffff;
+    --border-color: #e2e8f0;
+    --text-primary: #0f172a;
+    --text-secondary: #64748b;
+    --text-muted: #94a3b8;
+    --input-bg: #ffffff;
+    --input-border: #cbd5e1;
+    --input-text: #0f172a;
+    --dropdown-bg: #ffffff;
+    --dropdown-border: #cbd5e1;
+    --item-hover-bg: #f0f7ff;
+    --item-selected-bg: #e0f2fe;
+    --type-badge-bg: #f1f5f9;
+    --type-badge-text: #475569;
+    --type-badge-border: #e2e8f0;
+    --hierarchy-border: #cbd5e1;
+    --hierarchy-border-hover: #64748b;
+    --hierarchy-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='%2364748b'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+    --btn-sec-bg: #ffffff;
+    --btn-sec-text: #1e293b;
+    --btn-sec-border: #cbd5e1;
+    --btn-sec-hover-bg: #f1f5f9;
 
-    /* Скролбар для темної теми */
-    --scrollbar-thumb: #475569;
-    --scrollbar-thumb-hover: #64748b;
+    /* Скролбар для світлої теми */
+    --scrollbar-thumb: #cbd5e1;
+    --scrollbar-thumb-hover: #94a3b8;
     --scrollbar-track: transparent;
   }
 }

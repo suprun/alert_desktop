@@ -82,6 +82,15 @@ if (!gotTheLock) {
     windowManager.reloadMap();
   });
 
+  ipcMain.handle('get-theme', () => {
+    return { isDark: windowManager.isDarkTheme };
+  });
+
+  ipcMain.on('map-theme-changed', (_event, { isDark }) => {
+    windowManager.setTheme(isDark, true);
+    settingsWindowManager.setTheme(isDark, true);
+  });
+
   app.whenReady().then(() => {
     // Блокуємо будь-які спроби запиту дозволу на Picture-in-Picture
     if (session && session.defaultSession) {
@@ -105,8 +114,11 @@ if (!gotTheLock) {
     // Встановлюємо актуальний початковий статус
     tray.updateStatus(api.getCurrentState());
 
-    // Створюємо головне вікно у фоні
+    // Створюємо головне вікно та відображаємо його (якщо не передано --hidden)
     windowManager.createMainWindow();
+    if (!process.argv.includes('--hidden')) {
+      windowManager.show();
+    }
 
     // Запускаємо фонове опитування сервера тривог
     api.startPolling();

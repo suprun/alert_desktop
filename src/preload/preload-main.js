@@ -3,6 +3,12 @@ const { contextBridge, ipcRenderer } = require('electron');
 contextBridge.exposeInMainWorld('alertAPI', {
   getCurrentStatus: () => ipcRenderer.invoke('get-current-status'),
   openSettings: () => ipcRenderer.send('open-settings'),
+  getTheme: () => ipcRenderer.invoke('get-theme'),
+  onThemeUpdated: (callback) => {
+    const handler = (_event, data) => callback(data);
+    ipcRenderer.on('theme-updated', handler);
+    return () => ipcRenderer.removeListener('theme-updated', handler);
+  },
   onStatusUpdate: (callback) => {
     const handler = (_event, data) => callback(data);
     ipcRenderer.on('status-update', handler);

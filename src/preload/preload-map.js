@@ -1,6 +1,6 @@
-const { webFrame } = require('electron');
+const { webFrame, ipcRenderer } = require('electron');
 
-// Запускаємо код у контексті головного світу веб-сторінки (world 0)
+// 1. Запускаємо код у контексті головного світу веб-сторінки (world 0)
 // для повного блокування Picture-in-Picture та міні-мапи до ініціалізації скриптів alerts.in.ua
 try {
   webFrame.executeJavaScript(`
@@ -62,3 +62,88 @@ try {
 } catch (err) {
   // Silent catch
 }
+
+// 2. Відстеження теми оформлення (світла/темна) на веб-сторінці alerts.in.ua
+let lastKnownIsDark = null;
+
+function detectTheme() {
+  try {
+    // А) Пріоритет: значення darkMode у localStorage сторінки alerts.in.ua
+    const stored = window.localStorage ? window.localStorage.getItem('darkMode') : null;
+    if (stored !== null) {
+      if (stored === 'true' || stored === true || stored === '1') return true;
+      if (stored === 'false' || stored === false || stored === '0') return false;
+    }
+
+    // Б) Класи на documentElement та body
+    const docCls = document.documentElement ? document.documentElement.classList : null;
+    const bodyCls = document.body ? document.body.classList : null;
+
+    if ((docCls && docCls.contains('light')) || (bodyCls && bodyCls.contains('light'))) {
+      return false;
+    }
+    if ((docCls && docCls.contains('dark')) || (bodyCls && bodyCls.contains('dark'))) {
+      return true;
+    }
+
+    // В) Системний медіа-запит prefers-color-scheme
+    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      return true;
+    }
+    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) {
+      return false;
+    }
+  } catch (e) {
+    // fallback
+  }
+  return true; // За замовчуванням темна тема
+}
+
+function checkAndEmitTheme() {
+  const isDark = detectTheme();
+  if (lastKnownIsDark !== isDark) {
+    lastKnownIsDark = isDark;
+    try {
+      ipcRenderer.send('map-theme-changed', { isDark });
+    } catch (e) {
+      // ignore ipc error
+    }
+  }
+}
+
+// Початкова перевірка при завантаженні DOM
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', checkAndEmitTheme);
+} else {
+  checkAndEmitTheme();
+}
+window.addEventListener('load', checkAndEmitTheme);
+
+// Спостереження за змінами класів DOM (MutationObserver)
+try {
+  const observer = new MutationObserver(() => {
+    checkAndEmitTheme();
+  });
+  if (document.documentElement) {
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class', 'style', 'data-theme'] });
+  }
+  if (document.body) {
+    observer.observe(document.body, { attributes: true, attributeFilter: ['class', 'style', 'data-theme'] });
+  }
+} catch (e) {}
+
+// Відстеження зміни ключа у localStorage
+window.addEventListener('storage', (e) => {
+  if (e.key === 'darkMode') {
+    checkAndEmitTheme();
+  }
+});
+
+// Перехоплення кліків на перемикач теми
+window.addEventListener('click', () => {
+  setTimeout(checkAndEmitTheme, 50);
+  setTimeout(checkAndEmitTheme, 250);
+}, true);
+
+// Періодична контрольна звірка раз на 1.5 секунди
+setInterval(checkAndEmitTheme, 1500);

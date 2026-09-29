@@ -8,14 +8,27 @@ class WindowManager {
     this.headerHeight = 56;
     this.isQuitting = false;
     this.isMapReady = false;
+    this.isDarkTheme = nativeTheme.shouldUseDarkColors;
+    this.hasMapThemeOverride = false;
 
-    // Слідкуємо за системною зміною теми Windows (light/dark)
+    // Слідкуємо за системною зміною теми Windows (light/dark) як фолбек
     nativeTheme.on('updated', () => {
-      if (this.mainWindow && !this.mainWindow.isDestroyed()) {
-        const themeBg = nativeTheme.shouldUseDarkColors ? '#232529' : '#eff0f2';
-        this.mainWindow.setBackgroundColor(themeBg);
+      if (!this.hasMapThemeOverride) {
+        this.setTheme(nativeTheme.shouldUseDarkColors, false);
       }
     });
+  }
+
+  setTheme(isDark, fromMap = true) {
+    this.isDarkTheme = Boolean(isDark);
+    if (fromMap) {
+      this.hasMapThemeOverride = true;
+    }
+    if (this.mainWindow && !this.mainWindow.isDestroyed()) {
+      const themeBg = this.isDarkTheme ? '#232529' : '#eff0f2';
+      this.mainWindow.setBackgroundColor(themeBg);
+      this.mainWindow.webContents.send('theme-updated', { isDark: this.isDarkTheme });
+    }
   }
 
   createMainWindow() {
@@ -27,7 +40,7 @@ class WindowManager {
     }
 
     const iconPath = path.join(__dirname, '..', '..', 'assets', 'icons', 'app-icon.png');
-    const initialBgColor = nativeTheme.shouldUseDarkColors ? '#232529' : '#eff0f2';
+    const initialBgColor = this.isDarkTheme ? '#232529' : '#eff0f2';
 
     this.mainWindow = new BrowserWindow({
       width: 1060,
@@ -36,7 +49,7 @@ class WindowManager {
       minHeight: 500,
       title: 'Повітряні тривоги',
       icon: iconPath,
-      show: false,
+      show: !process.argv.includes('--hidden'),
       autoHideMenuBar: true,
       backgroundColor: initialBgColor,
       webPreferences: {
@@ -70,8 +83,16 @@ class WindowManager {
       this.updateViewBounds();
     });
 
+    this.mainWindow.webContents.on('did-finish-load', () => {
+      this.mainWindow.webContents.send('theme-updated', { isDark: this.isDarkTheme });
+    });
+
     this.mainWindow.once('ready-to-show', () => {
       this.updateViewBounds();
+      this.mainWindow.webContents.send('theme-updated', { isDark: this.isDarkTheme });
+      if (!process.argv.includes('--hidden')) {
+        this.show();
+      }
     });
 
     return this.mainWindow;

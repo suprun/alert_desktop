@@ -18,7 +18,7 @@ class AutoStartManager {
       const execPath = process.execPath;
       const appPath = (app && app.getAppPath) ? app.getAppPath() : path.resolve(__dirname, '..', '..');
       const isPackaged = Boolean(app && app.isPackaged);
-      const args = isPackaged ? [] : [appPath];
+      const args = isPackaged ? ['--hidden'] : [appPath, '--hidden'];
 
       // 1. Electron вбудований API
       if (app && typeof app.setLoginItemSettings === 'function') {
@@ -36,7 +36,7 @@ class AutoStartManager {
       // 2. Безпосередній нативний запис до реєстру Windows (гарантує запуск у будь-якому режимі)
       if (process.platform === 'win32') {
         if (enable) {
-          const command = isPackaged ? `"${execPath}"` : `"${execPath}" "${appPath}"`;
+          const command = isPackaged ? `"${execPath}" --hidden` : `"${execPath}" "${appPath}" --hidden`;
           execFileSync('reg.exe', ['add', REG_KEY, '/v', APP_NAME, '/t', 'REG_SZ', '/d', command, '/f'], { stdio: 'ignore' });
         } else {
           try {

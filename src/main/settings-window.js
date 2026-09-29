@@ -4,14 +4,27 @@ const path = require('path');
 class SettingsWindowManager {
   constructor() {
     this.settingsWindow = null;
+    this.isDarkTheme = nativeTheme.shouldUseDarkColors;
+    this.hasMapThemeOverride = false;
 
-    // Слідкуємо за системною зміною теми Windows (light/dark)
+    // Слідкуємо за системною зміною теми Windows (light/dark) як фолбек
     nativeTheme.on('updated', () => {
-      if (this.settingsWindow && !this.settingsWindow.isDestroyed()) {
-        const themeBg = nativeTheme.shouldUseDarkColors ? '#232529' : '#eff0f2';
-        this.settingsWindow.setBackgroundColor(themeBg);
+      if (!this.hasMapThemeOverride) {
+        this.setTheme(nativeTheme.shouldUseDarkColors, false);
       }
     });
+  }
+
+  setTheme(isDark, fromMap = true) {
+    this.isDarkTheme = Boolean(isDark);
+    if (fromMap) {
+      this.hasMapThemeOverride = true;
+    }
+    if (this.settingsWindow && !this.settingsWindow.isDestroyed()) {
+      const themeBg = this.isDarkTheme ? '#18191c' : '#eff0f2';
+      this.settingsWindow.setBackgroundColor(themeBg);
+      this.settingsWindow.webContents.send('theme-updated', { isDark: this.isDarkTheme });
+    }
   }
 
   showSettingsWindow(parentWindow = null) {
@@ -23,7 +36,7 @@ class SettingsWindowManager {
     }
 
     const iconPath = path.join(__dirname, '..', '..', 'assets', 'icons', 'app-icon.png');
-    const initialBgColor = nativeTheme.shouldUseDarkColors ? '#232529' : '#eff0f2';
+    const initialBgColor = this.isDarkTheme ? '#18191c' : '#eff0f2';
 
     this.settingsWindow = new BrowserWindow({
       width: 480,
@@ -53,7 +66,12 @@ class SettingsWindowManager {
     const settingsHtmlPath = path.join(__dirname, '..', 'renderer', 'settings', 'settings.html');
     this.settingsWindow.loadFile(settingsHtmlPath);
 
+    this.settingsWindow.webContents.on('did-finish-load', () => {
+      this.settingsWindow.webContents.send('theme-updated', { isDark: this.isDarkTheme });
+    });
+
     this.settingsWindow.once('ready-to-show', () => {
+      this.settingsWindow.webContents.send('theme-updated', { isDark: this.isDarkTheme });
       this.settingsWindow.show();
       this.settingsWindow.focus();
     });

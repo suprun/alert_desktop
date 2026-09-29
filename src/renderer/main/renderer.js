@@ -52,15 +52,38 @@ const icons = {
     </svg>`
 };
 
+function applyTheme(isDark) {
+  if (isDark) {
+    document.documentElement.classList.remove('theme-light');
+    document.documentElement.classList.add('theme-dark');
+  } else {
+    document.documentElement.classList.remove('theme-dark');
+    document.documentElement.classList.add('theme-light');
+  }
+}
+
 function updateUI(status) {
   if (!status) return;
 
   statusLocation.textContent = status.locationTitle || 'Україна';
 
-  if (status.lastChecked) {
-    const liveTag = status.isRealtime ? ' ⚡' : '';
-    lastUpdated.textContent = `Оновлено: ${status.lastChecked}${liveTag}`;
-    lastUpdated.title = status.isRealtime ? 'Підключено через WebSocket у режимі реального часу (0 сек затримки)' : 'Звичайний режим оновлення';
+  if (lastUpdated) {
+    if (status.isOffline) {
+      lastUpdated.className = 'last-updated offline';
+      lastUpdated.innerHTML = '<span class="live-dot"></span><span>Офлайн</span>';
+      const timeStr = status.lastChecked ? `Остання спроба: ${status.lastChecked}\n` : '';
+      lastUpdated.title = `${timeStr}Немає зв’язку із сервером сповіщень`;
+    } else if (status.isRealtime) {
+      lastUpdated.className = 'last-updated';
+      lastUpdated.innerHTML = '<span class="live-dot"></span><span>Наживо</span>';
+      const timeStr = status.lastChecked ? `\nОстаннє оновлення: ${status.lastChecked}` : '';
+      lastUpdated.title = `Підключено через WebSocket у режимі реального часу (0 сек затримки)${timeStr}`;
+    } else {
+      lastUpdated.className = 'last-updated';
+      lastUpdated.innerHTML = '<span class="live-dot"></span><span>Наживо</span>';
+      const timeStr = status.lastChecked ? `\nОстаннє оновлення: ${status.lastChecked}` : '';
+      lastUpdated.title = `Підключено через сервер (синхронізація тривог)${timeStr}`;
+    }
   }
 
   statusBadge.className = 'status-badge';
@@ -183,4 +206,19 @@ if (window.alertAPI) {
   }).catch((err) => {
     console.warn('Помилка завантаження стану:', err);
   });
+
+  // Синхронізація теми оформлення
+  if (window.alertAPI.onThemeUpdated) {
+    window.alertAPI.onThemeUpdated(({ isDark }) => {
+      applyTheme(isDark);
+    });
+  }
+
+  if (window.alertAPI.getTheme) {
+    window.alertAPI.getTheme().then((themeInfo) => {
+      if (themeInfo && typeof themeInfo.isDark === 'boolean') {
+        applyTheme(themeInfo.isDark);
+      }
+    }).catch(() => {});
+  }
 }
