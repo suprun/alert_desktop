@@ -2,6 +2,13 @@ const { EventEmitter } = require('events');
 const config = require('./config');
 const locationsData = require('./locations.json');
 
+let WebSocketClient;
+try {
+  WebSocketClient = require('ws');
+} catch (e) {
+  WebSocketClient = globalThis.WebSocket;
+}
+
 // Індексація локацій для швидкого пошуку ієрархічних зв'язків
 const locationByUid = new Map();
 const locationByTitle = new Map();
@@ -90,14 +97,19 @@ class AlertApiService extends EventEmitter {
   connectWebSocket() {
     this.disconnectWebSocket();
 
+    if (!WebSocketClient) {
+      console.warn('[WebSocket] Бібліотека WebSocket недоступна в поточному середовищі.');
+      return;
+    }
+
     const wsUrl = config.getWsUrl();
     this.currentWsUrl = wsUrl;
 
     try {
       console.log(`[WebSocket] Підключення до шлюзу тривог: ${wsUrl}...`);
-      this.ws = new WebSocket(wsUrl);
+      this.ws = new WebSocketClient(wsUrl);
 
-      this.ws.onopen = () => {
+      const onOpen = () => {
         console.log(`[WebSocket] З'єднання успішно встановлено з ${wsUrl}`);
         this.isWsConnected = true;
         this.wsReconnectDelay = 1000;
@@ -106,16 +118,17 @@ class AlertApiService extends EventEmitter {
         this.emit('status-updated', this.lastState);
       };
 
-      this.ws.onmessage = (event) => {
+      const onMessage = (raw) => {
         try {
-          const data = JSON.parse(event.data);
+          const text = typeof raw === 'string' ? raw : (raw.data ? raw.data.toString() : raw.toString());
+          const data = JSON.parse(text);
           this._handleWsMessage(data);
         } catch (err) {
           console.warn('[WebSocket] Помилка обробки повідомлення:', err.message);
         }
       };
 
-      this.ws.onclose = () => {
+      const onClose = () => {
         if (this.isWsConnected) {
           console.log('[WebSocket] З\'єднання закрито сервером.');
         }
@@ -124,9 +137,21 @@ class AlertApiService extends EventEmitter {
         this._scheduleWsReconnect();
       };
 
-      this.ws.onerror = (err) => {
+      const onError = (err) => {
         console.warn('[WebSocket] Помилка з\'єднання:', err.message || err);
       };
+
+      if (typeof this.ws.on === 'function') {
+        this.ws.on('open', onOpen);
+        this.ws.on('message', onMessage);
+        this.ws.on('close', onClose);
+        this.ws.on('error', onError);
+      } else {
+        this.ws.onopen = onOpen;
+        this.ws.onmessage = onMessage;
+        this.ws.onclose = onClose;
+        this.ws.onerror = onError;
+      }
     } catch (err) {
       console.warn('[WebSocket] Не вдалося створити сокет:', err.message);
       this._scheduleWsReconnect();
@@ -140,10 +165,14 @@ class AlertApiService extends EventEmitter {
     }
     if (this.ws) {
       try {
-        this.ws.onopen = null;
-        this.ws.onmessage = null;
-        this.ws.onclose = null;
-        this.ws.onerror = null;
+        if (typeof this.ws.removeAllListeners === 'function') {
+          this.ws.removeAllListeners();
+        } else {
+          this.ws.onopen = null;
+          this.ws.onmessage = null;
+          this.ws.onclose = null;
+          this.ws.onerror = null;
+        }
         this.ws.close();
       } catch (e) {
         // ignore close error
@@ -178,7 +207,7 @@ class AlertApiService extends EventEmitter {
       console.log(`[WebSocket Push] Отримано оновлення тривоги: regionId=${data.regionId}, status=${data.status}`);
       this._processAlertsPayload(alerts);
     } else if (data.event === 'ping') {
-      if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+      if (this.ws && (this.ws.readyState === 1 || this.ws.readyState === (WebSocketClient && WebSocketClient.OPEN))) {
         try {
           this.ws.send('pong');
         } catch (e) {

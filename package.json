@@ -23,5 +23,8 @@
   "devDependencies": {
     "@electron/packager": "^20.3.0",
     "electron": "^32.2.0"
+  },
+  "dependencies": {
+    "ws": "^8.22.0"
   }
 }
