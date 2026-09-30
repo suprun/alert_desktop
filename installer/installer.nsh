@@ -7,6 +7,33 @@ LangString RUN_APP_TEXT 1033 "Launch AlertDesktop"
 LangString AUTOSTART_TEXT 1058 "Запускати автоматично при старті Windows"
 LangString AUTOSTART_TEXT 1033 "Start automatically when Windows starts"
 
+!macro customHeader
+  ; --- Українська локалізація діалогів вибору режиму та деінсталяції (LCID 1058) ---
+  ; Перевизначаємо рядки з assistedMessages.yml / messages.yml, де відсутня українська мова в electron-builder
+  LangString chooseInstallationOptions 1058 "Оберіть параметри встановлення"
+  LangString chooseUninstallationOptions 1058 "Оберіть параметри видалення"
+  LangString whichInstallationShouldBeRemoved 1058 "Яку саме інсталяцію слід видалити?"
+  LangString whoShouldThisApplicationBeInstalledFor 1058 "Для кого слід встановити цей застосунок?"
+  LangString selectUserMode 1058 "Оберіть, чи бажаєте зробити програму доступною для всіх користувачів, чи лише для себе:"
+  LangString whichInstallationRemove 1058 "Програма встановлена як для всієї системи, так і для окремого користувача.$\r$\nЯку саме інсталяцію ви бажаєте видалити?"
+  LangString freshInstallForAll 1058 "Чисте встановлення для всіх користувачів (потрібні права адміністратора)."
+  LangString freshInstallForCurrent 1058 "Чисте встановлення лише для поточного користувача."
+  LangString onlyForMe 1058 "Лише для &мене"
+  LangString forAll 1058 "Для &всіх користувачів цього комп'ютера"
+  LangString loginWithAdminAccount 1058 "Для продовження необхідно увійти під обліковим записом адміністратора..."
+  LangString perUserInstallExists 1058 "Вже встановлено для поточного користувача."
+  LangString perUserInstall 1058 "Встановлено для користувача."
+  LangString perMachineInstallExists 1058 "Вже встановлено для всіх користувачів комп'ютера."
+  LangString perMachineInstall 1058 "Встановлено для всіх користувачів."
+  LangString reinstallUpgrade 1058 "Буде оновлено/перевстановлено."
+  LangString uninstall 1058 "Буде видалено."
+  LangString deleteAppData 1058 "Дані та налаштування застосунку"
+  LangString deleteAppDataCheckbox 1058 "Видалити також збережені налаштування та історію сповіщень"
+  LangString appCannotBeClosed 1058 "Не вдалося закрити ${PRODUCT_NAME}.$\r$\nБудь ласка, закрийте застосунок вручну та натисніть 'Повторити'."
+  LangString win7Required 1058 "Потрібна Windows 7 або новіша версія."
+  LangString x64WinRequired 1058 "Потрібна 64-розрядна версія Windows."
+!macroend
+
 !macro customFinishPage
   !ifndef HIDE_RUN_AFTER_FINISH
     Function StartApp
