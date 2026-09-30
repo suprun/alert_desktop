@@ -67,7 +67,8 @@ alert_desktop/
 │   ├── reset_config.js                   # Скидання та видалення файлу конфігурації у профілі користувача
 │   ├── smoke_test.js                     # Smoke-тест ініціалізації компонентів
 │   ├── test_threat_utils.js              # Unit-тести парсингу характеру загроз та анти-тавтології
-│   └── test_notifier.js                  # Unit-тести форматування часу та тривалості сповіщень Windows
+│   ├── test_notifier.js                  # Unit-тести форматування часу та тривалості сповіщень Windows
+│   └── test_oblast_aggregation.js        # Unit-тести агрегації тривог по районах для обраної області
 │
 ├── server/                               # Гібридний шлюз тривог на Python для Ubuntu (Webhook, WebSocket & Threats Enricher)
 │   ├── .env.example                      # Шаблон конфігурації шлюзу (UkraineAlarm та alerts.in.ua токени, webhook URL, порт)

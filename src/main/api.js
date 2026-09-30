@@ -13,6 +13,7 @@ try {
 // Індексація локацій для швидкого пошуку ієрархічних зв'язків
 const locationByUid = new Map();
 const locationByTitle = new Map();
+const raionsByOblastUid = new Map();
 
 for (const loc of locationsData) {
   if (loc.uid) {
@@ -20,6 +21,13 @@ for (const loc of locationsData) {
   }
   if (loc.title) {
     locationByTitle.set(loc.title.toLowerCase().trim(), loc);
+  }
+  if (loc.type === 'Район' && loc.oblastUid) {
+    const obUid = String(loc.oblastUid);
+    if (!raionsByOblastUid.has(obUid)) {
+      raionsByOblastUid.set(obUid, []);
+    }
+    raionsByOblastUid.get(obUid).push(loc);
   }
 }
 
@@ -279,28 +287,155 @@ class AlertApiService extends EventEmitter {
       });
     }
 
-    // Шукаємо активну тривогу за спаданням специфічності (громада -> район -> область)
+    // Визначаємо, чи обрана локація є областю
+    const isSelectedOblast = currentLocation && (
+      currentLocation.type === 'Область' ||
+      (currentLocation.oblastUid && String(currentLocation.oblastUid) === String(currentLocation.uid) && !currentLocation.raionUid)
+    );
+
     let matchedAlert = null;
     let matchedScope = null;
 
-    for (const target of targetHierarchy) {
-      for (const alert of alerts) {
+    if (isSelectedOblast) {
+      // 1. Пряма перевірка: чи є в активних тривогах загальнообласний запис (state / oblast)
+      const currentOblastTitle = (currentLocation.title || '').toLowerCase().trim();
+      const directOblastAlert = alerts.find(alert => {
         const alertUid = String(alert.location_uid || alert.uid || alert.id || '');
-        const alertTitle = (alert.location_title || alert.title || '').toLowerCase().trim();
-        const alertOblast = (alert.location_oblast || '').toLowerCase().trim();
         const alertType = alert.location_type || '';
+        const alertOblast = (alert.location_oblast || '').toLowerCase().trim();
+        const alertTitle = (alert.location_title || alert.title || '').toLowerCase().trim();
 
-        const matchUid = target.uid && alertUid === target.uid;
-        const matchTitle = target.title && (alertTitle === target.title || alertTitle.includes(target.title) || target.title.includes(alertTitle));
-        const matchOblast = target.level === 'oblast' && alertType === 'oblast' && target.title && alertOblast === target.title;
+        const matchUid = alertUid === String(currentLocation.uid);
+        const matchState = (alertType === 'state' || alertType === 'oblast') &&
+          (alertTitle === currentOblastTitle || alertOblast === currentOblastTitle);
 
-        if (matchUid || matchTitle || matchOblast) {
-          matchedAlert = alert;
-          matchedScope = target.level !== 'direct' ? target.sourceTitle : null;
-          break;
+        return matchUid || matchState;
+      });
+
+      if (directOblastAlert) {
+        matchedAlert = directOblastAlert;
+        matchedScope = null;
+      } else {
+        // 2. Якщо прямого загальнообласного запису немає, перевіряємо активність районів цієї області.
+        // Затверджено: тривога для області активується виключно тоді, коли тривога активна у ВСІХ районах області одночасно.
+        const expectedRaions = raionsByOblastUid.get(String(currentLocation.uid)) || [];
+        const totalExpectedRaions = expectedRaions.length;
+
+        if (totalExpectedRaions > 0) {
+          const expectedRaionUidMap = new Map();
+          const expectedRaionTitleMap = new Map();
+
+          for (const r of expectedRaions) {
+            expectedRaionUidMap.set(String(r.uid), r);
+            expectedRaionTitleMap.set((r.title || '').toLowerCase().trim(), r);
+          }
+
+          const activeRaionAlerts = [];
+          const activeRaionUids = new Set();
+
+          for (const alert of alerts) {
+            const alertUid = String(alert.location_uid || alert.uid || alert.id || '');
+            const alertType = alert.location_type || '';
+            const alertOblast = (alert.location_oblast || '').toLowerCase().trim();
+            const alertTitle = (alert.location_title || alert.title || '').toLowerCase().trim();
+
+            let matchedRaion = expectedRaionUidMap.get(alertUid);
+            if (!matchedRaion && (alertType === 'district' || alertOblast === currentOblastTitle)) {
+              matchedRaion = expectedRaionTitleMap.get(alertTitle);
+            }
+
+            if (matchedRaion) {
+              const canonicalUid = String(matchedRaion.uid);
+              if (!activeRaionUids.has(canonicalUid)) {
+                activeRaionUids.add(canonicalUid);
+                activeRaionAlerts.push(alert);
+              }
+            }
+          }
+
+          // Перевіряємо, чи всі райони області мають активну тривогу
+          if (activeRaionUids.size >= totalExpectedRaions) {
+            let hasArtillery = false;
+            let hasUrban = false;
+            let hasChemical = false;
+            let hasNuclear = false;
+            let hasRed = false;
+            const combinedThreatsMap = new Map();
+            let earliestTime = null;
+
+            for (const a of activeRaionAlerts) {
+              if (a.alert_type === 'artillery_shelling') hasArtillery = true;
+              if (a.alert_type === 'urban_fights') hasUrban = true;
+              if (a.alert_type === 'chemical') hasChemical = true;
+              if (a.alert_type === 'nuclear') hasNuclear = true;
+              if (a.alert_level === 'red') hasRed = true;
+
+              if (Array.isArray(a.threats)) {
+                for (const t of a.threats) {
+                  const type = t.threat_type || 'unknown';
+                  const existing = combinedThreatsMap.get(type);
+                  if (!existing) {
+                    combinedThreatsMap.set(type, { ...t });
+                  } else if (t.level === 'red' && existing.level !== 'red') {
+                    combinedThreatsMap.set(type, { ...existing, level: 'red' });
+                  }
+                }
+              }
+
+              const alertTimeStr = a.started_at || a.created_at;
+              if (alertTimeStr) {
+                const time = new Date(alertTimeStr).getTime();
+                if (!isNaN(time) && (!earliestTime || time < earliestTime)) {
+                  earliestTime = time;
+                }
+              }
+            }
+
+            let aggregatedAlertType = 'air_raid';
+            if (hasArtillery) aggregatedAlertType = 'artillery_shelling';
+            else if (hasUrban) aggregatedAlertType = 'urban_fights';
+            else if (hasChemical) aggregatedAlertType = 'chemical';
+            else if (hasNuclear) aggregatedAlertType = 'nuclear';
+
+            const aggregatedAlertLevel = hasRed ? 'red' : 'yellow';
+            const aggregatedThreats = Array.from(combinedThreatsMap.values());
+            const earliestStartedAt = earliestTime ? new Date(earliestTime).toISOString() : new Date().toISOString();
+
+            matchedAlert = {
+              location_uid: String(currentLocation.uid),
+              location_title: currentLocation.title,
+              location_type: 'state',
+              location_oblast: currentLocation.title,
+              alert_type: aggregatedAlertType,
+              alert_level: aggregatedAlertLevel,
+              threats: aggregatedThreats,
+              started_at: earliestStartedAt
+            };
+            matchedScope = null;
+          }
         }
       }
-      if (matchedAlert) break;
+    } else {
+      // Для громади чи району: стандартний ієрархічний пошук знизу вгору (громада -> район -> область)
+      for (const target of targetHierarchy) {
+        for (const alert of alerts) {
+          const alertUid = String(alert.location_uid || alert.uid || alert.id || '');
+          const alertTitle = (alert.location_title || alert.title || '').toLowerCase().trim();
+          const alertOblast = (alert.location_oblast || '').toLowerCase().trim();
+          const alertType = alert.location_type || '';
+
+          const matchUid = target.uid && alertUid === target.uid;
+          const matchTitle = target.title && (alertTitle === target.title || alertTitle.includes(target.title) || target.title.includes(alertTitle));
+          const matchOblast = target.level === 'oblast' && (alertType === 'state' || alertType === 'oblast') && target.title && alertOblast === target.title;
+
+          if (matchUid || matchTitle || matchOblast) {
+            matchedAlert = alert;
+            matchedScope = target.level !== 'direct' ? target.sourceTitle : null;
+            break;
+          }
+        }
+        if (matchedAlert) break;
+      }
     }
 
     const previousIsAlert = this.lastState.isAlert;
@@ -418,6 +553,10 @@ class AlertApiService extends EventEmitter {
 
   getCurrentState() {
     return { ...this.lastState };
+  }
+
+  getStatus() {
+    return this.getCurrentState();
   }
 }
 

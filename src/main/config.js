@@ -160,6 +160,11 @@ class ConfigManager extends EventEmitter {
     return this.config[key];
   }
 
+  set(key, value) {
+    this.config[key] = value;
+    this.emit('changed', this.config);
+  }
+
   getAll() {
     return { ...this.config };
   }
