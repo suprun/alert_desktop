@@ -1,5 +1,10 @@
 ; installer/installer.nsh — кастомні хуки та багатомовна локалізація NSIS для AlertDesktop
 
+; --- Автоматичне збереження та відновлення вибору мови між інсталятором та деінсталятором ---
+!define MUI_LANGDLL_REGISTRY_ROOT "HKCU"
+!define MUI_LANGDLL_REGISTRY_KEY "Software\AlertDesktop"
+!define MUI_LANGDLL_REGISTRY_VALUENAME "Installer Language"
+
 ; --- Багатомовні рядки для чекбоксів фінальної сторінки ---
 LangString RUN_APP_TEXT 1058 "Запустити Повітряні тривоги"
 LangString RUN_APP_TEXT 1033 "Launch AlertDesktop"
@@ -30,6 +35,9 @@ LangString AUTOSTART_TEXT 1033 "Start automatically when Windows starts"
   LangString deleteAppData 1058 "Дані та налаштування застосунку"
   LangString deleteAppDataCheckbox 1058 "Видалити також збережені налаштування та історію сповіщень"
   LangString appCannotBeClosed 1058 "Не вдалося закрити ${PRODUCT_NAME}.$\r$\nБудь ласка, закрийте застосунок вручну та натисніть 'Повторити'."
+  LangString appClosing 1058 "Завершення роботи ${PRODUCT_NAME}..."
+  LangString areYouSureToUninstall 1058 "Ви впевнені, що бажаєте видалити ${PRODUCT_NAME}?"
+  LangString uninstallFailed 1058 "Не вдалося видалити старі файли застосунку. Будь ласка, спробуйте запустити деінсталятор знову."
   LangString win7Required 1058 "Потрібна Windows 7 або новіша версія."
   LangString x64WinRequired 1058 "Потрібна 64-розрядна версія Windows."
 !macroend
@@ -74,6 +82,9 @@ LangString AUTOSTART_TEXT 1033 "Start automatically when Windows starts"
 !macroend
 
 !macro customInstall
+  ; Зберігаємо обрану мову встановлення для деінсталятора
+  WriteRegStr HKCU "Software\AlertDesktop" "Installer Language" $LANGUAGE
+
   ; Якщо автозапуск уже був раніше налаштований — оновлюємо шлях до нового EXE
   ReadRegStr $0 HKCU "Software\Microsoft\Windows\CurrentVersion\Run" "AlertDesktop"
   ${If} $0 != ""
@@ -81,7 +92,21 @@ LangString AUTOSTART_TEXT 1033 "Start automatically when Windows starts"
   ${EndIf}
 !macroend
 
+!macro customUnInit
+  ; Відновлюємо мову, яку користувач обрав під час встановлення
+  ReadRegStr $0 HKCU "Software\AlertDesktop" "Installer Language"
+  ${If} $0 != ""
+    StrCpy $LANGUAGE $0
+  ${Else}
+    ; Якщо запис відсутній — показуємо діалог вибору мови (якщо увімкнено)
+    !ifdef DISPLAY_LANG_SELECTOR
+      !insertmacro MUI_LANGDLL_DISPLAY
+    !endif
+  ${EndIf}
+!macroend
+
 !macro customUnInstall
-  ; Чисте видалення запису автозапуску при деінсталяції програми
+  ; Чисте видалення запису автозапуску та налаштувань інсталятора при деінсталяції програми
   DeleteRegValue HKCU "Software\Microsoft\Windows\CurrentVersion\Run" "AlertDesktop"
+  DeleteRegKey HKCU "Software\AlertDesktop"
 !macroend
