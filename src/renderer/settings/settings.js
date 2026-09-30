@@ -1,9 +1,3 @@
-const locationSearchInput = document.getElementById('locationSearchInput');
-const locationDropdown = document.getElementById('locationDropdown');
-const locationList = document.getElementById('locationList');
-const locationNoResults = document.getElementById('locationNoResults');
-const btnClearLocation = document.getElementById('btnClearLocation');
-const comboboxWrapper = document.getElementById('comboboxWrapper');
 const selectedLocationBadge = document.getElementById('selectedLocationBadge');
 const selectedBadgeText = document.getElementById('selectedBadgeText');
 const selectedBadgeType = document.getElementById('selectedBadgeType');
@@ -60,7 +54,6 @@ let allLocations = [];
 let selectedUid = '31';
 let selectedTitle = 'м. Київ';
 let selectedType = 'Місто з спеціальним статусом';
-let highlightedIndex = -1;
 
 function stopAudioTest() {
   if (audioTest) {
@@ -293,7 +286,6 @@ function selectLocation(loc, syncHierarchy = true) {
   selectedTitle = loc.title;
   selectedType = loc.type || '';
 
-  locationSearchInput.value = loc.title;
   selectedBadgeText.textContent = loc.title;
   selectedBadgeType.textContent = loc.type || '';
   selectedBadgeType.className = 'location-item-type selected-badge-type';
@@ -305,7 +297,6 @@ function selectLocation(loc, syncHierarchy = true) {
     selectedBadgeType.classList.add('hromada');
   }
   selectedLocationBadge.style.display = 'flex';
-  btnClearLocation.style.display = 'flex';
 
   if (syncHierarchy && selectOblast) {
     if (loc.type === 'Область' || (loc.type && loc.type.includes('спеціальним'))) {
@@ -330,116 +321,11 @@ function selectLocation(loc, syncHierarchy = true) {
       if (selectHromada) selectHromada.value = String(loc.uid);
     }
   }
-
-  closeDropdown();
 }
 
-function openDropdown() {
-  renderDropdownResults(locationSearchInput.value.trim());
-  locationDropdown.style.display = 'block';
-}
 
-function closeDropdown() {
-  locationDropdown.style.display = 'none';
-  highlightedIndex = -1;
-}
 
-function renderDropdownResults(query) {
-  locationList.innerHTML = '';
-  highlightedIndex = -1;
 
-  let filtered = [];
-  const q = query.toLowerCase();
-
-  if (!q) {
-    filtered = allLocations.slice(0, 60);
-  } else {
-    // Спочатку точні збіги та збіги на початку назви, потім підрядкові
-    const startsWithMatches = [];
-    const containsMatches = [];
-
-    for (const loc of allLocations) {
-      const titleLower = loc.title.toLowerCase();
-      const notesLower = (loc.notes || '').toLowerCase();
-
-      if (titleLower.startsWith(q)) {
-        startsWithMatches.push(loc);
-      } else if (titleLower.includes(q) || notesLower.includes(q)) {
-        containsMatches.push(loc);
-      }
-
-      if (startsWithMatches.length + containsMatches.length >= 80) {
-        break;
-      }
-    }
-
-    filtered = [...startsWithMatches, ...containsMatches];
-  }
-
-  if (filtered.length === 0) {
-    locationNoResults.style.display = 'block';
-  } else {
-    locationNoResults.style.display = 'none';
-
-    filtered.forEach((loc, index) => {
-      const item = document.createElement('div');
-      item.className = 'location-item';
-      if (String(loc.uid) === selectedUid) {
-        item.classList.add('selected');
-      }
-
-      const titleEl = document.createElement('span');
-      titleEl.className = 'location-item-title';
-      titleEl.textContent = loc.title;
-
-      const typeEl = document.createElement('span');
-      typeEl.className = 'location-item-type';
-      if (loc.type === 'Область' || (loc.type && loc.type.includes('спеціальним'))) {
-        typeEl.classList.add('oblast');
-      } else if (loc.type === 'Район') {
-        typeEl.classList.add('raion');
-      } else {
-        typeEl.classList.add('hromada');
-      }
-      typeEl.textContent = loc.type || '';
-
-      item.appendChild(titleEl);
-      if (loc.type) {
-        item.appendChild(typeEl);
-      }
-
-      item.addEventListener('click', () => {
-        selectLocation(loc);
-      });
-
-      locationList.appendChild(item);
-    });
-  }
-}
-
-// Події поля пошуку
-locationSearchInput.addEventListener('focus', () => {
-  openDropdown();
-});
-
-locationSearchInput.addEventListener('input', () => {
-  const hasText = Boolean(locationSearchInput.value.trim());
-  btnClearLocation.style.display = hasText ? 'flex' : 'none';
-  openDropdown();
-});
-
-btnClearLocation.addEventListener('click', (e) => {
-  e.stopPropagation();
-  locationSearchInput.value = '';
-  btnClearLocation.style.display = 'none';
-  selectedLocationBadge.style.display = 'none';
-  selectedBadgeType.textContent = '';
-  selectedBadgeType.className = 'location-item-type selected-badge-type';
-  if (selectOblast) selectOblast.value = '';
-  populateRaions(null);
-  locationSearchInput.focus();
-  openDropdown();
-});
 
 // Слухачі подій для ієрархічних списків вибору
 if (selectOblast) {
@@ -501,51 +387,7 @@ if (selectHromada) {
 }
 
 // Клавіатурна навігація у списку результатів
-locationSearchInput.addEventListener('keydown', (e) => {
-  const items = locationList.querySelectorAll('.location-item');
-  if (!items.length || locationDropdown.style.display === 'none') {
-    if (e.key === 'ArrowDown') {
-      openDropdown();
-      e.preventDefault();
-    }
-    return;
-  }
 
-  if (e.key === 'ArrowDown') {
-    e.preventDefault();
-    highlightedIndex = (highlightedIndex + 1) % items.length;
-    updateHighlightedItem(items);
-  } else if (e.key === 'ArrowUp') {
-    e.preventDefault();
-    highlightedIndex = (highlightedIndex - 1 + items.length) % items.length;
-    updateHighlightedItem(items);
-  } else if (e.key === 'Enter') {
-    e.preventDefault();
-    if (highlightedIndex >= 0 && highlightedIndex < items.length) {
-      items[highlightedIndex].click();
-    }
-  } else if (e.key === 'Escape') {
-    closeDropdown();
-  }
-});
-
-function updateHighlightedItem(items) {
-  items.forEach((item, idx) => {
-    if (idx === highlightedIndex) {
-      item.classList.add('highlighted');
-      item.scrollIntoView({ block: 'nearest' });
-    } else {
-      item.classList.remove('highlighted');
-    }
-  });
-}
-
-// Закриття випадаючого списку при кліку поза межами
-document.addEventListener('click', (e) => {
-  if (!comboboxWrapper.contains(e.target)) {
-    closeDropdown();
-  }
-});
 
 // Завантаження початкових даних
 async function init() {
@@ -566,17 +408,14 @@ async function init() {
         selectLocation(found, true);
       } else if (cfg.locationTitle) {
         selectedTitle = cfg.locationTitle;
-        locationSearchInput.value = cfg.locationTitle;
         selectedBadgeText.textContent = cfg.locationTitle;
         selectedBadgeType.textContent = '';
         selectedBadgeType.className = 'location-item-type selected-badge-type';
         selectedLocationBadge.style.display = 'flex';
-        btnClearLocation.style.display = 'flex';
       }
     } else {
       // Якщо локацію ще не обрано
       selectedLocationBadge.style.display = 'none';
-      btnClearLocation.style.display = 'none';
     }
 
     const alertOn = cfg.soundAlertEnabled !== undefined ? cfg.soundAlertEnabled : (cfg.soundEnabled !== false);
@@ -648,16 +487,6 @@ btnSave.addEventListener('click', async () => {
   if (!window.settingsAPI) return;
 
   stopAudioTest();
-
-  // Якщо користувач ввів текст у поле вручну і не вибрав зі списку, шукаємо прямий збіг
-  const inputText = locationSearchInput.value.trim().toLowerCase();
-  if (inputText) {
-    const match = allLocations.find(l => l.title.toLowerCase() === inputText);
-    if (match) {
-      selectedUid = String(match.uid);
-      selectedTitle = match.title;
-    }
-  }
 
   const isDevMode = chkDevMode ? chkDevMode.checked : false;
   const currentProvider = isDevMode ? getSelectedApiProvider() : 'gateway';
