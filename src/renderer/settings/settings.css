@@ -199,10 +199,10 @@ body {
   background-color: var(--bg-card);
   border: 1px solid var(--border-color);
   border-radius: 8px;
-  padding: 14px 16px;
+  padding: 16px 16px 18px 16px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 11px;
   transition: background-color 0.2s ease, border-color 0.2s ease;
 }
 
@@ -371,7 +371,8 @@ html.theme-light .selected-badge,
   display: flex;
   flex-direction: column;
   gap: 8px;
-  margin-top: 4px;
+  margin-top: 2px;
+  margin-bottom: 6px;
 }
 
 .hierarchy-field {

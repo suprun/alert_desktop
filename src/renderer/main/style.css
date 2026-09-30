@@ -190,7 +190,42 @@ body {
   justify-content: space-between;
   border-bottom: 1px solid var(--border-color);
   background-color: var(--bg-color);
-  transition: background-color 0.2s ease, border-color 0.2s ease;
+  transition: background 0.3s ease, background-color 0.3s ease, border-color 0.3s ease;
+}
+
+/* Підсвічування фону верхньої панелі при загрозах (темна тема) */
+.app-header.has-alert {
+  background: linear-gradient(180deg, rgba(220, 38, 38, 0.22) 0%, rgba(185, 28, 28, 0.12) 100%), var(--bg-color);
+  border-bottom-color: rgba(239, 68, 68, 0.4);
+}
+
+.app-header.has-alert.alert-yellow {
+  background: linear-gradient(180deg, rgba(234, 179, 8, 0.22) 0%, rgba(202, 138, 4, 0.12) 100%), var(--bg-color);
+  border-bottom-color: rgba(234, 179, 8, 0.4);
+}
+
+.app-header.has-alert.artillery {
+  background: linear-gradient(180deg, rgba(245, 158, 11, 0.22) 0%, rgba(217, 119, 6, 0.12) 100%), var(--bg-color);
+  border-bottom-color: rgba(245, 158, 11, 0.4);
+}
+
+/* Підсвічування фону верхньої панелі при загрозах (світла тема) */
+html.theme-light .app-header.has-alert,
+:root:not(.theme-dark) .app-header.has-alert {
+  background: linear-gradient(180deg, rgba(254, 226, 226, 0.95) 0%, rgba(254, 202, 202, 0.85) 100%);
+  border-bottom-color: rgba(239, 68, 68, 0.4);
+}
+
+html.theme-light .app-header.has-alert.alert-yellow,
+:root:not(.theme-dark) .app-header.has-alert.alert-yellow {
+  background: linear-gradient(180deg, rgba(254, 249, 195, 0.95) 0%, rgba(254, 240, 138, 0.85) 100%);
+  border-bottom-color: rgba(234, 179, 8, 0.45);
+}
+
+html.theme-light .app-header.has-alert.artillery,
+:root:not(.theme-dark) .app-header.has-alert.artillery {
+  background: linear-gradient(180deg, rgba(254, 243, 199, 0.95) 0%, rgba(253, 230, 138, 0.85) 100%);
+  border-bottom-color: rgba(245, 158, 11, 0.45);
 }
 
 .status-section {

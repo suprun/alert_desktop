@@ -1,3 +1,4 @@
+const appHeader = document.getElementById('appHeader');
 const statusBadge = document.getElementById('statusBadge');
 const statusIcon = document.getElementById('statusIcon');
 const statusLocation = document.getElementById('statusLocation');
@@ -140,6 +141,9 @@ function updateUI(status) {
 
   // Єдиний об'єднаний статус-бейдж: стан + характер загрози + час початку
   statusBadge.className = 'status-badge';
+  if (appHeader) {
+    appHeader.classList.remove('has-alert', 'alert-yellow', 'artillery');
+  }
 
   if (status.isOffline) {
     statusBadge.classList.add('offline');
@@ -168,10 +172,13 @@ function updateUI(status) {
 
     if (status.alertType === 'artillery_shelling' || iconKey === 'artillery') {
       statusBadge.classList.add('artillery');
+      if (appHeader) appHeader.classList.add('has-alert', 'artillery');
     } else if (isYellow || threatInfo?.level === 'yellow') {
       statusBadge.classList.add('alert-yellow');
+      if (appHeader) appHeader.classList.add('has-alert', 'alert-yellow');
     } else {
       statusBadge.classList.add('alert');
+      if (appHeader) appHeader.classList.add('has-alert');
     }
 
     statusIcon.innerHTML = threatIcons[iconKey] || icons[iconKey] || icons.alert;
