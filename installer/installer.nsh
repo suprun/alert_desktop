@@ -1,22 +1,11 @@
 ; installer/installer.nsh — кастомні хуки та багатомовна локалізація NSIS для AlertDesktop
 
-; --- Багатомовні рядки для сторінки завершення ---
+; --- Багатомовні рядки для чекбоксів фінальної сторінки ---
 LangString RUN_APP_TEXT 1058 "Запустити Повітряні тривоги"
 LangString RUN_APP_TEXT 1033 "Launch AlertDesktop"
 
 LangString AUTOSTART_TEXT 1058 "Запускати автоматично при старті Windows"
 LangString AUTOSTART_TEXT 1033 "Start automatically when Windows starts"
-
-; --- Українська локалізація системних повідомлень майстра ---
-LangString chooseInstallationOptions 1058 "Оберіть параметри встановлення"
-LangString chooseUninstallationOptions 1058 "Оберіть параметри видалення"
-LangString whichInstallationShouldBeRemoved 1058 "Яку саме інсталяцію слід видалити?"
-LangString whoShouldThisApplicationBeInstalledFor 1058 "Для кого слід встановити цей застосунок?"
-LangString selectUserMode 1058 "Оберіть, чи бажаєте встановити програму для всіх користувачів, чи лише для себе:"
-LangString installationForAnyoneUsingThisComputer 1058 "Для всіх користувачів цього комп'ютера"
-LangString installationOnlyForMe 1058 "Лише для мене (без прав адміністратора)"
-LangString deleteAppData 1058 "Дані та налаштування застосунку"
-LangString deleteAppDataCheckbox 1058 "Видалити також збережену конфігурацію та історію сповіщень"
 
 !macro customFinishPage
   !ifndef HIDE_RUN_AFTER_FINISH
