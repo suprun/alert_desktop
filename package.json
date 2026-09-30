@@ -1,6 +1,6 @@
 {
   "name": "alert-desktop",
-  "version": "1.0.40",
+  "version": "1.0.41",
   "description": "Десктопний клієнт для моніторингу повітряних тривог на базі Electron",
   "main": "src/main/main.js",
   "repository": {
@@ -74,6 +74,7 @@
         "uk_UA",
         "en_US"
       ],
+      "language": "1058",
       "displayLanguageSelector": true
     },
     "publish": {

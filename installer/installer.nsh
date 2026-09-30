@@ -12,6 +12,12 @@ LangString RUN_APP_TEXT 1033 "Launch AlertDesktop"
 LangString AUTOSTART_TEXT 1058 "Запускати автоматично при старті Windows"
 LangString AUTOSTART_TEXT 1033 "Start automatically when Windows starts"
 
+!macro preInit
+  ; Встановлюємо українську мову (1058) за замовчуванням у випадаючому списку вибору мов інсталятора,
+  ; перекриваючи системну мову інтерфейсу Windows (наприклад, англійську 1033)
+  StrCpy $LANGUAGE 1058
+!macroend
+
 !macro customHeader
   ; --- Українська локалізація діалогів вибору режиму та деінсталяції (LCID 1058) ---
   ; Перевизначаємо рядки з assistedMessages.yml / messages.yml, де відсутня українська мова в electron-builder
