@@ -61,17 +61,17 @@
         <!-- Ієрархічний вибір: Область → Район → Громада -->
         <div class="hierarchy-container">
           <div class="hierarchy-field">
-            <select id="selectOblast" class="hierarchy-select" title="Оберіть область чи місто">
+            <select id="selectOblast" class="form-select hierarchy-select" title="Оберіть область чи місто">
               <option value="">(Оберіть область / місто)</option>
             </select>
           </div>
           <div class="hierarchy-field">
-            <select id="selectRaion" class="hierarchy-select" title="Оберіть район" disabled>
+            <select id="selectRaion" class="form-select hierarchy-select" title="Оберіть район" disabled>
               <option value="">(Оберіть район)</option>
             </select>
           </div>
           <div class="hierarchy-field">
-            <select id="selectHromada" class="hierarchy-select" title="Оберіть громаду" disabled>
+            <select id="selectHromada" class="form-select hierarchy-select" title="Оберіть громаду" disabled>
               <option value="">(Оберіть громаду)</option>
             </select>
           </div>
@@ -163,23 +163,69 @@
       <section class="settings-group dev-settings-group">
         <div class="checkbox-control">
           <input type="checkbox" id="chkDevMode" class="form-checkbox">
-          <label for="chkDevMode" class="checkbox-label group-label">Налаштування для розробників</label>
+          <label for="chkDevMode" class="checkbox-label group-label">Налаштування джерела даних (API)</label>
         </div>
-        <p class="field-hint">За замовчуванням додаток працює через швидкий ретранслятор і не потребує токена. Увімкніть цю опцію для прямого підключення до API з власним ключем.</p>
+        <p class="field-hint">Виберіть джерело отримання інформації про повітряні тривоги.</p>
 
         <div id="devSettingsControls" class="dev-controls" style="display: none;">
-          <div class="form-field">
-            <label for="inputServerUrl" class="field-label">URL сервера або ретранслятора</label>
-            <input type="url" id="inputServerUrl" class="form-input" placeholder="https://api.applink.pp.ua/v1/alerts/active.json">
+          <!-- 3 Радіокнопки вибору постачальника -->
+          <div class="radio-group" role="radiogroup" aria-label="Вибір постачальника API">
+            <!-- 1. Вбудований сервер-шлюз -->
+            <label class="radio-item" for="radioProviderGateway">
+              <input type="radio" id="radioProviderGateway" name="apiProviderRadio" value="gateway" class="form-radio" checked>
+              <div class="radio-content">
+                <span class="radio-title">Вбудований сервер-шлюз <span class="badge-recommended">рекомендовано</span></span>
+                <span class="radio-desc">Швидкі сповіщення без затримки (WebSocket 0s). Не потребує особистого токена.</span>
+              </div>
+            </label>
+
+            <!-- 2. API UkraineAlarm -->
+            <label class="radio-item" for="radioProviderUkraineAlarm">
+              <input type="radio" id="radioProviderUkraineAlarm" name="apiProviderRadio" value="ukrainealarm" class="form-radio">
+              <div class="radio-content">
+                <div class="radio-title-row">
+                  <span class="radio-title">API UkraineAlarm</span>
+                  <a href="https://api.ukrainealarm.com/" target="_blank" class="external-api-link" title="Відкрити документацію api.ukrainealarm.com">
+                    <span>api.ukrainealarm.com</span>
+                    <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+                      <polyline points="15 3 21 3 21 9"/>
+                      <line x1="10" y1="14" x2="21" y2="3"/>
+                    </svg>
+                  </a>
+                </div>
+                <span class="radio-desc">Офіційне API системи UkraineAlarm (потрібен власний токен доступу).</span>
+              </div>
+            </label>
+
+            <!-- 3. API Alerts.in.ua -->
+            <label class="radio-item" for="radioProviderAlertsInUa">
+              <input type="radio" id="radioProviderAlertsInUa" name="apiProviderRadio" value="alertsinua" class="form-radio">
+              <div class="radio-content">
+                <div class="radio-title-row">
+                  <span class="radio-title">API Alerts.in.ua</span>
+                  <a href="https://alerts.in.ua/api" target="_blank" class="external-api-link" title="Відкрити документацію alerts.in.ua/api">
+                    <span>alerts.in.ua/api</span>
+                    <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+                      <polyline points="15 3 21 3 21 9"/>
+                      <line x1="10" y1="14" x2="21" y2="3"/>
+                    </svg>
+                  </a>
+                </div>
+                <span class="radio-desc">API мапи alerts.in.ua із деталізацією загроз (потрібен власний токен доступу).</span>
+              </div>
+            </label>
           </div>
-          <div class="form-field">
-            <label for="inputApiKey" class="field-label">API ключ (токен UkraineAlarm)</label>
-            <input type="password" id="inputApiKey" class="form-input" placeholder="Введіть особистий токен">
+
+          <!-- Поля адреси та токена -->
+          <div class="form-field" id="fieldServerUrl">
+            <label for="inputServerUrl" class="field-label">URL сервера або ендпоінту API</label>
+            <input type="url" id="inputServerUrl" class="form-input" placeholder="https://api.applink.pp.ua/v1/alerts/active.json" disabled>
           </div>
-          <div class="dev-actions-row">
-            <button type="button" id="btnResetToProxy" class="btn-secondary btn-sm">
-              Скинути до ретранслятора за замовчуванням
-            </button>
+          <div class="form-field" id="fieldApiKey">
+            <label for="inputApiKey" class="field-label">API ключ / токен доступу</label>
+            <input type="password" id="inputApiKey" class="form-input" placeholder="Токен не потрібен для вбудованого шлюзу" disabled>
           </div>
         </div>
       </section>

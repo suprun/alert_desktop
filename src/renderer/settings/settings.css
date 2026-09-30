@@ -44,7 +44,7 @@ html.theme-dark {
   --type-badge-border: #3e444e;
   --hierarchy-border: #475569;
   --hierarchy-border-hover: #94a3b8;
-  --hierarchy-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='%2394a3b8'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+  --hierarchy-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
   --btn-sec-bg: #232529;
   --btn-sec-text: #f8fafc;
   --btn-sec-border: #475569;
@@ -77,7 +77,7 @@ html.theme-light {
   --type-badge-border: #e2e8f0;
   --hierarchy-border: #cbd5e1;
   --hierarchy-border-hover: #64748b;
-  --hierarchy-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='%2364748b'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+  --hierarchy-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
   --btn-sec-bg: #ffffff;
   --btn-sec-text: #1e293b;
   --btn-sec-border: #cbd5e1;
@@ -111,7 +111,7 @@ html.theme-light {
     --type-badge-border: #e2e8f0;
     --hierarchy-border: #cbd5e1;
     --hierarchy-border-hover: #64748b;
-    --hierarchy-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='%2364748b'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+    --hierarchy-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
     --btn-sec-bg: #ffffff;
     --btn-sec-text: #1e293b;
     --btn-sec-border: #cbd5e1;
@@ -219,7 +219,8 @@ body {
 
 .form-select, .form-input {
   width: 100%;
-  padding: 7px 10px;
+  height: 36px;
+  box-sizing: border-box;
   font-size: 13px;
   font-family: inherit;
   border: 1px solid var(--input-border);
@@ -230,9 +231,43 @@ body {
   transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.2s ease, color 0.2s ease;
 }
 
+.form-input {
+  padding: 0 10px;
+}
+
+.form-select {
+  padding: 0 32px 0 12px;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: var(--hierarchy-arrow);
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.form-select option {
+  background-color: var(--bg-card);
+  color: var(--text-primary);
+}
+
+.form-select:hover:not(:disabled), .form-input:hover:not(:disabled) {
+  border-color: var(--hierarchy-border-hover);
+}
+
 .form-select:focus, .form-input:focus {
   border-color: #0078d4;
   box-shadow: 0 0 0 2px rgba(0, 120, 212, 0.2);
+}
+
+.form-select:disabled, .form-input:disabled {
+  color: var(--text-muted);
+  border-color: var(--border-color);
+  background-color: rgba(120, 120, 120, 0.06);
+  cursor: not-allowed;
+  opacity: 0.55;
 }
 
 /* Combobox & Search */
@@ -360,89 +395,48 @@ body {
 .selected-badge {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 5px 10px;
-  background-color: rgba(34, 197, 94, 0.12);
-  border: 1px solid rgba(34, 197, 94, 0.3);
+  gap: 8px;
+  padding: 6px 12px;
+  background-color: var(--input-bg);
+  border: 1px solid var(--border-color);
   border-radius: 6px;
   font-size: 12px;
-  color: #22c55e;
+  color: var(--text-primary);
+  transition: background-color 0.2s ease, border-color 0.2s ease;
 }
 
 .selected-badge-label {
-  font-weight: 600;
+  font-weight: 500;
+  color: var(--text-secondary);
 }
 
 .selected-badge-text {
-  font-weight: 500;
+  font-weight: 600;
+  color: var(--text-primary);
   flex: 1;
 }
 
 .selected-badge-type {
   font-size: 11px;
-  background-color: rgba(34, 197, 94, 0.15);
+  background-color: var(--type-badge-bg);
+  color: var(--type-badge-text);
+  border: 1px solid var(--type-badge-border);
   padding: 1px 6px;
   border-radius: 4px;
 }
 
-/* Ієрархічний вибір: Область → Район → Громада (із підкресленням) */
+/* Ієрархічний вибір: Область → Район → Громада */
 .hierarchy-container {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  margin-top: 6px;
-  padding-top: 2px;
+  margin-top: 4px;
 }
 
 .hierarchy-field {
   position: relative;
   display: flex;
   flex-direction: column;
-}
-
-.hierarchy-select {
-  width: 100%;
-  padding: 6px 26px 6px 2px;
-  font-size: 13.5px;
-  font-family: inherit;
-  font-weight: 400;
-  color: var(--text-primary);
-  background-color: transparent;
-  border: none;
-  border-bottom: 1.5px solid var(--hierarchy-border);
-  border-radius: 0;
-  outline: none;
-  cursor: pointer;
-  appearance: none;
-  -webkit-appearance: none;
-  transition: border-bottom-color 0.15s ease, color 0.15s ease;
-  background-image: var(--hierarchy-arrow);
-  background-repeat: no-repeat;
-  background-position: right 4px center;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  overflow: hidden;
-}
-
-.hierarchy-select option {
-  background-color: var(--bg-card);
-  color: var(--text-primary);
-}
-
-.hierarchy-select:hover:not(:disabled) {
-  border-bottom-color: var(--hierarchy-border-hover);
-}
-
-.hierarchy-select:focus {
-  border-bottom: 2px solid #0078d4;
-  padding-bottom: 5.5px;
-}
-
-.hierarchy-select:disabled {
-  color: var(--text-muted);
-  border-bottom-color: var(--border-color);
-  cursor: not-allowed;
-  opacity: 0.5;
 }
 
 .checkbox-control {
@@ -501,16 +495,22 @@ body {
 .btn-test-sound {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
-  padding: 6px 14px;
+  width: 116px;
+  min-width: 116px;
+  max-width: 116px;
+  height: 36px;
+  box-sizing: border-box;
   font-size: 12px;
   white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .volume-container {
-  margin-top: 6px;
-  padding-top: 6px;
-  border-top: 1px solid var(--border-color);
+  margin-top: 2px;
+  padding-top: 4px;
+  border-top: none;
 }
 
 .volume-row {
@@ -629,20 +629,107 @@ body {
 .dev-controls {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
   padding-top: 10px;
   border-top: 1px dashed var(--border-color);
   margin-top: 4px;
 }
 
-.dev-actions-row {
+/* Радіокнопки джерела API */
+.radio-group {
   display: flex;
-  justify-content: flex-start;
+  flex-direction: column;
+  gap: 8px;
   margin-top: 2px;
+  margin-bottom: 4px;
 }
 
-.btn-sm {
-  padding: 5px 11px;
+.radio-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 8px 11px;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  background-color: var(--input-bg);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+
+.radio-item:hover {
+  border-color: var(--hierarchy-border-hover);
+}
+
+.radio-item:has(.form-radio:checked) {
+  border-color: #0078d4;
+  background-color: rgba(0, 120, 212, 0.05);
+}
+
+.form-radio {
+  width: 16px;
+  height: 16px;
+  margin-top: 2px;
+  cursor: pointer;
+  accent-color: #0078d4;
+  flex-shrink: 0;
+}
+
+.radio-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.radio-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.radio-title {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-primary);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.badge-recommended {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background-color: rgba(0, 120, 212, 0.12);
+  color: #0078d4;
+  border: 1px solid rgba(0, 120, 212, 0.25);
+  line-height: 1.2;
+  text-transform: lowercase;
+}
+
+.radio-desc {
   font-size: 11.5px;
-  border-radius: 5px;
+  color: var(--text-secondary);
+  line-height: 1.35;
+}
+
+.external-api-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: #0078d4;
+  text-decoration: none;
+  padding: 1px 4px;
+  border-radius: 4px;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.external-api-link:hover {
+  text-decoration: underline;
+  background-color: rgba(0, 120, 212, 0.1);
 }

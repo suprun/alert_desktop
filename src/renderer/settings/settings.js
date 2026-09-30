@@ -30,7 +30,10 @@ const volumeValue = document.getElementById('volumeValue');
 const chkAutoStart = document.getElementById('chkAutoStart');
 const chkDevMode = document.getElementById('chkDevMode');
 const devSettingsControls = document.getElementById('devSettingsControls');
-const btnResetToProxy = document.getElementById('btnResetToProxy');
+const radioProviderGateway = document.getElementById('radioProviderGateway');
+const radioProviderUkraineAlarm = document.getElementById('radioProviderUkraineAlarm');
+const radioProviderAlertsInUa = document.getElementById('radioProviderAlertsInUa');
+const apiProviderRadios = document.querySelectorAll('input[name="apiProviderRadio"]');
 const inputServerUrl = document.getElementById('inputServerUrl');
 const inputApiKey = document.getElementById('inputApiKey');
 const btnCancel = document.getElementById('btnCancel');
@@ -38,6 +41,8 @@ const btnSave = document.getElementById('btnSave');
 const audioTest = document.getElementById('audioTest');
 
 const DEFAULT_PROXY_URL = 'https://api.applink.pp.ua/v1/alerts/active.json';
+const URL_UKRAINE_ALARM = 'https://api.ukrainealarm.com/api/v3/alerts';
+const URL_ALERTS_IN_UA = 'https://api.alerts.in.ua/v1/alerts/active.json';
 
 const playSvg = `
   <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -102,23 +107,70 @@ function updateSoundControlsState() {
 chkSoundAlertEnabled.addEventListener('change', updateSoundControlsState);
 chkSoundAllClearEnabled.addEventListener('change', updateSoundControlsState);
 
+function getSelectedApiProvider() {
+  const checked = document.querySelector('input[name="apiProviderRadio"]:checked');
+  return checked ? checked.value : 'gateway';
+}
+
+function updateApiProviderState() {
+  const provider = getSelectedApiProvider();
+  if (provider === 'gateway') {
+    inputServerUrl.disabled = true;
+    inputServerUrl.value = DEFAULT_PROXY_URL;
+    inputServerUrl.placeholder = DEFAULT_PROXY_URL;
+
+    inputApiKey.disabled = true;
+    inputApiKey.value = '';
+    inputApiKey.placeholder = 'Токен не потрібен для вбудованого шлюзу';
+  } else if (provider === 'ukrainealarm') {
+    inputServerUrl.disabled = false;
+    inputServerUrl.placeholder = URL_UKRAINE_ALARM;
+    if (!inputServerUrl.value || inputServerUrl.value === DEFAULT_PROXY_URL || inputServerUrl.value === URL_ALERTS_IN_UA) {
+      inputServerUrl.value = URL_UKRAINE_ALARM;
+    }
+
+    inputApiKey.disabled = false;
+    inputApiKey.placeholder = 'Введіть токен UkraineAlarm';
+  } else if (provider === 'alertsinua') {
+    inputServerUrl.disabled = false;
+    inputServerUrl.placeholder = URL_ALERTS_IN_UA;
+    if (!inputServerUrl.value || inputServerUrl.value === DEFAULT_PROXY_URL || inputServerUrl.value === URL_UKRAINE_ALARM) {
+      inputServerUrl.value = URL_ALERTS_IN_UA;
+    }
+
+    inputApiKey.disabled = false;
+    inputApiKey.placeholder = 'Введіть токен alerts.in.ua';
+  }
+}
+
 // Перемикання режиму розробника
 function updateDevModeState() {
   if (!chkDevMode || !devSettingsControls) return;
   const isDev = chkDevMode.checked;
   devSettingsControls.style.display = isDev ? 'flex' : 'none';
+  if (isDev) {
+    updateApiProviderState();
+  }
 }
 
 if (chkDevMode) {
   chkDevMode.addEventListener('change', updateDevModeState);
 }
 
-if (btnResetToProxy) {
-  btnResetToProxy.addEventListener('click', () => {
-    inputServerUrl.value = DEFAULT_PROXY_URL;
-    inputApiKey.value = '';
+apiProviderRadios.forEach(radio => {
+  radio.addEventListener('change', updateApiProviderState);
+});
+
+// Безпечне відкриття зовнішніх посилань на документацію API
+document.querySelectorAll('.external-api-link').forEach(link => {
+  link.addEventListener('click', (e) => {
+    e.preventDefault();
+    const href = link.getAttribute('href');
+    if (href && window.settingsAPI && window.settingsAPI.openExternal) {
+      window.settingsAPI.openExternal(href);
+    }
   });
-}
+});
 
 // Зміна слайдера гучності
 volumeSlider.addEventListener('input', () => {
@@ -533,11 +585,22 @@ async function init() {
     volumeValue.textContent = `${volumeSlider.value}%`;
     chkAutoStart.checked = Boolean(cfg.autoStart);
     chkDevMode.checked = Boolean(cfg.devMode);
+
+    const provider = cfg.apiProvider || (cfg.devMode ? 'ukrainealarm' : 'gateway');
+    if (provider === 'ukrainealarm' && radioProviderUkraineAlarm) {
+      radioProviderUkraineAlarm.checked = true;
+    } else if (provider === 'alertsinua' && radioProviderAlertsInUa) {
+      radioProviderAlertsInUa.checked = true;
+    } else if (radioProviderGateway) {
+      radioProviderGateway.checked = true;
+    }
+
     inputServerUrl.value = cfg.serverUrl || DEFAULT_PROXY_URL;
     inputApiKey.value = cfg.apiKey || '';
 
     updateSoundControlsState();
     updateDevModeState();
+    updateApiProviderState();
 
     // 3. Синхронізація теми оформлення
     if (window.settingsAPI.onThemeUpdated) {
@@ -586,6 +649,20 @@ btnSave.addEventListener('click', async () => {
   }
 
   const isDevMode = chkDevMode ? chkDevMode.checked : false;
+  const currentProvider = isDevMode ? getSelectedApiProvider() : 'gateway';
+
+  let finalServerUrl = DEFAULT_PROXY_URL;
+  let finalApiKey = '';
+
+  if (isDevMode) {
+    if (currentProvider === 'gateway') {
+      finalServerUrl = DEFAULT_PROXY_URL;
+      finalApiKey = '';
+    } else {
+      finalServerUrl = inputServerUrl.value.trim() || (currentProvider === 'ukrainealarm' ? URL_UKRAINE_ALARM : URL_ALERTS_IN_UA);
+      finalApiKey = inputApiKey.value.trim();
+    }
+  }
 
   const newConfig = {
     locationUid: selectedUid,
@@ -598,8 +675,9 @@ btnSave.addEventListener('click', async () => {
     volume: parseInt(volumeSlider.value, 10),
     autoStart: chkAutoStart.checked,
     devMode: isDevMode,
-    serverUrl: isDevMode ? (inputServerUrl.value.trim() || DEFAULT_PROXY_URL) : DEFAULT_PROXY_URL,
-    apiKey: isDevMode ? inputApiKey.value.trim() : (inputApiKey.value.trim() || '')
+    apiProvider: currentProvider,
+    serverUrl: finalServerUrl,
+    apiKey: finalApiKey
   };
 
   await window.settingsAPI.saveConfig(newConfig);

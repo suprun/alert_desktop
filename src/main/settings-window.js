@@ -1,4 +1,4 @@
-const { BrowserWindow, nativeTheme } = require('electron');
+const { BrowserWindow, nativeTheme, shell } = require('electron');
 const path = require('path');
 
 class SettingsWindowManager {
@@ -65,6 +65,13 @@ class SettingsWindowManager {
 
     const settingsHtmlPath = path.join(__dirname, '..', 'renderer', 'settings', 'settings.html');
     this.settingsWindow.loadFile(settingsHtmlPath);
+
+    this.settingsWindow.webContents.setWindowOpenHandler(({ url }) => {
+      if (url.startsWith('https://') || url.startsWith('http://')) {
+        shell.openExternal(url);
+      }
+      return { action: 'deny' };
+    });
 
     this.settingsWindow.webContents.on('did-finish-load', () => {
       this.settingsWindow.webContents.send('theme-updated', { isDark: this.isDarkTheme });

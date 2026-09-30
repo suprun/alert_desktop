@@ -24,6 +24,7 @@ class ConfigManager extends EventEmitter {
       volume: 80,
       autoStart: false,
       devMode: false,
+      apiProvider: 'gateway',
       serverUrl: process.env.ALERTS_API_URL || DEFAULT_PROXY_URL,
       wsUrl: process.env.ALERTS_WS_URL || DEFAULT_WS_URL,
       apiKey: process.env.ALERTS_API_KEY || '',

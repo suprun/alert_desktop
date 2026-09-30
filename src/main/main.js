@@ -1,4 +1,4 @@
-const { app, ipcMain, Menu, session } = require('electron');
+const { app, ipcMain, Menu, session, shell } = require('electron');
 const path = require('path');
 const fs = require('fs');
 
@@ -76,6 +76,12 @@ if (!gotTheLock) {
 
   ipcMain.on('close-settings', () => {
     settingsWindowManager.close();
+  });
+
+  ipcMain.on('open-external', (_event, url) => {
+    if (typeof url === 'string' && (url.startsWith('https://') || url.startsWith('http://'))) {
+      shell.openExternal(url);
+    }
   });
 
   ipcMain.on('reload-map', () => {
