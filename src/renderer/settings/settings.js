@@ -110,7 +110,7 @@ function updateApiProviderState() {
   if (provider === 'gateway') {
     inputServerUrl.disabled = true;
     inputServerUrl.value = '';
-    inputServerUrl.placeholder = 'Вбудований сервер за замовчуванням';
+    inputServerUrl.placeholder = 'Адреса не потрібна для вбудованого шлюзу';
 
     inputApiKey.disabled = true;
     inputApiKey.value = '';
@@ -447,7 +447,6 @@ async function init() {
 
     if (provider === 'gateway') {
       inputServerUrl.value = '';
-      inputServerUrl.placeholder = 'Вбудований сервер за замовчуванням';
     } else {
       inputServerUrl.value = cfg.serverUrl || '';
     }
