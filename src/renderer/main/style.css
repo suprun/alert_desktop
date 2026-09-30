@@ -251,6 +251,75 @@ body {
   }
 }
 
+/* Виділений чіп характеру загрози (Threat Badge) */
+.threat-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  animation: threat-badge-pop 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  cursor: default;
+  -webkit-app-region: no-drag;
+}
+
+.threat-badge:hover {
+  filter: brightness(1.08);
+}
+
+@keyframes threat-badge-pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.threat-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.threat-text {
+  white-space: nowrap;
+}
+
+.threat-badge.threat-yellow {
+  background-color: var(--badge-yellow-bg);
+  color: var(--badge-yellow-color);
+  border: 1px solid var(--badge-yellow-border);
+}
+
+.threat-badge.threat-red {
+  background-color: var(--badge-alert-bg);
+  color: var(--badge-alert-color);
+  border: 1px solid var(--badge-alert-border);
+  animation: pulse-threat 2s infinite ease-in-out;
+}
+
+.threat-badge.threat-artillery {
+  background-color: var(--badge-artillery-bg);
+  color: var(--badge-artillery-color);
+  border: 1px solid var(--badge-artillery-border);
+}
+
+@keyframes pulse-threat {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.25);
+  }
+  50% {
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0);
+  }
+}
+
 .status-icon {
   display: flex;
   align-items: center;

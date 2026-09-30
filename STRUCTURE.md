@@ -60,7 +60,8 @@ alert_desktop/
 │   ├── generate_ui_icons.js              # Генерація лінійних SVG піктограм інтерфейсу
 │   ├── parse_locations.js                # Завантаження та парсинг 1622 локацій з Google Spreadsheets
 │   ├── reset_config.js                   # Скидання та видалення файлу конфігурації у профілі користувача
-│   └── smoke_test.js                     # Smoke-тест ініціалізації компонентів
+│   ├── smoke_test.js                     # Smoke-тест ініціалізації компонентів
+│   └── test_threat_utils.js              # Unit-тести парсингу характеру загроз та анти-тавтології
 │
 ├── server/                               # Гібридний шлюз тривог на Python для Ubuntu (Webhook, WebSocket & Threats Enricher)
 │   ├── .env.example                      # Шаблон конфігурації шлюзу (UkraineAlarm та alerts.in.ua токени, webhook URL, порт)
@@ -80,7 +81,8 @@ alert_desktop/
     │   ├── window.js                     # Менеджер головного вікна (BrowserWindow + WebContentsView)
     │   ├── settings-window.js            # Менеджер діалогового вікна налаштувань
     │   ├── tray.js                       # Керування системним треєм (іконка, tooltip, меню)
-    │   ├── api.js                        # WebSocket зв'язок у реальному часі (0 сек) + HTTP fallback
+    │   ├── threat-utils.js               # Нормалізація типів загроз (дрони, ракети тощо), усунення тавтології та генерація текстів
+    │   ├── api.js                        # WebSocket зв'язок у реальному часі (0 сек) + HTTP fallback + збагачення threatInfo
     │   ├── autostart.js                  # Менеджер автозапуску Windows (Electron API + HKCU Run)
     │   ├── config.js                     # Робота з config.json, .env та автозапуском ОС
     │   ├── notifier.js                   # Системні сповіщення Windows та запуск звуку
@@ -93,9 +95,9 @@ alert_desktop/
     │
     └── renderer/                         # Інтерфейс користувача (Renderer Process)
         ├── main/                         # Верхня панель керування головного вікна
-        │   ├── index.html                # Розмітка шапки зі статусом, індикатором «● Наживо» та налаштуваннями
-        │   ├── style.css                 # Стилізація у світлій та темній темах, пульсуюча крапка «● Наживо»
-        │   └── renderer.js               # Відображення статусу, бейджа «● Наживо» з tooltip, синхронізація теми
+        │   ├── index.html                # Розмітка шапки зі статусом, бейджем загрози (#threatBadge), індикатором «● Наживо» та налаштуваннями
+        │   ├── style.css                 # Стилізація у світлій та темній темах, анімації threat-badge та пульсуюча крапка «● Наживо»
+        │   └── renderer.js               # Відображення статусу, чіпа загроз з SVG-іконками, бейджа «● Наживо», синхронізація теми
         └── settings/                     # Діалогове вікно налаштувань
             ├── settings.html             # Форма налаштувань (регіон, звук, автозапуск, API)
             ├── settings.css              # Стилізація Windows Fluent у світлій та темній темах

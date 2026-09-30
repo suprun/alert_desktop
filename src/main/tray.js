@@ -74,23 +74,23 @@ class TrayManager {
 
     switch (alertType) {
       case 'artillery_shelling':
-        return { icon: 'tray-artillery', title: 'Загроза артобстрілу!' };
+        return { icon: 'tray-artillery', title: 'Загроза артобстрілу' };
       case 'urban_fights':
-        return { icon: 'tray-urban-fights', title: 'Вуличні бої!' };
+        return { icon: 'tray-urban-fights', title: 'Вуличні бої' };
       case 'chemical':
-        return { icon: 'tray-chemical', title: 'Хімічна небезпека!' };
+        return { icon: 'tray-chemical', title: 'Хімічна небезпека' };
       case 'nuclear':
-        return { icon: 'tray-nuclear', title: 'Радіаційна загроза!' };
+        return { icon: 'tray-nuclear', title: 'Радіаційна загроза' };
       case 'air_raid':
       default:
         return {
           icon: isYellow ? 'tray-air-raid-yellow' : 'tray-air-raid',
-          title: isYellow ? 'Жовтий рівень загрози!' : 'Повітряна тривога (червоний рівень)!'
+          title: isYellow ? 'Жовтий рівень' : 'Повітряна тривога'
         };
     }
   }
 
-  updateStatus({ isAlert, alertType, alertLevel, alertScope, threats, locationTitle, startedAt, isOffline }) {
+  updateStatus({ isAlert, alertType, alertLevel, alertScope, threats, threatInfo, locationTitle, startedAt, isOffline }) {
     if (!this.tray) return;
 
     let iconName = 'tray-normal';
@@ -104,13 +104,12 @@ class TrayManager {
       iconName = alertInfo.icon;
       const timeStr = startedAt ? new Date(startedAt).toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit' }) : '';
       
-      let threatText = '';
-      if (Array.isArray(threats) && threats.length > 0 && threats[0].source_message) {
-        threatText = ` [${threats[0].source_message}]`;
-      }
-      
+      const threatLabel = threatInfo && threatInfo.hasThreats && threatInfo.tooltipSuffix 
+        ? ` · ${threatInfo.tooltipSuffix}` 
+        : '';
       const scopeNote = alertScope ? ` (${alertScope})` : '';
-      tooltip = `Повітряні тривоги — ${locationTitle}: ${alertInfo.title}${scopeNote}${threatText}${timeStr ? ` (з ${timeStr})` : ''}`;
+      
+      tooltip = `Повітряні тривоги — ${locationTitle}: ${alertInfo.title}${threatLabel}${scopeNote}${timeStr ? ` (з ${timeStr})` : ''}`;
     }
 
     try {

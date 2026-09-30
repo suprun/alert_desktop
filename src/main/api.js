@@ -1,6 +1,7 @@
 const { EventEmitter } = require('events');
 const config = require('./config');
 const locationsData = require('./locations.json');
+const threatUtils = require('./threat-utils');
 
 let WebSocketClient;
 try {
@@ -40,6 +41,8 @@ class AlertApiService extends EventEmitter {
       alertType: 'none',
       alertLevel: 'none',
       alertScope: null,
+      threats: [],
+      threatInfo: threatUtils.formatThreatInfo([], 'none', 'none'),
       startedAt: null,
       locationTitle: config.get('locationTitle'),
       allAlertsCount: 0,
@@ -302,6 +305,7 @@ class AlertApiService extends EventEmitter {
     const alertType = matchedAlert ? (matchedAlert.alert_type || 'air_raid') : 'none';
     const alertLevel = matchedAlert ? (matchedAlert.alert_level || 'red') : 'none';
     const threats = matchedAlert && Array.isArray(matchedAlert.threats) ? matchedAlert.threats : [];
+    const threatInfo = threatUtils.formatThreatInfo(threats, alertType, alertLevel);
     const startedAt = matchedAlert ? (matchedAlert.started_at || matchedAlert.created_at || new Date().toISOString()) : null;
 
     const newState = {
@@ -310,6 +314,7 @@ class AlertApiService extends EventEmitter {
       alertLevel, // 'red', 'yellow' або 'none'
       alertScope: matchedScope, // джерело тривоги, якщо вона поширюється з району чи області
       threats,
+      threatInfo, // нормалізований об'єкт загрози
       startedAt,
       locationTitle: config.get('locationTitle'),
       allAlertsCount: alerts.length,
@@ -328,6 +333,7 @@ class AlertApiService extends EventEmitter {
           alertLevel,
           alertScope: newState.alertScope,
           threats,
+          threatInfo,
           previousIsAlert,
           locationTitle: newState.locationTitle,
           startedAt

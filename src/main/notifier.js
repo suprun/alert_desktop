@@ -11,7 +11,7 @@ class NotifierService {
     this.audioCallback = cb;
   }
 
-  notifyStatusChange({ isAlert, alertType, locationTitle, alertScope }) {
+  notifyStatusChange({ isAlert, alertType, alertLevel, locationTitle, alertScope, threatInfo }) {
     const volume = config.get('volume') !== undefined ? config.get('volume') : 80;
     const soundAlertEnabled = config.get('soundAlertEnabled') !== undefined 
       ? config.get('soundAlertEnabled') 
@@ -23,13 +23,19 @@ class NotifierService {
     const alertSound = config.get('alertSound') || 'siren';
     const allClearSound = config.get('allClearSound') || 'chime';
 
+    const isYellow = alertLevel === 'yellow';
+    let iconName = 'tray-normal.png';
+    if (isAlert) {
+      iconName = isYellow ? 'tray-air-raid-yellow.png' : 'tray-air-raid.png';
+    }
+
     const iconPath = path.join(
       __dirname,
       '..',
       '..',
       'assets',
       'icons',
-      isAlert ? 'tray-air-raid.png' : 'tray-normal.png'
+      iconName
     );
     const notificationIcon = nativeImage.createFromPath(iconPath);
 
@@ -42,9 +48,17 @@ class NotifierService {
     const scopeNote = alertScope ? ` (${alertScope})` : '';
 
     if (isAlert) {
-      const typeText = this.getAlertTypeText(alertType);
+      const typeText = isYellow ? 'Жовтий рівень' : this.getAlertTypeText(alertType);
       title = `${typeText} — ${locationTitle}${scopeNote}`;
-      body = 'Негайно пройдіть в найближче укриття!';
+
+      if (threatInfo && threatInfo.notificationText) {
+        body = threatInfo.notificationText;
+      } else if (isYellow) {
+        body = 'Дрони. Загроза ударних БПЛА. Дотримуйтесь правил безпеки.';
+      } else {
+        body = 'Негайно пройдіть в найближче укриття!';
+      }
+
       soundType = 'alert';
       soundId = alertSound;
       isSoundAllowed = soundAlertEnabled;

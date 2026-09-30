@@ -2,6 +2,9 @@ const statusBadge = document.getElementById('statusBadge');
 const statusIcon = document.getElementById('statusIcon');
 const statusLocation = document.getElementById('statusLocation');
 const statusText = document.getElementById('statusText');
+const threatBadge = document.getElementById('threatBadge');
+const threatIcon = document.getElementById('threatIcon');
+const threatText = document.getElementById('threatText');
 const lastUpdated = document.getElementById('lastUpdated');
 const btnSettings = document.getElementById('btnSettings');
 const mapProgressBar = document.getElementById('mapProgressBar');
@@ -11,7 +14,7 @@ const mapErrorDescription = document.getElementById('mapErrorDescription');
 const btnRetryMap = document.getElementById('btnRetryMap');
 const audioPlayer = document.getElementById('audioPlayer');
 
-// Лінійні SVG іконки
+// Лінійні SVG іконки статусів
 const icons = {
   safe: `
     <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -49,6 +52,56 @@ const icons = {
       <path d="M1.42 9a15.91 15.91 0 0 1 4.7-2.88"/>
       <path d="M8.53 16.11a6 6 0 0 1 6.95 0"/>
       <line x1="12" y1="20" x2="12.01" y2="20"/>
+    </svg>`
+};
+
+// Лінійні SVG піктограми типів загроз (Threat Icons)
+const threatIcons = {
+  drone: `
+    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 8v8M8 12h8"/>
+      <circle cx="12" cy="12" r="2"/>
+      <circle cx="5" cy="5" r="2"/>
+      <circle cx="19" cy="5" r="2"/>
+      <circle cx="5" cy="19" r="2"/>
+      <circle cx="19" cy="19" r="2"/>
+      <line x1="6.5" y1="6.5" x2="10.5" y2="10.5"/>
+      <line x1="17.5" y1="6.5" x2="13.5" y2="10.5"/>
+      <line x1="6.5" y1="17.5" x2="10.5" y2="13.5"/>
+      <line x1="17.5" y1="17.5" x2="13.5" y2="13.5"/>
+    </svg>`,
+  missile: `
+    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/>
+      <path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/>
+      <path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/>
+      <path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/>
+    </svg>`,
+  ballistic: `
+    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M4 20C8 10 14 4 20 4"/>
+      <polyline points="15 4 20 4 20 9"/>
+      <line x1="19" y1="5" x2="13" y2="11"/>
+      <circle cx="4" cy="20" r="1.5"/>
+    </svg>`,
+  aviation: `
+    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3.5c-.5-.5-2.5 0-4 1.5L13.5 8.5 5.3 6.7c-.8-.2-1.5.1-1.8.8l-.5 1 5 3.5-3.5 3.5-2-.5c-.5-.1-1 .1-1.2.6l-.3.7 2.5 1.5 1.5 2.5.7-.3c.5-.2.7-.7.6-1.2l-.5-2 3.5-3.5 3.5 5 1-.5c.7-.3 1-1 .8-1.8z"/>
+    </svg>`,
+  artillery: `
+    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="9"/>
+      <line x1="12" y1="3" x2="12" y2="7"/>
+      <line x1="12" y1="17" x2="12" y2="21"/>
+      <line x1="3" y1="12" x2="7" y2="12"/>
+      <line x1="17" y1="12" x2="21" y2="12"/>
+      <circle cx="12" cy="12" r="2"/>
+    </svg>`,
+  general: `
+    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/>
+      <line x1="12" y1="9" x2="12" y2="13"/>
+      <line x1="12" y1="17" x2="12.01" y2="17"/>
     </svg>`
 };
 
@@ -95,29 +148,51 @@ function updateUI(status) {
   } else if (status.isAlert) {
     const isYellow = status.alertLevel === 'yellow';
     const scopeNote = status.alertScope ? ` (${status.alertScope})` : '';
+    const timeStr = status.startedAt ? new Date(status.startedAt).toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit' }) : '';
+    const timeSuffix = timeStr ? ` (з ${timeStr})` : '';
+
     if (status.alertType === 'artillery_shelling') {
       statusBadge.classList.add('artillery');
       statusIcon.innerHTML = icons.artillery;
-      statusText.textContent = `Загроза артобстрілу!${scopeNote}`;
+      statusText.textContent = `Загроза артобстрілу!${scopeNote}${timeSuffix}`;
     } else if (isYellow) {
       statusBadge.classList.add('alert-yellow');
       statusIcon.innerHTML = icons.yellow;
-      const timeStr = status.startedAt ? new Date(status.startedAt).toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit' }) : '';
-      let threatMsg = '';
-      if (Array.isArray(status.threats) && status.threats.length > 0 && status.threats[0].source_message) {
-        threatMsg = ` [${status.threats[0].source_message}]`;
-      }
-      statusText.textContent = `Жовтий рівень загрози!${scopeNote}${threatMsg}${timeStr ? ` (з ${timeStr})` : ''}`;
+      statusText.textContent = `Жовтий рівень${scopeNote}${timeSuffix}`;
     } else {
       statusBadge.classList.add('alert');
       statusIcon.innerHTML = icons.alert;
-      const timeStr = status.startedAt ? new Date(status.startedAt).toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit' }) : '';
-      statusText.textContent = `Повітряна тривога!${scopeNote}${timeStr ? ` (з ${timeStr})` : ''}`;
+      statusText.textContent = `Повітряна тривога!${scopeNote}${timeSuffix}`;
     }
   } else {
     statusBadge.classList.add('safe');
     statusIcon.innerHTML = icons.safe;
     statusText.textContent = 'Немає тривоги';
+  }
+
+  // Оновлення окремого бейджа характеру загрози (Threat Badge)
+  if (threatBadge && threatText && threatIcon) {
+    const threatInfo = status.threatInfo;
+    if (status.isAlert && threatInfo && threatInfo.hasThreats && threatInfo.badgeLabel) {
+      threatBadge.style.display = 'inline-flex';
+      threatBadge.className = 'threat-badge';
+
+      if (status.alertType === 'artillery_shelling' || threatInfo.iconType === 'artillery') {
+        threatBadge.classList.add('threat-artillery');
+      } else if (status.alertLevel === 'yellow') {
+        threatBadge.classList.add('threat-yellow');
+      } else {
+        threatBadge.classList.add('threat-red');
+      }
+
+      const iconKey = threatInfo.iconType || (status.alertType === 'artillery_shelling' ? 'artillery' : 'general');
+      threatIcon.innerHTML = threatIcons[iconKey] || threatIcons.general;
+      threatText.textContent = threatInfo.badgeLabel;
+      threatBadge.title = threatInfo.fullLabel || threatInfo.badgeLabel;
+    } else {
+      threatBadge.style.display = 'none';
+      threatBadge.title = '';
+    }
   }
 }
 
