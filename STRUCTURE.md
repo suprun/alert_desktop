@@ -61,7 +61,8 @@ alert_desktop/
 │   ├── parse_locations.js                # Завантаження та парсинг 1622 локацій з Google Spreadsheets
 │   ├── reset_config.js                   # Скидання та видалення файлу конфігурації у профілі користувача
 │   ├── smoke_test.js                     # Smoke-тест ініціалізації компонентів
-│   └── test_threat_utils.js              # Unit-тести парсингу характеру загроз та анти-тавтології
+│   ├── test_threat_utils.js              # Unit-тести парсингу характеру загроз та анти-тавтології
+│   └── test_notifier.js                  # Unit-тести форматування часу та тривалості сповіщень Windows
 │
 ├── server/                               # Гібридний шлюз тривог на Python для Ubuntu (Webhook, WebSocket & Threats Enricher)
 │   ├── .env.example                      # Шаблон конфігурації шлюзу (UkraineAlarm та alerts.in.ua токени, webhook URL, порт)
@@ -85,7 +86,7 @@ alert_desktop/
     │   ├── api.js                        # WebSocket зв'язок у реальному часі (0 сек) + HTTP fallback + збагачення threatInfo
     │   ├── autostart.js                  # Менеджер автозапуску Windows (Electron API + HKCU Run)
     │   ├── config.js                     # Робота з config.json, .env та автозапуском ОС
-    │   ├── notifier.js                   # Системні сповіщення Windows та запуск звуку
+    │   ├── notifier.js                   # Системні сповіщення Windows (Toast із часом знизу та тривалістю) і запуск звуку
     │   └── locations.json                # Повний довідник 1622 локацій України (UID, назви, типи)
     │
     ├── preload/                          # Безпечний ізольований Preload-шар (contextBridge)

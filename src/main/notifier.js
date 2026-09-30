@@ -5,13 +5,51 @@ const config = require('./config');
 class NotifierService {
   constructor() {
     this.audioCallback = null;
+    this.activeAlertStartedAt = null;
   }
 
   setAudioCallback(cb) {
     this.audioCallback = cb;
   }
 
-  notifyStatusChange({ isAlert, alertType, alertLevel, locationTitle, alertScope, threatInfo }) {
+  formatTime(dateOrIso) {
+    try {
+      const d = dateOrIso ? new Date(dateOrIso) : new Date();
+      if (isNaN(d.getTime())) {
+        const now = new Date();
+        return `${now.getHours()}:${String(now.getMinutes()).padStart(2, '0')}`;
+      }
+      const hours = d.getHours();
+      const minutes = String(d.getMinutes()).padStart(2, '0');
+      return `${hours}:${minutes}`;
+    } catch {
+      const now = new Date();
+      return `${now.getHours()}:${String(now.getMinutes()).padStart(2, '0')}`;
+    }
+  }
+
+  formatDuration(startDate, endDate) {
+    try {
+      if (!startDate || !endDate) return '';
+      const start = startDate instanceof Date ? startDate : new Date(startDate);
+      const end = endDate instanceof Date ? endDate : new Date(endDate);
+      if (isNaN(start.getTime()) || isNaN(end.getTime())) return '';
+
+      const diffMs = Math.max(0, end.getTime() - start.getTime());
+      const diffMin = Math.round(diffMs / 60000);
+
+      if (diffMin < 1) return '< 1 хв';
+      if (diffMin < 60) return `${diffMin} хв`;
+
+      const hours = Math.floor(diffMin / 60);
+      const minutes = diffMin % 60;
+      return minutes > 0 ? `${hours} год ${minutes} хв` : `${hours} год`;
+    } catch {
+      return '';
+    }
+  }
+
+  notifyStatusChange({ isAlert, alertType, alertLevel, locationTitle, alertScope, threatInfo, startedAt }) {
     const volume = config.get('volume') !== undefined ? config.get('volume') : 80;
     const soundAlertEnabled = config.get('soundAlertEnabled') !== undefined 
       ? config.get('soundAlertEnabled') 
@@ -51,20 +89,41 @@ class NotifierService {
       const typeText = isYellow ? 'Жовтий рівень' : this.getAlertTypeText(alertType);
       title = `${typeText} — ${locationTitle}${scopeNote}`;
 
+      // Фіксуємо час початку тривоги
+      const alertStartTime = startedAt ? new Date(startedAt) : new Date();
+      this.activeAlertStartedAt = alertStartTime;
+      const timeStr = this.formatTime(alertStartTime);
+
+      let desc = 'Негайно пройдіть в найближче укриття!';
       if (threatInfo && threatInfo.notificationText) {
-        body = threatInfo.notificationText;
+        desc = threatInfo.notificationText;
       } else if (isYellow) {
-        body = 'Дрони. Загроза ударних БПЛА. Дотримуйтесь правил безпеки.';
-      } else {
-        body = 'Негайно пройдіть в найближче укриття!';
+        desc = 'Дрони. Загроза ударних БПЛА. Оцініть безпекову ситуацію.';
       }
+
+      // Час виводиться окремим фінальним рядком (як у сповіщеннях Antigravity IDE)
+      body = `${desc}\n${timeStr}`;
 
       soundType = 'alert';
       soundId = alertSound;
       isSoundAllowed = soundAlertEnabled;
     } else {
       title = `Відбій тривоги — ${locationTitle}`;
-      body = 'Загроза минула. Слідкуйте за офіційними повідомленнями.';
+
+      const clearTime = new Date();
+      const timeStr = this.formatTime(clearTime);
+
+      let durationText = '';
+      if (this.activeAlertStartedAt) {
+        const dur = this.formatDuration(this.activeAlertStartedAt, clearTime);
+        if (dur) {
+          durationText = ` (тривалість: ${dur})`;
+        }
+        this.activeAlertStartedAt = null;
+      }
+
+      body = `Загроза минула. Слідкуйте за офіційними повідомленнями.\n${timeStr}${durationText}`;
+
       soundType = 'all-clear';
       soundId = allClearSound;
       isSoundAllowed = soundAllClearEnabled;
@@ -105,4 +164,7 @@ class NotifierService {
   }
 }
 
-module.exports = new NotifierService();
+const serviceInstance = new NotifierService();
+serviceInstance.NotifierService = NotifierService;
+
+module.exports = serviceInstance;

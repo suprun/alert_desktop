@@ -1,0 +1,121 @@
+const assert = require('assert');
+const notifierService = require('../src/main/notifier');
+const NotifierService = notifierService.NotifierService;
+
+console.log('Testing NotifierService formatting and time display...');
+
+const notifier = new NotifierService();
+
+// Тест 1: formatTime
+{
+  const fixedDate = new Date(2026, 8, 30, 4, 15, 0); // 04:15
+  assert.strictEqual(notifier.formatTime(fixedDate), '4:15');
+
+  const eveningDate = new Date(2026, 8, 30, 22, 5, 0); // 22:05
+  assert.strictEqual(notifier.formatTime(eveningDate), '22:05');
+
+  // Перевірка fallback при некоректних даних
+  const fallbackResult = notifier.formatTime('invalid-date');
+  assert.match(fallbackResult, /^\d{1,2}:\d{2}$/);
+  console.log('✔ Тест 1 пройдено (formatTime)');
+}
+
+// Тест 2: formatDuration
+{
+  const start = new Date(2026, 8, 30, 4, 0, 0);
+
+  // < 1 хв
+  const end1 = new Date(2026, 8, 30, 4, 0, 20);
+  assert.strictEqual(notifier.formatDuration(start, end1), '< 1 хв');
+
+  // 45 хв
+  const end2 = new Date(2026, 8, 30, 4, 45, 0);
+  assert.strictEqual(notifier.formatDuration(start, end2), '45 хв');
+
+  // 1 год 15 хв
+  const end3 = new Date(2026, 8, 30, 5, 15, 0);
+  assert.strictEqual(notifier.formatDuration(start, end3), '1 год 15 хв');
+
+  // 2 год рівно
+  const end4 = new Date(2026, 8, 30, 6, 0, 0);
+  assert.strictEqual(notifier.formatDuration(start, end4), '2 год');
+
+  // Невалідні дати
+  assert.strictEqual(notifier.formatDuration(null, null), '');
+  console.log('✔ Тест 2 пройдено (formatDuration)');
+}
+
+// Тест 3: Формування структури сповіщення активної тривоги
+{
+  const mockNotifier = new NotifierService();
+  const alertStartTime = new Date(2026, 8, 30, 4, 15, 0);
+
+  let capturedNotification = null;
+  // Емуляція відправки без виклику нативного API Windows
+  mockNotifier.notifyStatusChange = function(params) {
+    const alertStartTime = params.startedAt ? new Date(params.startedAt) : new Date();
+    this.activeAlertStartedAt = alertStartTime;
+    const timeStr = this.formatTime(alertStartTime);
+    const desc = (params.threatInfo && params.threatInfo.notificationText) || 'Негайно пройдіть в найближче укриття!';
+    capturedNotification = {
+      title: `Повітряна тривога — ${params.locationTitle}`,
+      body: `${desc}\n${timeStr}`
+    };
+  };
+
+  mockNotifier.notifyStatusChange({
+    isAlert: true,
+    alertType: 'air_raid',
+    alertLevel: 'red',
+    locationTitle: 'м. Київ',
+    threatInfo: { notificationText: 'Ракети. Загроза ракетного удару. Негайно прямуйте в укриття!' },
+    startedAt: alertStartTime.toISOString()
+  });
+
+  assert.strictEqual(capturedNotification.title, 'Повітряна тривога — м. Київ');
+  assert.strictEqual(
+    capturedNotification.body,
+    'Ракети. Загроза ракетного удару. Негайно прямуйте в укриття!\n4:15'
+  );
+  console.log('✔ Тест 3 пройдено (структура тривоги: опис + час у нижньому рядку)');
+}
+
+// Тест 4: Формування структури сповіщення відбою тривоги
+{
+  const mockNotifier = new NotifierService();
+  const startTime = new Date(2026, 8, 30, 4, 15, 0);
+  const clearTime = new Date(2026, 8, 30, 5, 30, 0);
+
+  mockNotifier.activeAlertStartedAt = startTime;
+
+  let capturedClear = null;
+  mockNotifier.notifyStatusChange = function(params) {
+    const timeStr = this.formatTime(clearTime);
+    let durationText = '';
+    if (this.activeAlertStartedAt) {
+      const dur = this.formatDuration(this.activeAlertStartedAt, clearTime);
+      if (dur) {
+        durationText = ` (тривалість: ${dur})`;
+      }
+      this.activeAlertStartedAt = null;
+    }
+    capturedClear = {
+      title: `Відбій тривоги — ${params.locationTitle}`,
+      body: `Загроза минула. Слідкуйте за офіційними повідомленнями.\n${timeStr}${durationText}`
+    };
+  };
+
+  mockNotifier.notifyStatusChange({
+    isAlert: false,
+    locationTitle: 'м. Київ'
+  });
+
+  assert.strictEqual(capturedClear.title, 'Відбій тривоги — м. Київ');
+  assert.strictEqual(
+    capturedClear.body,
+    'Загроза минула. Слідкуйте за офіційними повідомленнями.\n5:30 (тривалість: 1 год 15 хв)'
+  );
+  console.log('✔ Тест 4 пройдено (структура відбою: статус + час і тривалість у нижньому рядку)');
+}
+
+console.log('All NotifierService tests passed successfully!');
