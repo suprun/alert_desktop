@@ -2,10 +2,8 @@ const statusBadge = document.getElementById('statusBadge');
 const statusIcon = document.getElementById('statusIcon');
 const statusLocation = document.getElementById('statusLocation');
 const statusText = document.getElementById('statusText');
-const threatBadge = document.getElementById('threatBadge');
-const threatIcon = document.getElementById('threatIcon');
-const threatText = document.getElementById('threatText');
-const lastUpdated = document.getElementById('lastUpdated');
+const connectionStatus = document.getElementById('connectionStatus');
+const fastTooltipText = document.getElementById('fastTooltipText');
 const btnSettings = document.getElementById('btnSettings');
 const mapProgressBar = document.getElementById('mapProgressBar');
 const mapLoadingState = document.getElementById('mapLoadingState');
@@ -120,25 +118,24 @@ function updateUI(status) {
 
   statusLocation.textContent = status.locationTitle || 'Україна';
 
-  if (lastUpdated) {
+  // Оновлення нейтральної іконки зв'язку та швидкого тултіпа
+  if (connectionStatus && fastTooltipText) {
     if (status.isOffline) {
-      lastUpdated.className = 'last-updated offline';
-      lastUpdated.innerHTML = '<span class="live-dot"></span><span>Офлайн</span>';
-      const timeStr = status.lastChecked ? `Остання спроба: ${status.lastChecked}\n` : '';
-      lastUpdated.title = `${timeStr}Немає зв’язку із сервером сповіщень`;
+      connectionStatus.className = 'connection-status offline';
+      const timeStr = status.lastChecked ? ` · Спроба о ${status.lastChecked}` : '';
+      fastTooltipText.textContent = `Офлайн · Немає зв’язку із сервером${timeStr}`;
     } else if (status.isRealtime) {
-      lastUpdated.className = 'last-updated';
-      lastUpdated.innerHTML = '<span class="live-dot"></span><span>Наживо</span>';
-      const timeStr = status.lastChecked ? `\nОстаннє оновлення: ${status.lastChecked}` : '';
-      lastUpdated.title = `Підключено через WebSocket у режимі реального часу (0 сек затримки)${timeStr}`;
+      connectionStatus.className = 'connection-status';
+      const timeStr = status.lastChecked ? ` · Синхронізовано о ${status.lastChecked}` : '';
+      fastTooltipText.textContent = `Підключено наживо (WebSocket 0s)${timeStr}`;
     } else {
-      lastUpdated.className = 'last-updated';
-      lastUpdated.innerHTML = '<span class="live-dot"></span><span>Наживо</span>';
-      const timeStr = status.lastChecked ? `\nОстаннє оновлення: ${status.lastChecked}` : '';
-      lastUpdated.title = `Підключено через сервер (синхронізація тривог)${timeStr}`;
+      connectionStatus.className = 'connection-status';
+      const timeStr = status.lastChecked ? ` · Синхронізовано о ${status.lastChecked}` : '';
+      fastTooltipText.textContent = `Підключено через сервер${timeStr}`;
     }
   }
 
+  // Єдиний об'єднаний статус-бейдж: стан + характер загрози + час початку
   statusBadge.className = 'status-badge';
 
   if (status.isOffline) {
@@ -147,52 +144,39 @@ function updateUI(status) {
     statusText.textContent = 'Офлайн (немає зв’язку)';
   } else if (status.isAlert) {
     const isYellow = status.alertLevel === 'yellow';
+    const threatInfo = status.threatInfo;
     const scopeNote = status.alertScope ? ` (${status.alertScope})` : '';
     const timeStr = status.startedAt ? new Date(status.startedAt).toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit' }) : '';
     const timeSuffix = timeStr ? ` (з ${timeStr})` : '';
 
-    if (status.alertType === 'artillery_shelling') {
-      statusBadge.classList.add('artillery');
-      statusIcon.innerHTML = icons.artillery;
-      statusText.textContent = `Загроза артобстрілу!${scopeNote}${timeSuffix}`;
+    let threatName = 'Повітряна тривога';
+    let iconKey = 'alert';
+
+    if (threatInfo && threatInfo.hasThreats && threatInfo.badgeLabel) {
+      threatName = threatInfo.badgeLabel;
+      iconKey = threatInfo.iconType || 'alert';
+    } else if (status.alertType === 'artillery_shelling') {
+      threatName = 'Загроза артобстрілу';
+      iconKey = 'artillery';
     } else if (isYellow) {
+      threatName = 'Дронова загроза';
+      iconKey = 'drone';
+    }
+
+    if (status.alertType === 'artillery_shelling' || iconKey === 'artillery') {
+      statusBadge.classList.add('artillery');
+    } else if (isYellow || threatInfo?.level === 'yellow') {
       statusBadge.classList.add('alert-yellow');
-      statusIcon.innerHTML = icons.yellow;
-      statusText.textContent = `Жовтий рівень${scopeNote}${timeSuffix}`;
     } else {
       statusBadge.classList.add('alert');
-      statusIcon.innerHTML = icons.alert;
-      statusText.textContent = `Повітряна тривога!${scopeNote}${timeSuffix}`;
     }
+
+    statusIcon.innerHTML = threatIcons[iconKey] || icons[iconKey] || icons.alert;
+    statusText.textContent = `${threatName}${scopeNote}${timeSuffix}`;
   } else {
     statusBadge.classList.add('safe');
     statusIcon.innerHTML = icons.safe;
     statusText.textContent = 'Немає тривоги';
-  }
-
-  // Оновлення окремого бейджа характеру загрози (Threat Badge)
-  if (threatBadge && threatText && threatIcon) {
-    const threatInfo = status.threatInfo;
-    if (status.isAlert && threatInfo && threatInfo.hasThreats && threatInfo.badgeLabel) {
-      threatBadge.style.display = 'inline-flex';
-      threatBadge.className = 'threat-badge';
-
-      if (status.alertType === 'artillery_shelling' || threatInfo.iconType === 'artillery') {
-        threatBadge.classList.add('threat-artillery');
-      } else if (status.alertLevel === 'yellow') {
-        threatBadge.classList.add('threat-yellow');
-      } else {
-        threatBadge.classList.add('threat-red');
-      }
-
-      const iconKey = threatInfo.iconType || (status.alertType === 'artillery_shelling' ? 'artillery' : 'general');
-      threatIcon.innerHTML = threatIcons[iconKey] || threatIcons.general;
-      threatText.textContent = threatInfo.badgeLabel;
-      threatBadge.title = threatInfo.fullLabel || threatInfo.badgeLabel;
-    } else {
-      threatBadge.style.display = 'none';
-      threatBadge.title = '';
-    }
   }
 }
 

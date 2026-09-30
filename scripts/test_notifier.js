@@ -55,11 +55,10 @@ const notifier = new NotifierService();
   mockNotifier.notifyStatusChange = function(params) {
     const alertStartTime = params.startedAt ? new Date(params.startedAt) : new Date();
     this.activeAlertStartedAt = alertStartTime;
-    const timeStr = this.formatTime(alertStartTime);
     const desc = (params.threatInfo && params.threatInfo.notificationText) || 'Негайно пройдіть в найближче укриття!';
     capturedNotification = {
       title: `Повітряна тривога — ${params.locationTitle}`,
-      body: `${desc}\n${timeStr}`
+      body: desc
     };
   };
 
@@ -68,16 +67,16 @@ const notifier = new NotifierService();
     alertType: 'air_raid',
     alertLevel: 'red',
     locationTitle: 'м. Київ',
-    threatInfo: { notificationText: 'Ракети. Загроза ракетного удару. Негайно прямуйте в укриття!' },
+    threatInfo: { notificationText: 'Ракетна загроза. Загроза ракетного удару. Негайно прямуйте в укриття!' },
     startedAt: alertStartTime.toISOString()
   });
 
   assert.strictEqual(capturedNotification.title, 'Повітряна тривога — м. Київ');
   assert.strictEqual(
     capturedNotification.body,
-    'Ракети. Загроза ракетного удару. Негайно прямуйте в укриття!\n4:15'
+    'Ракетна загроза. Загроза ракетного удару. Негайно прямуйте в укриття!'
   );
-  console.log('✔ Тест 3 пройдено (структура тривоги: опис + час у нижньому рядку)');
+  console.log('✔ Тест 3 пройдено (структура тривоги: чистий опис без дублювання часу)');
 }
 
 // Тест 4: Формування структури сповіщення відбою тривоги
@@ -90,18 +89,17 @@ const notifier = new NotifierService();
 
   let capturedClear = null;
   mockNotifier.notifyStatusChange = function(params) {
-    const timeStr = this.formatTime(clearTime);
     let durationText = '';
     if (this.activeAlertStartedAt) {
       const dur = this.formatDuration(this.activeAlertStartedAt, clearTime);
       if (dur) {
-        durationText = ` (тривалість: ${dur})`;
+        durationText = ` (тривалість ${dur})`;
       }
       this.activeAlertStartedAt = null;
     }
     capturedClear = {
       title: `Відбій тривоги — ${params.locationTitle}`,
-      body: `Загроза минула. Слідкуйте за офіційними повідомленнями.\n${timeStr}${durationText}`
+      body: `Загроза минула${durationText}. Слідкуйте за офіційними повідомленнями.`
     };
   };
 
@@ -113,9 +111,9 @@ const notifier = new NotifierService();
   assert.strictEqual(capturedClear.title, 'Відбій тривоги — м. Київ');
   assert.strictEqual(
     capturedClear.body,
-    'Загроза минула. Слідкуйте за офіційними повідомленнями.\n5:30 (тривалість: 1 год 15 хв)'
+    'Загроза минула (тривалість 1 год 15 хв). Слідкуйте за офіційними повідомленнями.'
   );
-  console.log('✔ Тест 4 пройдено (структура відбою: статус + час і тривалість у нижньому рядку)');
+  console.log('✔ Тест 4 пройдено (структура відбою: статус + тривалість у тілі повідомлення)');
 }
 
 console.log('All NotifierService tests passed successfully!');

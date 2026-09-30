@@ -11,38 +11,52 @@
 <body>
   <header class="app-header">
     <div class="status-section">
+      <!-- Окремий інтерактивний елемент місцевості -->
+      <div id="statusLocationWrapper" class="location-item" title="Змінити місцевість (Налаштування)">
+        <span class="location-pin-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+            <circle cx="12" cy="10" r="3"/>
+          </svg>
+        </span>
+        <span id="statusLocation" class="location-title">Україна</span>
+        <span class="location-edit-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/>
+          </svg>
+        </span>
+      </div>
+
+      <!-- Єдиний об'єднаний статус-бейдж (стан + причина загрози) -->
       <div id="statusBadge" class="status-badge safe">
         <span id="statusIcon" class="status-icon">
           <!-- Linear Shield Check Icon -->
-          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
             <path d="m9 12 2 2 4-4"/>
           </svg>
         </span>
-        <span id="statusLocationWrapper" class="status-location-wrapper" title="Змінити місцевість (Налаштування)">
-          <span id="statusLocation" class="status-location">м. Київ</span>
-          <span class="location-edit-icon" aria-hidden="true">
-            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/>
-            </svg>
-          </span>
-        </span>
-        <span class="status-separator">·</span>
         <span id="statusText" class="status-text">Немає тривоги</span>
-      </div>
-
-      <!-- Виділений бейдж характеру загрози -->
-      <div id="threatBadge" class="threat-badge" style="display: none;" title="">
-        <span id="threatIcon" class="threat-icon"></span>
-        <span id="threatText" class="threat-text"></span>
       </div>
     </div>
 
     <div class="actions-section">
-      <span id="lastUpdated" class="last-updated" title="Підключення до сервісу моніторингу...">
-        <span class="live-dot"></span>
-        <span>Наживо</span>
-      </span>
+      <!-- Нейтральна іконка статусу підключення зі швидким кастомним тултіпом -->
+      <div id="connectionStatus" class="connection-status" tabindex="0" role="status" aria-label="Статус підключення">
+        <span id="connectionIcon" class="connection-icon">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M5 12.55a11 11 0 0 1 14.08 0"/>
+            <path d="M1.42 9a16 16 0 0 1 21.16 0"/>
+            <path d="M8.53 16.11a6 6 0 0 1 6.95 0"/>
+            <circle cx="12" cy="20" r="1"/>
+          </svg>
+        </span>
+        <div id="fastTooltip" class="fast-tooltip" role="tooltip">
+          <span id="fastTooltipDot" class="tooltip-dot"></span>
+          <span id="fastTooltipText">Підключення...</span>
+        </div>
+      </div>
+
       <button id="btnSettings" class="btn-icon" title="Налаштування" aria-label="Налаштування">
         <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/>

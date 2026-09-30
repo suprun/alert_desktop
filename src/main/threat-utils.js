@@ -31,49 +31,49 @@ function cleanSourceMessage(msg) {
 const THREAT_DEFINITIONS = {
   drones: {
     icon: 'drone',
-    shortLabel: 'Дрони',
-    fullLabel: 'Дронова небезпека',
+    shortLabel: 'Дронова загроза',
+    fullLabel: 'Дронова загроза',
     notificationDesc: 'Загроза ударних БПЛА. Оцініть безпекову ситуацію.'
   },
   unspecified_missiles: {
     icon: 'missile',
-    shortLabel: 'Ракети',
-    fullLabel: 'Ракетна небезпека',
+    shortLabel: 'Ракетна загроза',
+    fullLabel: 'Ракетна загроза',
     notificationDesc: 'Загроза ракетного удару. Негайно прямуйте в укриття!'
   },
   ballistic: {
     icon: 'ballistic',
-    shortLabel: 'Балістика',
-    fullLabel: 'Загроза балістики',
+    shortLabel: 'Загроза балістики',
+    fullLabel: 'Загроза балістичного озброєння',
     notificationDesc: 'Загроза застосування балістичного озброєння!'
   },
   guided_bombs: {
     icon: 'aviation',
-    shortLabel: 'Пуски КАБ',
+    shortLabel: 'Загроза пусків КАБ',
     fullLabel: 'Загроза керованих авіабомб',
     notificationDesc: 'Пуски керованих авіабомб. Пройдіть в укриття!'
   },
   tactical_aviation: {
     icon: 'aviation',
-    shortLabel: 'Авіація',
+    shortLabel: 'Загроза тактичної авіації',
     fullLabel: 'Активність тактичної авіації',
     notificationDesc: 'Активність ворожої тактичної авіації біля кордонів.'
   },
   artillery: {
     icon: 'artillery',
-    shortLabel: 'Артобстріл',
+    shortLabel: 'Загроза артобстрілу',
     fullLabel: 'Загроза артобстрілу',
     notificationDesc: 'Загроза артилерійського обстрілу. Перебувайте в укриттях!'
   },
   chemical: {
     icon: 'chemical',
-    shortLabel: 'Хімнебезпека',
+    shortLabel: 'Хімічна загроза',
     fullLabel: 'Хімічна небезпека',
     notificationDesc: 'Загроза хімічного ураження. Дотримуйтесь інструкцій захисту!'
   },
   nuclear: {
     icon: 'nuclear',
-    shortLabel: 'Радіація',
+    shortLabel: 'Радіаційна загроза',
     fullLabel: 'Радіаційна небезпека',
     notificationDesc: 'Радіаційна загроза. Перейдіть у захисні споруди!'
   }
@@ -104,9 +104,9 @@ function formatThreatInfo(threats, alertType = 'air_raid', alertLevel = 'none') 
       threatType: 'artillery',
       iconType: 'artillery',
       level: 'artillery',
-      badgeLabel: 'Артобстріл',
+      badgeLabel: 'Загроза артобстрілу',
       fullLabel: 'Загроза артобстрілу',
-      tooltipSuffix: 'Артобстріл',
+      tooltipSuffix: 'Загроза артобстрілу',
       notificationText: 'Загроза артилерійського обстрілу. Перебувайте в укриттях!'
     };
   }
@@ -119,10 +119,10 @@ function formatThreatInfo(threats, alertType = 'air_raid', alertLevel = 'none') 
         threatType: 'drones',
         iconType: 'drone',
         level: 'yellow',
-        badgeLabel: 'Дрони',
-        fullLabel: 'Дронова небезпека',
-        tooltipSuffix: 'Дрони',
-        notificationText: 'Дрони. Загроза ударних БПЛА. Оцініть безпекову ситуацію.'
+        badgeLabel: 'Дронова загроза',
+        fullLabel: 'Дронова загроза',
+        tooltipSuffix: 'Дронова загроза',
+        notificationText: 'Дронова загроза. Оцініть безпекову ситуацію.'
       };
     }
 
@@ -132,10 +132,10 @@ function formatThreatInfo(threats, alertType = 'air_raid', alertLevel = 'none') 
         threatType: 'air_raid',
         iconType: 'alert',
         level: 'red',
-        badgeLabel: '',
-        fullLabel: '',
-        tooltipSuffix: '',
-        notificationText: 'Негайно пройдіть в найближче укриття!'
+        badgeLabel: 'Повітряна тривога',
+        fullLabel: 'Повітряна тривога',
+        tooltipSuffix: 'Повітряна тривога',
+        notificationText: 'Повітряна тривога. Негайно пройдіть в найближче укриття!'
       };
     }
 
@@ -191,8 +191,8 @@ function formatThreatInfo(threats, alertType = 'air_raid', alertLevel = 'none') 
     if (!matchedDef) {
       matchedDef = {
         icon: isYellow ? 'drone' : 'missile',
-        shortLabel: isYellow ? 'Дрони' : 'Ракети',
-        fullLabel: sourceMsg || (isYellow ? 'Дронова небезпека' : 'Ракетна небезпека'),
+        shortLabel: isYellow ? 'Дронова загроза' : 'Ракетна загроза',
+        fullLabel: sourceMsg || (isYellow ? 'Дронова загроза' : 'Ракетна загроза'),
         notificationDesc: isYellow ? THREAT_DEFINITIONS.drones.notificationDesc : THREAT_DEFINITIONS.unspecified_missiles.notificationDesc
       };
     }
@@ -210,8 +210,11 @@ function formatThreatInfo(threats, alertType = 'air_raid', alertLevel = 'none') 
   }
 
   // Формуємо комбінований підпис, якщо декілька загроз
-  // Наприклад: "Ракети, Дрони"
-  const badgeLabel = distinctTypes.join(', ');
+  let badgeLabel = distinctTypes.join(', ');
+  if (distinctTypes.includes('Ракетна загроза') && distinctTypes.includes('Дронова загроза')) {
+    badgeLabel = 'Ракетна та дронова загроза';
+  }
+
   const fullLabel = primarySourceMsg || distinctLabels.join(', ');
   const tooltipSuffix = badgeLabel;
 

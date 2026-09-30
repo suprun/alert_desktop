@@ -98,11 +98,11 @@ class NotifierService {
       if (threatInfo && threatInfo.notificationText) {
         desc = threatInfo.notificationText;
       } else if (isYellow) {
-        desc = 'Дрони. Загроза ударних БПЛА. Оцініть безпекову ситуацію.';
+        desc = 'Дронова загроза. Оцініть безпекову ситуацію.';
       }
 
-      // Час виводиться окремим фінальним рядком (як у сповіщеннях Antigravity IDE)
-      body = `${desc}\n${timeStr}`;
+      // Windows Toast самостійно показує час доставки внизу картки, не дублюємо його у тексті
+      body = desc;
 
       soundType = 'alert';
       soundId = alertSound;
@@ -111,18 +111,16 @@ class NotifierService {
       title = `Відбій тривоги — ${locationTitle}`;
 
       const clearTime = new Date();
-      const timeStr = this.formatTime(clearTime);
-
       let durationText = '';
       if (this.activeAlertStartedAt) {
         const dur = this.formatDuration(this.activeAlertStartedAt, clearTime);
         if (dur) {
-          durationText = ` (тривалість: ${dur})`;
+          durationText = ` (тривалість ${dur})`;
         }
         this.activeAlertStartedAt = null;
       }
 
-      body = `Загроза минула. Слідкуйте за офіційними повідомленнями.\n${timeStr}${durationText}`;
+      body = `Загроза минула${durationText}. Слідкуйте за офіційними повідомленнями.`;
 
       soundType = 'all-clear';
       soundId = allClearSound;

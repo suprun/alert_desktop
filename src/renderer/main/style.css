@@ -251,101 +251,40 @@ body {
   }
 }
 
-/* Виділений чіп характеру загрози (Threat Badge) */
-.threat-badge {
+/* Елемент вибору локації у лівій частині шапки */
+.location-item {
+  -webkit-app-region: no-drag;
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 5px 12px;
-  border-radius: 20px;
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: -0.01em;
-  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-  animation: threat-badge-pop 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-  cursor: default;
-  -webkit-app-region: no-drag;
-}
-
-.threat-badge:hover {
-  filter: brightness(1.08);
-}
-
-@keyframes threat-badge-pop {
-  0% {
-    opacity: 0;
-    transform: scale(0.92);
-  }
-  100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-.threat-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.threat-text {
-  white-space: nowrap;
-}
-
-.threat-badge.threat-yellow {
-  background-color: var(--badge-yellow-bg);
-  color: var(--badge-yellow-color);
-  border: 1px solid var(--badge-yellow-border);
-}
-
-.threat-badge.threat-red {
-  background-color: var(--badge-alert-bg);
-  color: var(--badge-alert-color);
-  border: 1px solid var(--badge-alert-border);
-  animation: pulse-threat 2s infinite ease-in-out;
-}
-
-.threat-badge.threat-artillery {
-  background-color: var(--badge-artillery-bg);
-  color: var(--badge-artillery-color);
-  border: 1px solid var(--badge-artillery-border);
-}
-
-@keyframes pulse-threat {
-  0%, 100% {
-    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.25);
-  }
-  50% {
-    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0);
-  }
-}
-
-.status-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.status-location-wrapper {
-  -webkit-app-region: no-drag;
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
   cursor: pointer;
-  padding: 2px 6px;
-  margin: -2px -4px;
-  border-radius: 6px;
+  padding: 5px 10px;
+  border-radius: 8px;
   transition: all 0.18s ease;
+  user-select: none;
 }
 
-.status-location-wrapper:hover {
+.location-item:hover {
   background-color: var(--location-hover-bg);
 }
 
-.status-location {
+.location-pin-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--pencil-color);
+  transition: color 0.18s ease;
+}
+
+.location-item:hover .location-pin-icon {
+  color: var(--text-main);
+}
+
+.location-title {
+  font-size: 13.5px;
   font-weight: 600;
   color: var(--location-color);
-  transition: color 0.15s ease;
+  letter-spacing: -0.01em;
 }
 
 .location-edit-icon {
@@ -354,18 +293,20 @@ body {
   justify-content: center;
   color: var(--pencil-color);
   opacity: 0;
-  transform: translateX(-2px) scale(0.9);
+  transform: translateX(-3px) scale(0.9);
   transition: opacity 0.2s ease, transform 0.2s ease, color 0.2s ease;
 }
 
-.status-location-wrapper:hover .location-edit-icon {
+.location-item:hover .location-edit-icon {
   opacity: 1;
   transform: translateX(0) scale(1);
   color: var(--pencil-hover-color);
 }
 
-.status-separator {
-  opacity: 0.5;
+.status-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .status-text {
@@ -378,66 +319,86 @@ body {
   gap: 14px;
 }
 
-.last-updated {
+/* Нейтральна іконка статусу підключення */
+.connection-status {
   -webkit-app-region: no-drag;
-  cursor: help;
+  position: relative;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  font-size: 11.5px;
-  font-weight: 500;
-  padding: 4px 10px;
-  border-radius: 14px;
-  background-color: var(--live-badge-bg);
-  color: var(--live-badge-color);
-  border: 1px solid var(--live-badge-border);
-  transition: all 0.2s ease;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--updated-color);
+  cursor: pointer;
+  outline: none;
+  transition: all 0.18s ease;
   user-select: none;
 }
 
-.last-updated:hover {
-  background-color: var(--live-badge-hover-bg);
-  border-color: var(--live-badge-hover-border);
+.connection-status:hover,
+.connection-status:focus-visible {
+  background-color: var(--btn-hover-bg);
+  border-color: var(--btn-border);
+  color: var(--btn-hover-color);
 }
 
-.live-dot {
-  width: 7px;
-  height: 7px;
+.connection-status.offline {
+  color: var(--badge-alert-color);
+}
+
+.connection-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Швидкий кастомний тултіп (80 мс затримка замість 2 сек браузера) */
+.fast-tooltip {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  background-color: var(--bg-color);
+  color: var(--text-main);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  font-size: 11.5px;
+  font-weight: 500;
+  white-space: nowrap;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.28);
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(-4px);
+  transition: opacity 0.15s ease, transform 0.15s ease;
+  transition-delay: 0s;
+  z-index: 1000;
+}
+
+.connection-status:hover .fast-tooltip,
+.connection-status:focus-visible .fast-tooltip {
+  opacity: 1;
+  transform: translateY(0);
+  transition-delay: 80ms;
+}
+
+.tooltip-dot {
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
-  background-color: var(--live-dot-bg);
-  box-shadow: 0 0 6px var(--live-dot-shadow);
-  display: inline-block;
-  animation: live-pulse 2s infinite ease-in-out;
+  background-color: #22c55e;
+  box-shadow: 0 0 6px rgba(34, 197, 94, 0.5);
   flex-shrink: 0;
 }
 
-@keyframes live-pulse {
-  0%, 100% {
-    transform: scale(1);
-    opacity: 1;
-    box-shadow: 0 0 5px var(--live-dot-shadow);
-  }
-  50% {
-    transform: scale(1.25);
-    opacity: 0.65;
-    box-shadow: 0 0 10px var(--live-dot-shadow);
-  }
-}
-
-.last-updated.offline {
-  background-color: var(--badge-offline-bg);
-  color: var(--badge-offline-color);
-  border-color: var(--badge-offline-border);
-}
-
-.last-updated.offline:hover {
-  background-color: rgba(148, 163, 184, 0.18);
-}
-
-.last-updated.offline .live-dot {
-  background-color: var(--badge-offline-color);
-  box-shadow: none;
-  animation: none;
+.connection-status.offline .tooltip-dot {
+  background-color: #ef4444;
+  box-shadow: 0 0 6px rgba(239, 68, 68, 0.5);
 }
 
 .btn-icon {
