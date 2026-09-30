@@ -82,8 +82,12 @@ class AlertApiService extends EventEmitter {
     // Якщо WebSocket підключено — повільна контрольна перевірка раз на 60 сек
     // Якщо WebSocket розірвано — стандартне HTTP опитування кожні 15 сек
     const interval = Math.max(10000, config.get('pollingInterval') || 15000);
+    let pollTick = 0;
     this.timer = setInterval(() => {
-      if (!this.isWsConnected) {
+      pollTick++;
+      // Якщо сокет розірвано — регулярне опитування щоразу (15с).
+      // Якщо сокет підключено — контрольна звірка раз на ~60с (кожні 4 такти).
+      if (!this.isWsConnected || pollTick % 4 === 0) {
         this.checkNow();
       }
     }, interval);
@@ -220,7 +224,7 @@ class AlertApiService extends EventEmitter {
     }
   }
 
-  _processAlertsPayload(alerts) {
+  _processAlertsPayload(alerts, options = {}) {
     this.currentAlerts = alerts;
 
     const selectedUid = String(config.get('locationUid') || '');
