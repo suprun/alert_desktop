@@ -120,19 +120,22 @@ function updateUI(status) {
 
   // Оновлення нейтральної іконки зв'язку та швидкого тултіпа
   if (connectionStatus && fastTooltipText) {
+    let tooltipMsg = '';
     if (status.isOffline) {
       connectionStatus.className = 'connection-status offline';
-      const timeStr = status.lastChecked ? ` · Спроба о ${status.lastChecked}` : '';
-      fastTooltipText.textContent = `Офлайн · Немає зв’язку із сервером${timeStr}`;
+      const timeStr = status.lastChecked ? ` · ${status.lastChecked}` : '';
+      tooltipMsg = `Офлайн · Немає зв’язку${timeStr}`;
     } else if (status.isRealtime) {
       connectionStatus.className = 'connection-status';
-      const timeStr = status.lastChecked ? ` · Синхронізовано о ${status.lastChecked}` : '';
-      fastTooltipText.textContent = `Підключено наживо (WebSocket 0s)${timeStr}`;
+      const timeStr = status.lastChecked ? ` · ${status.lastChecked}` : '';
+      tooltipMsg = `Підключено наживо (0s)${timeStr}`;
     } else {
       connectionStatus.className = 'connection-status';
-      const timeStr = status.lastChecked ? ` · Синхронізовано о ${status.lastChecked}` : '';
-      fastTooltipText.textContent = `Підключено через сервер${timeStr}`;
+      const timeStr = status.lastChecked ? ` · ${status.lastChecked}` : '';
+      tooltipMsg = `Підключено через сервер${timeStr}`;
     }
+    fastTooltipText.textContent = tooltipMsg;
+    connectionStatus.title = tooltipMsg;
   }
 
   // Єдиний об'єднаний статус-бейдж: стан + характер загрози + час початку

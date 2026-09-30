@@ -355,15 +355,16 @@ body {
   justify-content: center;
 }
 
-/* Швидкий кастомний тултіп (80 мс затримка замість 2 сек браузера) */
+/* Швидкий кастомний тултіп (відображається зліва від іконки в межах шапки, щоб не перекриватися картою) */
 .fast-tooltip {
   position: absolute;
-  top: calc(100% + 8px);
-  right: 0;
+  top: 50%;
+  right: calc(100% + 10px);
+  transform: translateY(-50%) translateX(6px);
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 6px 12px;
+  gap: 7px;
+  padding: 5px 11px;
   background-color: var(--bg-color);
   color: var(--text-main);
   border: 1px solid var(--border-color);
@@ -374,7 +375,6 @@ body {
   box-shadow: 0 4px 18px rgba(0, 0, 0, 0.28);
   pointer-events: none;
   opacity: 0;
-  transform: translateY(-4px);
   transition: opacity 0.15s ease, transform 0.15s ease;
   transition-delay: 0s;
   z-index: 1000;
@@ -383,7 +383,7 @@ body {
 .connection-status:hover .fast-tooltip,
 .connection-status:focus-visible .fast-tooltip {
   opacity: 1;
-  transform: translateY(0);
+  transform: translateY(-50%) translateX(0);
   transition-delay: 80ms;
 }
 
