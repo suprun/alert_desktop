@@ -7,9 +7,17 @@ class TrayManager {
     this.callbacks = {
       onShowMap: () => {},
       onShowSettings: () => {},
-      onToggleWindow: () => {}
+      onToggleWindow: () => {},
+      onCheckForUpdates: () => {},
+      onInstallUpdate: () => {}
     };
     this.currentIconName = '';
+    this.updateInfo = null;
+  }
+
+  setUpdateInfo(info) {
+    this.updateInfo = info;
+    this.updateContextMenu();
   }
 
   init(callbacks) {
@@ -50,7 +58,18 @@ class TrayManager {
   updateContextMenu() {
     if (!this.tray) return;
 
-    const contextMenu = Menu.buildFromTemplate([
+    const items = [];
+
+    // Якщо оновлення завантажено — показуємо кнопку встановлення угорі меню
+    if (this.updateInfo && this.updateInfo.downloaded) {
+      items.push({
+        label: `🔄 Встановити оновлення v${this.updateInfo.version}`,
+        click: () => this.callbacks.onInstallUpdate && this.callbacks.onInstallUpdate()
+      });
+      items.push({ type: 'separator' });
+    }
+
+    items.push(
       {
         label: 'Показати карту',
         click: () => this.callbacks.onShowMap()
@@ -61,11 +80,17 @@ class TrayManager {
       },
       { type: 'separator' },
       {
+        label: 'Перевірити оновлення...',
+        click: () => this.callbacks.onCheckForUpdates && this.callbacks.onCheckForUpdates()
+      },
+      { type: 'separator' },
+      {
         label: 'Вихід',
         click: () => app.quit()
       }
-    ]);
+    );
 
+    const contextMenu = Menu.buildFromTemplate(items);
     this.tray.setContextMenu(contextMenu);
   }
 

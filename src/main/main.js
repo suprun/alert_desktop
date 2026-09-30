@@ -14,6 +14,7 @@ const tray = require('./tray');
 const windowManager = require('./window');
 const settingsWindowManager = require('./settings-window');
 const notifier = require('./notifier');
+const updater = require('./updater');
 
 // Запобігання повторному запуску (Single Instance Lock)
 const gotTheLock = app.requestSingleInstanceLock();
@@ -101,6 +102,11 @@ if (!gotTheLock) {
     settingsWindowManager.setTheme(isDark, true);
   });
 
+  ipcMain.handle('check-for-updates', () => {
+    updater.checkForUpdates(true);
+    return updater.getStatus();
+  });
+
   app.whenReady().then(() => {
     // Блокуємо будь-які спроби запиту дозволу на Picture-in-Picture
     if (session && session.defaultSession) {
@@ -118,8 +124,13 @@ if (!gotTheLock) {
     tray.init({
       onShowMap: () => windowManager.show(),
       onShowSettings: () => settingsWindowManager.showSettingsWindow(windowManager.mainWindow),
-      onToggleWindow: () => windowManager.toggle()
+      onToggleWindow: () => windowManager.toggle(),
+      onCheckForUpdates: () => updater.checkForUpdates(true),
+      onInstallUpdate: () => updater.quitAndInstall()
     });
+
+    // Ініціалізація сервісу автооновлень
+    updater.init({ trayManager: tray, notifier });
 
     // Встановлюємо актуальний початковий статус
     tray.updateStatus(api.getCurrentState());
@@ -152,6 +163,7 @@ if (!gotTheLock) {
     windowManager.setQuitting();
     api.stopPolling();
     tray.destroy();
+    updater.destroy();
   });
 
   app.on('window-all-closed', (event) => {

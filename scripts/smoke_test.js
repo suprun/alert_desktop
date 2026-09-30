@@ -89,5 +89,13 @@ if (typeof autostart.setAutoStart !== 'function' || typeof autostart.isEnabled !
 }
 console.log(`OK: autostart module initialized (currently enabled: ${autostart.isEnabled()})`);
 
+// 5. Check Updater module
+const updater = require('../src/main/updater');
+if (typeof updater.checkForUpdates !== 'function' || typeof updater.init !== 'function') {
+  console.error('FAIL: updater module methods missing');
+  process.exit(1);
+}
+console.log('OK: updater module initialized');
+
 console.log('All smoke checks passed successfully!');
 process.exit(0);
