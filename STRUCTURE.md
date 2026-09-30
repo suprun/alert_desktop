@@ -44,9 +44,6 @@ alert_desktop/
 │       ├── tray-chemical.png / .svg      # Іконка трею: хімічна небезпека (фіолетовий диск із колбою)
 │       ├── tray-nuclear.png / .svg       # Іконка трею: радіаційна загроза (золотавий диск із трилисником)
 │       ├── tray-offline.png / .svg       # Іконка трею: відсутність зв'язку (сірий диск із перекресленою рискою)
-│       ├── installer/                    # Фірмові графічні банери для NSIS інсталятора (164x314 BMP)
-│       │   ├── installerSidebar.bmp      # Банер майстра встановлення (темний градієнт, радар/щит)
-│       │   └── uninstallerSidebar.bmp    # Банер майстра видалення
 │       └── ui/                           # Лінійні системні піктограми інтерфейсу
 │           ├── bell.svg / bell-off.svg   # Індикація звуку
 │           ├── gear.svg                  # Кнопка налаштувань
@@ -56,7 +53,7 @@ alert_desktop/
 │           └── volume.svg                # Іконка повзунка гучності
 │
 ├── installer/                            # Кастомні конфігураційні скрипти інсталятора
-│   └── installer.nsh                     # Хуки NSIS (чекбокс автозапуску, синхронізація реєстру Run, деінсталяція)
+│   └── installer.nsh                     # Хуки NSIS (багатомовні LangString для чекбоксів UA/EN, автозапуск, реєстр Run)
 │
 ├── scripts/                              # Допоміжні скрипти генерації та обслуговування
 │   ├── build_installer.js                # Автоматична збірка NSIS інсталятора (electron-builder)
@@ -65,7 +62,6 @@ alert_desktop/
 │   ├── generate_audio.js                 # Генерація чистих синтезованих звуків сирени/відбою
 │   ├── generate_ico.js                   # Генерація Windows .ico з 6 роздільними здатностями
 │   ├── generate_icons.js                 # Генерація PNG-іконок через Electron nativeImage
-│   ├── generate_installer_graphics.js    # Генерація 24-бітних фірмових BMP банерів для NSIS
 │   ├── generate_ui_icons.js              # Генерація лінійних SVG піктограм інтерфейсу
 │   ├── parse_locations.js                # Завантаження та парсинг 1622 локацій з Google Spreadsheets
 │   ├── reset_config.js                   # Скидання та видалення файлу конфігурації у профілі користувача

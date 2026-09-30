@@ -1,4 +1,22 @@
-; installer/installer.nsh — кастомні хуки NSIS для AlertDesktop
+; installer/installer.nsh — кастомні хуки та багатомовна локалізація NSIS для AlertDesktop
+
+; --- Багатомовні рядки для сторінки завершення ---
+LangString RUN_APP_TEXT 1058 "Запустити Повітряні тривоги"
+LangString RUN_APP_TEXT 1033 "Launch AlertDesktop"
+
+LangString AUTOSTART_TEXT 1058 "Запускати автоматично при старті Windows"
+LangString AUTOSTART_TEXT 1033 "Start automatically when Windows starts"
+
+; --- Українська локалізація системних повідомлень майстра ---
+LangString chooseInstallationOptions 1058 "Оберіть параметри встановлення"
+LangString chooseUninstallationOptions 1058 "Оберіть параметри видалення"
+LangString whichInstallationShouldBeRemoved 1058 "Яку саме інсталяцію слід видалити?"
+LangString whoShouldThisApplicationBeInstalledFor 1058 "Для кого слід встановити цей застосунок?"
+LangString selectUserMode 1058 "Оберіть, чи бажаєте встановити програму для всіх користувачів, чи лише для себе:"
+LangString installationForAnyoneUsingThisComputer 1058 "Для всіх користувачів цього комп'ютера"
+LangString installationOnlyForMe 1058 "Лише для мене (без прав адміністратора)"
+LangString deleteAppData 1058 "Дані та налаштування застосунку"
+LangString deleteAppDataCheckbox 1058 "Видалити також збережену конфігурацію та історію сповіщень"
 
 !macro customFinishPage
   !ifndef HIDE_RUN_AFTER_FINISH
@@ -13,7 +31,7 @@
 
     !define MUI_FINISHPAGE_RUN
     !define MUI_FINISHPAGE_RUN_FUNCTION "StartApp"
-    !define MUI_FINISHPAGE_RUN_TEXT "Запустити Повітряні тривоги"
+    !define MUI_FINISHPAGE_RUN_TEXT $(RUN_APP_TEXT)
   !endif
 
   ; Функція додавання запису автозапуску в реєстр Windows
@@ -21,9 +39,9 @@
     WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Run" "AlertDesktop" '"$INSTDIR\${APP_EXECUTABLE_FILENAME}" --hidden'
   FunctionEnd
 
-  ; Додатковий чекбокс автозапуску на фінальній сторінці (активний за замовчуванням)
+  ; Додатковий багатомовний чекбокс автозапуску (активний за замовчуванням)
   !define MUI_FINISHPAGE_SHOWREADME
-  !define MUI_FINISHPAGE_SHOWREADME_TEXT "Запускати автоматично при старті Windows"
+  !define MUI_FINISHPAGE_SHOWREADME_TEXT $(AUTOSTART_TEXT)
   !define MUI_FINISHPAGE_SHOWREADME_FUNCTION "EnableAutoStart"
   !define MUI_FINISHPAGE_SHOWREADME_CHECKED
 

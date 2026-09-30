@@ -1,6 +1,6 @@
 {
   "name": "alert-desktop",
-  "version": "1.0.36",
+  "version": "1.0.37",
   "description": "Десктопний клієнт для моніторингу повітряних тривог на базі Electron",
   "main": "src/main/main.js",
   "repository": {
@@ -9,9 +9,8 @@
   },
   "scripts": {
     "start": "electron .",
-    "test": "node --check src/main/main.js && node --check src/main/config.js && node --check src/main/autostart.js && node --check src/main/threat-utils.js && node --check src/main/api.js && node --check src/main/tray.js && node --check src/main/window.js && node --check src/main/settings-window.js && node --check src/main/notifier.js && node --check src/main/updater.js && node --check src/preload/preload-main.js && node --check src/preload/preload-settings.js && node --check src/preload/preload-map.js && node --check src/renderer/main/renderer.js && node --check src/renderer/settings/settings.js && node --check scripts/reset_config.js && node --check scripts/build_installer.js && node --check scripts/generate_installer_graphics.js && node --check scripts/test_updater.js && node scripts/generate_installer_graphics.js && node scripts/test_threat_utils.js && node scripts/test_notifier.js && node scripts/test_oblast_aggregation.js && node scripts/test_updater.js && electron scripts/smoke_test.js",
+    "test": "node --check src/main/main.js && node --check src/main/config.js && node --check src/main/autostart.js && node --check src/main/threat-utils.js && node --check src/main/api.js && node --check src/main/tray.js && node --check src/main/window.js && node --check src/main/settings-window.js && node --check src/main/notifier.js && node --check src/main/updater.js && node --check src/preload/preload-main.js && node --check src/preload/preload-settings.js && node --check src/preload/preload-map.js && node --check src/renderer/main/renderer.js && node --check src/renderer/settings/settings.js && node --check scripts/reset_config.js && node --check scripts/build_installer.js && node --check scripts/test_updater.js && node scripts/test_threat_utils.js && node scripts/test_notifier.js && node scripts/test_oblast_aggregation.js && node scripts/test_updater.js && electron scripts/smoke_test.js",
     "build:ico": "electron scripts/generate_ico.js",
-    "build:installer-graphics": "node scripts/generate_installer_graphics.js",
     "build:installer": "node scripts/build_installer.js",
     "dist": "node scripts/build_installer.js",
     "reset:config": "node scripts/reset_config.js"
@@ -70,8 +69,11 @@
       "differentialPackage": true,
       "runAfterFinish": true,
       "include": "installer/installer.nsh",
-      "installerSidebar": "assets/installer/installerSidebar.bmp",
-      "uninstallerSidebar": "assets/installer/uninstallerSidebar.bmp"
+      "installerLanguages": [
+        "uk_UA",
+        "en_US"
+      ],
+      "displayLanguageSelector": true
     },
     "publish": {
       "provider": "github",
