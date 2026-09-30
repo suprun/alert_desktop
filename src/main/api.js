@@ -54,11 +54,11 @@ class AlertApiService extends EventEmitter {
     // Слухаємо зміни конфігурації
     config.on('changed', () => {
       this.lastState.locationTitle = config.get('locationTitle');
-      // При зміні локації негайно перераховуємо статус за наявним кешем
+      // При зміні локації / налаштувань перераховуємо статус, але НЕ відтворюємо звукові сповіщення
       if (this.currentAlerts.length > 0) {
-        this._processAlertsPayload(this.currentAlerts);
+        this._processAlertsPayload(this.currentAlerts, { suppressNotification: true });
       } else {
-        this.checkNow();
+        this.checkNow({ suppressNotification: true });
       }
 
       // Якщо змінилася адреса сервера/сокета — перепідключаємося
@@ -323,9 +323,11 @@ class AlertApiService extends EventEmitter {
       lastChecked: new Date().toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
     };
 
+    const suppressNotification = options.suppressNotification === true;
+
     // Перевірка зміни статусу або рівня тривоги для сповіщення.
-    // При першому опитуванні після запуску застосунку (isInitialCheck) звук не програється.
-    if (!this.isInitialCheck) {
+    // При першому опитуванні після запуску застосунку (isInitialCheck) або при збереженні налаштувань (suppressNotification) звук не програється.
+    if (!this.isInitialCheck && !suppressNotification) {
       if (previousIsAlert !== isAlert || (isAlert && (this.lastState.alertType !== alertType || previousLevel !== alertLevel))) {
         this.emit('status-changed', {
           isAlert,
@@ -341,13 +343,14 @@ class AlertApiService extends EventEmitter {
       }
     } else {
       this.isInitialCheck = false;
+      this.emit('status-synced', newState);
     }
 
     this.lastState = newState;
     this.emit('status-updated', this.lastState);
   }
 
-  async checkNow() {
+  async checkNow(options = {}) {
     if (this.isChecking) return;
     this.isChecking = true;
 
@@ -392,7 +395,7 @@ class AlertApiService extends EventEmitter {
       const data = await response.json();
       const alerts = Array.isArray(data) ? data : (data.alerts || []);
 
-      this._processAlertsPayload(alerts);
+      this._processAlertsPayload(alerts, options);
 
     } catch (err) {
       console.warn('Помилка під час REST опитування сервера тривог:', err.message);

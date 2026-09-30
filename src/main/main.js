@@ -45,6 +45,10 @@ if (!gotTheLock) {
     notifier.notifyStatusChange(status);
   });
 
+  api.on('status-synced', (status) => {
+    notifier.resetAlertTracking(status.isAlert ? status.startedAt : null);
+  });
+
   // Налаштування IPC-хендлерів
   ipcMain.handle('get-current-status', () => {
     return api.getCurrentState();

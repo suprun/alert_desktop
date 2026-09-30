@@ -12,6 +12,10 @@ class NotifierService {
     this.audioCallback = cb;
   }
 
+  resetAlertTracking(startedAt = null) {
+    this.activeAlertStartedAt = startedAt ? new Date(startedAt) : null;
+  }
+
   formatTime(dateOrIso) {
     try {
       const d = dateOrIso ? new Date(dateOrIso) : new Date();

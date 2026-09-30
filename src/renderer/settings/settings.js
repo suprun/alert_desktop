@@ -109,8 +109,8 @@ function updateApiProviderState() {
   const provider = getSelectedApiProvider();
   if (provider === 'gateway') {
     inputServerUrl.disabled = true;
-    inputServerUrl.value = DEFAULT_PROXY_URL;
-    inputServerUrl.placeholder = DEFAULT_PROXY_URL;
+    inputServerUrl.value = '';
+    inputServerUrl.placeholder = 'Вбудований сервер за замовчуванням';
 
     inputApiKey.disabled = true;
     inputApiKey.value = '';
@@ -445,7 +445,12 @@ async function init() {
       radioProviderGateway.checked = true;
     }
 
-    inputServerUrl.value = cfg.serverUrl || DEFAULT_PROXY_URL;
+    if (provider === 'gateway') {
+      inputServerUrl.value = '';
+      inputServerUrl.placeholder = 'Вбудований сервер за замовчуванням';
+    } else {
+      inputServerUrl.value = cfg.serverUrl || '';
+    }
     inputApiKey.value = cfg.apiKey || '';
 
     updateSoundControlsState();
