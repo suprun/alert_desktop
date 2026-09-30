@@ -29,7 +29,26 @@
           </span>
           <span class="selected-badge-label">Обрано:</span>
           <span id="selectedBadgeText" class="selected-badge-text"></span>
-          <span id="selectedBadgeType" class="selected-badge-type"></span>
+          <span id="selectedBadgeType" class="location-item-type selected-badge-type"></span>
+        </div>
+
+        <!-- Ієрархічний вибір: Область → Район → Громада -->
+        <div class="hierarchy-container">
+          <div class="hierarchy-field">
+            <select id="selectOblast" class="form-select hierarchy-select" title="Оберіть область чи місто">
+              <option value="">(Оберіть область / місто)</option>
+            </select>
+          </div>
+          <div class="hierarchy-field">
+            <select id="selectRaion" class="form-select hierarchy-select" title="Оберіть район" disabled>
+              <option value="">(Оберіть район)</option>
+            </select>
+          </div>
+          <div class="hierarchy-field">
+            <select id="selectHromada" class="form-select hierarchy-select" title="Оберіть громаду" disabled>
+              <option value="">(Оберіть громаду)</option>
+            </select>
+          </div>
         </div>
 
         <!-- Поле швидкого пошуку -->
@@ -63,25 +82,6 @@
             <div id="locationNoResults" class="location-no-results" style="display: none;">
               Нічого не знайдено за цим запитом
             </div>
-          </div>
-        </div>
-
-        <!-- Ієрархічний вибір: Область → Район → Громада -->
-        <div class="hierarchy-container">
-          <div class="hierarchy-field">
-            <select id="selectOblast" class="form-select hierarchy-select" title="Оберіть область чи місто">
-              <option value="">(Оберіть область / місто)</option>
-            </select>
-          </div>
-          <div class="hierarchy-field">
-            <select id="selectRaion" class="form-select hierarchy-select" title="Оберіть район" disabled>
-              <option value="">(Оберіть район)</option>
-            </select>
-          </div>
-          <div class="hierarchy-field">
-            <select id="selectHromada" class="form-select hierarchy-select" title="Оберіть громаду" disabled>
-              <option value="">(Оберіть громаду)</option>
-            </select>
           </div>
         </div>
       </section>

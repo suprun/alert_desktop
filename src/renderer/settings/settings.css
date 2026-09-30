@@ -392,26 +392,42 @@ body {
   font-size: 12px;
 }
 
+.location-item-type:empty {
+  display: none;
+}
+
 .selected-badge {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 7px 12px;
+  padding: 8px 12px 8px 14px;
+  min-height: 38px;
   background-color: rgba(255, 255, 255, 0.035);
-  border: 1px solid rgba(255, 255, 255, 0.07);
-  border-left: 3px solid var(--primary-color);
-  border-radius: 0 6px 6px 0;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+  overflow: hidden;
   font-size: 13px;
   color: var(--text-primary);
   cursor: default;
   transition: background-color 0.2s ease, border-color 0.2s ease;
 }
 
+.selected-badge::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3.5px;
+  background-color: var(--primary-color);
+  border-radius: 6px 0 0 6px;
+}
+
 html.theme-light .selected-badge,
 :root:not(.theme-dark) .selected-badge {
   background-color: rgba(0, 120, 212, 0.05);
-  border-color: rgba(0, 120, 212, 0.15);
-  border-left-color: var(--primary-color);
+  border-color: rgba(0, 120, 212, 0.16);
 }
 
 .selected-badge-pin {
@@ -428,26 +444,22 @@ html.theme-light .selected-badge,
   text-transform: uppercase;
   letter-spacing: 0.5px;
   color: var(--text-secondary);
+  flex-shrink: 0;
 }
 
 .selected-badge-text {
   font-weight: 600;
   color: var(--text-primary);
   flex: 1;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  min-width: 0;
+  white-space: normal;
+  word-break: normal;
+  overflow-wrap: break-word;
+  line-height: 1.35;
 }
 
 .selected-badge-type {
-  font-size: 11px;
-  background-color: var(--type-badge-bg);
-  color: var(--type-badge-text);
-  border: 1px solid var(--type-badge-border);
-  padding: 1px 7px;
-  border-radius: 10px;
-  font-weight: 500;
-  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 /* Ієрархічний вибір: Область → Район → Громада */

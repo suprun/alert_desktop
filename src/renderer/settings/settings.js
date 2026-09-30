@@ -296,6 +296,14 @@ function selectLocation(loc, syncHierarchy = true) {
   locationSearchInput.value = loc.title;
   selectedBadgeText.textContent = loc.title;
   selectedBadgeType.textContent = loc.type || '';
+  selectedBadgeType.className = 'location-item-type selected-badge-type';
+  if (loc.type === 'Область' || (loc.type && loc.type.includes('спеціальним'))) {
+    selectedBadgeType.classList.add('oblast');
+  } else if (loc.type === 'Район') {
+    selectedBadgeType.classList.add('raion');
+  } else if (loc.type) {
+    selectedBadgeType.classList.add('hromada');
+  }
   selectedLocationBadge.style.display = 'flex';
   btnClearLocation.style.display = 'flex';
 
@@ -425,6 +433,8 @@ btnClearLocation.addEventListener('click', (e) => {
   locationSearchInput.value = '';
   btnClearLocation.style.display = 'none';
   selectedLocationBadge.style.display = 'none';
+  selectedBadgeType.textContent = '';
+  selectedBadgeType.className = 'location-item-type selected-badge-type';
   if (selectOblast) selectOblast.value = '';
   populateRaions(null);
   locationSearchInput.focus();
@@ -559,6 +569,7 @@ async function init() {
         locationSearchInput.value = cfg.locationTitle;
         selectedBadgeText.textContent = cfg.locationTitle;
         selectedBadgeType.textContent = '';
+        selectedBadgeType.className = 'location-item-type selected-badge-type';
         selectedLocationBadge.style.display = 'flex';
         btnClearLocation.style.display = 'flex';
       }
