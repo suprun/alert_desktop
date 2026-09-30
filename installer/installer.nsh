@@ -55,7 +55,16 @@ LangString AUTOSTART_TEXT 1033 "Start automatically when Windows starts"
     WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Run" "AlertDesktop" '"$INSTDIR\${APP_EXECUTABLE_FILENAME}" --hidden'
   FunctionEnd
 
+  ; Якщо користувач зняв прапорець — гарантуємо видалення запису з реєстру
+  Function FinishPageLeave
+    SendMessage $mui.FinishPage.ShowReadme ${BM_GETCHECK} 0 0 $0
+    ${if} $0 != 1
+      DeleteRegValue HKCU "Software\Microsoft\Windows\CurrentVersion\Run" "AlertDesktop"
+    ${endif}
+  FunctionEnd
+
   ; Додатковий багатомовний чекбокс автозапуску (активний за замовчуванням)
+  !define MUI_PAGE_CUSTOMFUNCTION_LEAVE FinishPageLeave
   !define MUI_FINISHPAGE_SHOWREADME
   !define MUI_FINISHPAGE_SHOWREADME_TEXT $(AUTOSTART_TEXT)
   !define MUI_FINISHPAGE_SHOWREADME_FUNCTION "EnableAutoStart"

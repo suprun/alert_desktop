@@ -102,6 +102,17 @@ class ConfigManager extends EventEmitter {
           }
         }
 
+        // Синхронізація автозапуску з ОС:
+        // Якщо це перший запуск або параметр autoStart ще не був явно збережений —
+        // синхронізуємо його з реальним станом у системі (наприклад, після вибору в інсталяторі)
+        if (parsed.autoStart === undefined || parsed.isFirstLaunch !== false) {
+          const isSystemAutoStart = autostart.isEnabled();
+          if (config.autoStart !== isSystemAutoStart) {
+            config.autoStart = isSystemAutoStart;
+            needsSave = true;
+          }
+        }
+
         if (needsSave) {
           try {
             fs.writeFileSync(this.configPath, JSON.stringify(config, null, 2), 'utf8');
@@ -115,7 +126,10 @@ class ConfigManager extends EventEmitter {
     } catch (err) {
       console.error('Помилка читання config.json, використання значень за замовчуванням:', err.message);
     }
-    return { ...this.defaults };
+    return {
+      ...this.defaults,
+      autoStart: autostart.isEnabled()
+    };
   }
 
   saveConfig(newConfig) {
@@ -157,6 +171,12 @@ class ConfigManager extends EventEmitter {
   }
 
   get(key) {
+    if (key === 'autoStart') {
+      const isSystemAutoStart = autostart.isEnabled();
+      if (this.config.autoStart !== isSystemAutoStart) {
+        this.config.autoStart = isSystemAutoStart;
+      }
+    }
     return this.config[key];
   }
 
@@ -166,6 +186,11 @@ class ConfigManager extends EventEmitter {
   }
 
   getAll() {
+    // Гарантуємо, що autoStart завжди відображає реальний стан у системі
+    const isSystemAutoStart = autostart.isEnabled();
+    if (this.config.autoStart !== isSystemAutoStart) {
+      this.config.autoStart = isSystemAutoStart;
+    }
     return { ...this.config };
   }
 }

@@ -69,7 +69,8 @@ alert_desktop/
 │   ├── test_threat_utils.js              # Unit-тести парсингу характеру загроз та анти-тавтології
 │   ├── test_notifier.js                  # Unit-тести форматування часу та тривалості сповіщень Windows
 │   ├── test_oblast_aggregation.js        # Unit-тести агрегації тривог по районах для обраної області
-│   └── test_updater.js                   # Unit-тести модуля UpdaterService (автооновлення)
+│   ├── test_updater.js                   # Unit-тести модуля UpdaterService (автооновлення)
+│   └── test_autostart_sync.js            # Unit-тести синхронізації автозапуску між ОС та config.json
 │
 ├── server/                               # Гібридний шлюз тривог на Python для Ubuntu (Webhook, WebSocket & Threats Enricher)
 │   ├── .env.example                      # Шаблон конфігурації шлюзу (UkraineAlarm та alerts.in.ua токени, webhook URL, порт)

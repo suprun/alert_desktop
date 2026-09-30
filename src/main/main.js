@@ -144,11 +144,19 @@ if (!gotTheLock) {
     // Запускаємо фонове опитування сервера тривог
     api.startPolling();
 
-    // Синхронізуємо автозапуск із налаштуваннями
+    // Синхронізуємо автозапуск із системним станом реєстру
     const autostart = require('./autostart');
-    const autoStartEnabled = config.get('autoStart');
-    if (typeof autoStartEnabled === 'boolean') {
-      autostart.setAutoStart(autoStartEnabled);
+    const isSystemAutoStart = autostart.isEnabled();
+
+    if (config.get('isFirstLaunch') || config.get('autoStart') === undefined) {
+      // При першому запуску або відсутності збереженого значення орієнтуємось на вибір в інсталяторі
+      config.set('autoStart', isSystemAutoStart);
+    } else if (config.get('autoStart')) {
+      // Якщо автозапуск увімкнено в налаштуваннях — оновлюємо актуальний шлях до EXE в реєстрі
+      autostart.setAutoStart(true);
+    } else if (isSystemAutoStart) {
+      // Якщо в реєстрі є ключ (наприклад, увімкнено інсталятором або користувачем) — підтягуємо в конфіг
+      config.set('autoStart', true);
     }
 
     // Перевірка першого запуску: якщо перший старт — відкриваємо вікно налаштувань для вибору місцевості
