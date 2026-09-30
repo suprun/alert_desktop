@@ -44,6 +44,9 @@ alert_desktop/
 │       ├── tray-chemical.png / .svg      # Іконка трею: хімічна небезпека (фіолетовий диск із колбою)
 │       ├── tray-nuclear.png / .svg       # Іконка трею: радіаційна загроза (золотавий диск із трилисником)
 │       ├── tray-offline.png / .svg       # Іконка трею: відсутність зв'язку (сірий диск із перекресленою рискою)
+│       ├── installer/                    # Фірмові графічні банери для NSIS інсталятора (164x314 BMP)
+│       │   ├── installerSidebar.bmp      # Банер майстра встановлення (темний градієнт, радар/щит)
+│       │   └── uninstallerSidebar.bmp    # Банер майстра видалення
 │       └── ui/                           # Лінійні системні піктограми інтерфейсу
 │           ├── bell.svg / bell-off.svg   # Індикація звуку
 │           ├── gear.svg                  # Кнопка налаштувань
@@ -52,6 +55,9 @@ alert_desktop/
 │           ├── siren.svg                 # Лінійна іконка тривоги
 │           └── volume.svg                # Іконка повзунка гучності
 │
+├── installer/                            # Кастомні конфігураційні скрипти інсталятора
+│   └── installer.nsh                     # Хуки NSIS (чекбокс автозапуску, синхронізація реєстру Run, деінсталяція)
+│
 ├── scripts/                              # Допоміжні скрипти генерації та обслуговування
 │   ├── build_installer.js                # Автоматична збірка NSIS інсталятора (electron-builder)
 │   ├── deploy_remote.py                  # Автоматизоване SSH/SFTP розгортання проксі-сервера на Ubuntu
@@ -59,13 +65,15 @@ alert_desktop/
 │   ├── generate_audio.js                 # Генерація чистих синтезованих звуків сирени/відбою
 │   ├── generate_ico.js                   # Генерація Windows .ico з 6 роздільними здатностями
 │   ├── generate_icons.js                 # Генерація PNG-іконок через Electron nativeImage
+│   ├── generate_installer_graphics.js    # Генерація 24-бітних фірмових BMP банерів для NSIS
 │   ├── generate_ui_icons.js              # Генерація лінійних SVG піктограм інтерфейсу
 │   ├── parse_locations.js                # Завантаження та парсинг 1622 локацій з Google Spreadsheets
 │   ├── reset_config.js                   # Скидання та видалення файлу конфігурації у профілі користувача
 │   ├── smoke_test.js                     # Smoke-тест ініціалізації компонентів
 │   ├── test_threat_utils.js              # Unit-тести парсингу характеру загроз та анти-тавтології
 │   ├── test_notifier.js                  # Unit-тести форматування часу та тривалості сповіщень Windows
-│   └── test_oblast_aggregation.js        # Unit-тести агрегації тривог по районах для обраної області
+│   ├── test_oblast_aggregation.js        # Unit-тести агрегації тривог по районах для обраної області
+│   └── test_updater.js                   # Unit-тести модуля UpdaterService (автооновлення)
 │
 ├── server/                               # Гібридний шлюз тривог на Python для Ubuntu (Webhook, WebSocket & Threats Enricher)
 │   ├── .env.example                      # Шаблон конфігурації шлюзу (UkraineAlarm та alerts.in.ua токени, webhook URL, порт)

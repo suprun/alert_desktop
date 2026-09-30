@@ -20,8 +20,17 @@ async function build() {
     console.log('1. Windows ICO іконка наявна.');
   }
 
-  // 2. Компіляція NSIS інсталятора через electron-builder
-  console.log('\n2. Компіляція NSIS інсталятора через electron-builder...');
+  // 2. Перевірка наявності графічних банерів інсталятора
+  const sidebarPath = path.join(rootDir, 'assets', 'installer', 'installerSidebar.bmp');
+  if (!fs.existsSync(sidebarPath)) {
+    console.log('2. Генерація графічних банерів інсталятора (assets/installer/)...');
+    spawnSync(process.execPath, ['scripts/generate_installer_graphics.js'], { cwd: rootDir, stdio: 'inherit' });
+  } else {
+    console.log('2. Графічні банери інсталятора наявні.');
+  }
+
+  // 3. Компіляція NSIS інсталятора через electron-builder
+  console.log('\n3. Компіляція NSIS інсталятора через electron-builder...');
   const npxCmd = process.platform === 'win32' ? 'npx.cmd' : 'npx';
   const buildResult = spawnSync(npxCmd, ['electron-builder', '--win', '--x64'], {
     cwd: rootDir,
