@@ -64,7 +64,35 @@ class NotifierService {
     const isYellow = alertLevel === 'yellow';
     let iconName = 'tray-normal.png';
     if (isAlert) {
-      iconName = isYellow ? 'tray-air-raid-yellow.png' : 'tray-air-raid.png';
+      if (threatInfo && threatInfo.iconType) {
+        switch (threatInfo.iconType) {
+          case 'drone':
+            iconName = 'tray-drone.png';
+            break;
+          case 'missile':
+            iconName = 'tray-missile.png';
+            break;
+          case 'ballistic':
+            iconName = 'tray-ballistic.png';
+            break;
+          case 'aviation':
+            iconName = 'tray-aviation.png';
+            break;
+          case 'artillery':
+            iconName = 'tray-artillery.png';
+            break;
+          case 'chemical':
+            iconName = 'tray-chemical.png';
+            break;
+          case 'nuclear':
+            iconName = 'tray-nuclear.png';
+            break;
+          default:
+            iconName = isYellow ? 'tray-drone.png' : 'tray-air-raid.png';
+        }
+      } else {
+        iconName = isYellow ? 'tray-drone.png' : 'tray-air-raid.png';
+      }
     }
 
     const iconPath = path.join(

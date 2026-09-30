@@ -69,7 +69,28 @@ class TrayManager {
     this.tray.setContextMenu(contextMenu);
   }
 
-  getAlertInfo(alertType, alertLevel = 'red') {
+  getAlertInfo(alertType, alertLevel = 'red', threatInfo = null) {
+    // 1. Пріоритет за структурованою інформацією про характер загрози (threatInfo)
+    if (threatInfo && threatInfo.iconType) {
+      switch (threatInfo.iconType) {
+        case 'drone':
+          return { icon: 'tray-drone', title: threatInfo.badgeLabel || 'Дронова загроза' };
+        case 'missile':
+          return { icon: 'tray-missile', title: threatInfo.badgeLabel || 'Ракетна загроза' };
+        case 'ballistic':
+          return { icon: 'tray-ballistic', title: threatInfo.badgeLabel || 'Загроза балістики' };
+        case 'aviation':
+          return { icon: 'tray-aviation', title: threatInfo.badgeLabel || 'Загроза КАБ / авіація' };
+        case 'artillery':
+          return { icon: 'tray-artillery', title: threatInfo.badgeLabel || 'Загроза артобстрілу' };
+        case 'chemical':
+          return { icon: 'tray-chemical', title: threatInfo.badgeLabel || 'Хімічна небезпека' };
+        case 'nuclear':
+          return { icon: 'tray-nuclear', title: threatInfo.badgeLabel || 'Радіаційна загроза' };
+      }
+    }
+
+    // 2. Фолбек за базовими параметрами alertType та alertLevel
     const isYellow = alertLevel === 'yellow';
 
     switch (alertType) {
@@ -84,8 +105,8 @@ class TrayManager {
       case 'air_raid':
       default:
         return {
-          icon: isYellow ? 'tray-air-raid-yellow' : 'tray-air-raid',
-          title: isYellow ? 'Жовтий рівень' : 'Повітряна тривога'
+          icon: isYellow ? 'tray-drone' : 'tray-air-raid',
+          title: isYellow ? 'Дронова загроза' : 'Повітряна тривога'
         };
     }
   }
@@ -100,11 +121,11 @@ class TrayManager {
       iconName = 'tray-offline';
       tooltip = `Повітряні тривоги — ${locationTitle || 'Україна'}: Офлайн (немає зв'язку)`;
     } else if (isAlert) {
-      const alertInfo = this.getAlertInfo(alertType, alertLevel);
+      const alertInfo = this.getAlertInfo(alertType, alertLevel, threatInfo);
       iconName = alertInfo.icon;
       const timeStr = startedAt ? new Date(startedAt).toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit' }) : '';
       
-      const threatLabel = threatInfo && threatInfo.hasThreats && threatInfo.tooltipSuffix 
+      const threatLabel = (threatInfo && threatInfo.hasThreats && threatInfo.tooltipSuffix && threatInfo.tooltipSuffix !== alertInfo.title)
         ? ` · ${threatInfo.tooltipSuffix}` 
         : '';
       const scopeNote = alertScope ? ` (${alertScope})` : '';
