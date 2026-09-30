@@ -85,6 +85,18 @@ THREAT_DEFINITIONS.missile = THREAT_DEFINITIONS.unspecified_missiles;
 THREAT_DEFINITIONS.missiles = THREAT_DEFINITIONS.unspecified_missiles;
 THREAT_DEFINITIONS.aviation = THREAT_DEFINITIONS.tactical_aviation;
 
+const THREAT_PRIORITIES = {
+  ballistic: 60,
+  missile: 50,
+  aviation: 40,
+  artillery: 30,
+  chemical: 20,
+  nuclear: 20,
+  drone: 10,
+  alert: 5,
+  safe: 0
+};
+
 /**
  * Форматує повний об'єкт інформації про загрозу без тавтології.
  *
@@ -103,6 +115,8 @@ function formatThreatInfo(threats, alertType = 'air_raid', alertLevel = 'none') 
       hasThreats: true,
       threatType: 'artillery',
       iconType: 'artillery',
+      iconTypes: ['artillery'],
+      isCombined: false,
       level: 'artillery',
       badgeLabel: 'Загроза артобстрілу',
       fullLabel: 'Загроза артобстрілу',
@@ -118,6 +132,8 @@ function formatThreatInfo(threats, alertType = 'air_raid', alertLevel = 'none') 
         hasThreats: true,
         threatType: 'drones',
         iconType: 'drone',
+        iconTypes: ['drone'],
+        isCombined: false,
         level: 'yellow',
         badgeLabel: 'Дронова загроза',
         fullLabel: 'Дронова загроза',
@@ -131,6 +147,8 @@ function formatThreatInfo(threats, alertType = 'air_raid', alertLevel = 'none') 
         hasThreats: false,
         threatType: 'air_raid',
         iconType: 'alert',
+        iconTypes: ['alert'],
+        isCombined: false,
         level: 'red',
         badgeLabel: 'Повітряна тривога',
         fullLabel: 'Повітряна тривога',
@@ -143,6 +161,8 @@ function formatThreatInfo(threats, alertType = 'air_raid', alertLevel = 'none') 
       hasThreats: false,
       threatType: 'none',
       iconType: 'safe',
+      iconTypes: ['safe'],
+      isCombined: false,
       level: 'none',
       badgeLabel: '',
       fullLabel: '',
@@ -154,9 +174,9 @@ function formatThreatInfo(threats, alertType = 'air_raid', alertLevel = 'none') 
   // Обробка наявного масиву threats
   const distinctTypes = [];
   const distinctLabels = [];
+  const distinctIcons = [];
   let primaryDef = null;
   let primaryThreatType = null;
-  let primaryIcon = 'alert';
   let primarySourceMsg = '';
 
   for (const t of threats) {
@@ -200,13 +220,28 @@ function formatThreatInfo(threats, alertType = 'air_raid', alertLevel = 'none') 
     if (!primaryDef) {
       primaryDef = matchedDef;
       primaryThreatType = rawType || matchedDef.icon;
-      primaryIcon = matchedDef.icon;
+    }
+
+    if (!distinctIcons.includes(matchedDef.icon)) {
+      distinctIcons.push(matchedDef.icon);
     }
 
     if (!distinctTypes.includes(matchedDef.shortLabel)) {
       distinctTypes.push(matchedDef.shortLabel);
       distinctLabels.push(matchedDef.fullLabel);
     }
+  }
+
+  // Сортуємо унікальні іконки за спаданням пріоритету небезпеки (ракети/балістика перед дронами)
+  distinctIcons.sort((a, b) => (THREAT_PRIORITIES[b] || 0) - (THREAT_PRIORITIES[a] || 0));
+
+  // Визначення комбінованої загрози
+  const isCombined = distinctIcons.length > 1;
+  let primaryIcon = distinctIcons[0] || 'alert';
+
+  // Якщо одночасно ракети (або балістика) та дрони — використовуємо спеціальний комбо-значок
+  if (isCombined && (distinctIcons.includes('missile') || distinctIcons.includes('ballistic')) && distinctIcons.includes('drone')) {
+    primaryIcon = 'combo_missile_drone';
   }
 
   // Формуємо комбінований підпис, якщо декілька загроз
@@ -228,6 +263,8 @@ function formatThreatInfo(threats, alertType = 'air_raid', alertLevel = 'none') 
     hasThreats: true,
     threatType: primaryThreatType,
     iconType: primaryIcon,
+    iconTypes: distinctIcons,
+    isCombined,
     level: isYellow ? 'yellow' : 'red',
     badgeLabel,
     fullLabel,

@@ -101,6 +101,18 @@ const threatIcons = {
       <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/>
       <line x1="12" y1="9" x2="12" y2="13"/>
       <line x1="12" y1="17" x2="12.01" y2="17"/>
+    </svg>`,
+  chemical: `
+    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M10 2v7.31L4.15 19.1A2 2 0 0 0 6 22h12a2 2 0 0 0 1.85-2.9L14 9.31V2"/>
+      <line x1="8.5" y1="2" x2="15.5" y2="2"/>
+    </svg>`,
+  nuclear: `
+    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="2"/>
+      <path d="M12 2a10 10 0 0 1 8.66 5l-4.33 2.5A5 5 0 0 0 12 7V2z"/>
+      <path d="M22 17a10 10 0 0 1-10 5v-5a5 5 0 0 0 4.33-2.5L22 17z"/>
+      <path d="M2 17l5.67-2.5A5 5 0 0 0 12 17v5a10 10 0 0 1-10-5z"/>
     </svg>`
 };
 
@@ -181,7 +193,14 @@ function updateUI(status) {
       if (appHeader) appHeader.classList.add('has-alert');
     }
 
-    statusIcon.innerHTML = threatIcons[iconKey] || icons[iconKey] || icons.alert;
+    if (threatInfo?.iconTypes && threatInfo.iconTypes.length > 1) {
+      statusIcon.innerHTML = threatInfo.iconTypes
+        .map(key => threatIcons[key] || icons[key] || '')
+        .filter(Boolean)
+        .join('');
+    } else {
+      statusIcon.innerHTML = threatIcons[iconKey] || icons[iconKey] || icons.alert;
+    }
     statusText.textContent = `${threatName}${scopeNote}${timeSuffix}`;
   } else {
     statusBadge.classList.add('safe');

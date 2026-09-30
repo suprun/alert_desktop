@@ -24,6 +24,7 @@ const requiredIcons = [
   'tray-missile.png',
   'tray-ballistic.png',
   'tray-aviation.png',
+  'tray-combo-missile-drone.png',
   'tray-artillery.png',
   'tray-urban-fights.png',
   'tray-chemical.png',

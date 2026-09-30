@@ -66,6 +66,10 @@ class NotifierService {
     if (isAlert) {
       if (threatInfo && threatInfo.iconType) {
         switch (threatInfo.iconType) {
+          case 'combo_missile_drone':
+          case 'combo':
+            iconName = 'tray-combo-missile-drone.png';
+            break;
           case 'drone':
             iconName = 'tray-drone.png';
             break;

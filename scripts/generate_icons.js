@@ -99,7 +99,47 @@ app.whenReady().then(async () => {
           <path d="M12 4.6 L13.4 9.8 L18.8 12.8 V14.2 L13.4 12.6 V16.2 L15.5 17.6 V18.6 L12 17.6 L8.5 18.6 V17.6 L10.6 16.2 V12.6 L5.2 14.2 V12.8 L10.6 9.8 Z" fill="#ffffff"/>
         </svg>`
     },
-    // 9. Загроза артобстрілу - помаранчевий диск із білим спалахом вибуху
+    // 9. Комбінована загроза (Ракети + Дрони) - розділений диск (червоний + жовтий)
+    {
+      name: 'tray-combo-missile-drone',
+      size: 32,
+      svg: `
+        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none">
+          <path d="M12 1.2 A10.8 10.8 0 0 0 12 22.8 Z" fill="#dc2626" stroke="#b91c1c" stroke-width="0.8"/>
+          <path d="M12 1.2 A10.8 10.8 0 0 1 12 22.8 Z" fill="#eab308" stroke="#a16207" stroke-width="0.8"/>
+          <line x1="12" y1="1.2" x2="12" y2="22.8" stroke="#0f172a" stroke-width="0.8" opacity="0.35"/>
+          <g transform="translate(6.6, 12) rotate(-35) scale(0.65)">
+            <path d="M0 -8.5 C-1.2 -6 -1.3 -3 -1.3 7.5 L1.3 7.5 C1.3 -3 1.2 -6 0 -8.5 Z" fill="#ffffff"/>
+            <path d="M-6 -0.5 L6 -0.5 L5 1.2 L-5 1.2 Z" fill="#ffffff"/>
+            <path d="M-3.5 5.5 L3.5 5.5 L3 7 L-3 7 Z" fill="#ffffff"/>
+          </g>
+          <g transform="translate(17.2, 12) scale(0.68)">
+            <path d="M0 -6.5 L6.2 5.5 L2.5 4 L0 5.2 L-2.5 4 L-6.2 5.5 Z" fill="#0f172a"/>
+            <path d="M-6.2 3.2v2.3 M6.2 3.2v2.3" stroke="#0f172a" stroke-width="1.2" stroke-linecap="round"/>
+          </g>
+        </svg>`
+    },
+    // 10. Комбінована загроза (універсальний аліас)
+    {
+      name: 'tray-combo',
+      size: 32,
+      svg: `
+        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none">
+          <path d="M12 1.2 A10.8 10.8 0 0 0 12 22.8 Z" fill="#dc2626" stroke="#b91c1c" stroke-width="0.8"/>
+          <path d="M12 1.2 A10.8 10.8 0 0 1 12 22.8 Z" fill="#eab308" stroke="#a16207" stroke-width="0.8"/>
+          <line x1="12" y1="1.2" x2="12" y2="22.8" stroke="#0f172a" stroke-width="0.8" opacity="0.35"/>
+          <g transform="translate(6.6, 12) rotate(-35) scale(0.65)">
+            <path d="M0 -8.5 C-1.2 -6 -1.3 -3 -1.3 7.5 L1.3 7.5 C1.3 -3 1.2 -6 0 -8.5 Z" fill="#ffffff"/>
+            <path d="M-6 -0.5 L6 -0.5 L5 1.2 L-5 1.2 Z" fill="#ffffff"/>
+            <path d="M-3.5 5.5 L3.5 5.5 L3 7 L-3 7 Z" fill="#ffffff"/>
+          </g>
+          <g transform="translate(17.2, 12) scale(0.68)">
+            <path d="M0 -6.5 L6.2 5.5 L2.5 4 L0 5.2 L-2.5 4 L-6.2 5.5 Z" fill="#0f172a"/>
+            <path d="M-6.2 3.2v2.3 M6.2 3.2v2.3" stroke="#0f172a" stroke-width="1.2" stroke-linecap="round"/>
+          </g>
+        </svg>`
+    },
+    // 11. Загроза артобстрілу - помаранчевий диск із білим спалахом вибуху
     {
       name: 'tray-artillery',
       size: 32,

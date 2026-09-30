@@ -246,6 +246,16 @@ html.theme-light .app-header.has-alert.artillery,
   transition: all 0.25s ease;
 }
 
+#statusIcon {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+#statusIcon svg {
+  flex-shrink: 0;
+}
+
 .status-badge.safe {
   background-color: var(--badge-safe-bg);
   color: var(--badge-safe-color);

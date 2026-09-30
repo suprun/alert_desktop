@@ -63,7 +63,21 @@ console.log('Testing threat-utils formatting...');
   const res = formatThreatInfo(threats, 'air_raid', 'red');
   assert.strictEqual(res.badgeLabel, 'Ракетна та дронова загроза');
   assert.strictEqual(res.tooltipSuffix, 'Ракетна та дронова загроза');
-  console.log('✔ Тест 5 пройдено (Декілька загроз)');
+  assert.strictEqual(res.iconType, 'combo_missile_drone');
+  assert.strictEqual(res.isCombined, true);
+  assert.deepStrictEqual(res.iconTypes, ['missile', 'drone']);
+
+  // Перевірка симетрії: якщо першою прийшла ракета, результат має бути ідентичним
+  const threatsReverse = [
+    { source_message: 'Ракетна загроза' },
+    { source_message: 'Дронова загроза (жовтий рівень)' }
+  ];
+  const resReverse = formatThreatInfo(threatsReverse, 'air_raid', 'red');
+  assert.strictEqual(resReverse.badgeLabel, 'Ракетна та дронова загроза');
+  assert.strictEqual(resReverse.iconType, 'combo_missile_drone');
+  assert.strictEqual(resReverse.isCombined, true);
+  assert.deepStrictEqual(resReverse.iconTypes, ['missile', 'drone']);
+  console.log('✔ Тест 5 пройдено (Декілька загроз: combo_missile_drone та симетрія черговості)');
 }
 
 // Тест 6: Артобстріл

@@ -73,6 +73,9 @@ class TrayManager {
     // 1. Пріоритет за структурованою інформацією про характер загрози (threatInfo)
     if (threatInfo && threatInfo.iconType) {
       switch (threatInfo.iconType) {
+        case 'combo_missile_drone':
+        case 'combo':
+          return { icon: 'tray-combo-missile-drone', title: threatInfo.badgeLabel || 'Ракетна та дронова загроза' };
         case 'drone':
           return { icon: 'tray-drone', title: threatInfo.badgeLabel || 'Дронова загроза' };
         case 'missile':
