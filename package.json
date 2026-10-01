@@ -1,6 +1,6 @@
 {
   "name": "alert-desktop",
-  "version": "1.0.45",
+  "version": "1.0.46",
   "description": "Десктопний клієнт для моніторингу повітряних тривог на базі Electron",
   "main": "src/main/main.js",
   "repository": {
@@ -31,8 +31,8 @@
     "tray",
     "monitoring"
   ],
-  "author": "AlertDesktop <alerts@in.ua>",
-  "license": "ISC",
+  "author": "suprun <https://github.com/suprun>",
+  "license": "Apache-2.0",
   "devDependencies": {
     "electron": "^32.2.0",
     "electron-builder": "^26.15.3"
@@ -44,7 +44,7 @@
   "build": {
     "appId": "ua.in.alerts.desktop",
     "productName": "AlertDesktop",
-    "copyright": "Copyright © 2026 alerts.in.ua",
+    "copyright": "Copyright © 2026 suprun. Website alerts.in.ua is property of its respective owners.",
     "asar": true,
     "directories": {
       "output": "dist"

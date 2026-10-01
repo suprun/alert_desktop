@@ -1,0 +1,59 @@
+AlertDesktop
+Copyright 2026 suprun <https://github.com/suprun>
+
+This product includes software developed as part of the AlertDesktop project.
+
+===============================================================================
+THIRD-PARTY ACKNOWLEDGMENTS & LEGAL DISCLAIMERS
+===============================================================================
+
+1. Non-Affiliation & Trademarks Disclaimer:
+   - AlertDesktop is an independent, open-source desktop client.
+   - AlertDesktop is NOT an official product of, nor is it endorsed, sponsored,
+     or affiliated with the alerts.in.ua project or the "UkrZen" volunteer initiative.
+   - All trademarks, service marks, trade names, logos, and domain names related
+     to "alerts.in.ua" are the intellectual property of their respective owners.
+
+2. Embedded Web Content & Privacy Policy:
+   - The application embeds the public web interface of https://alerts.in.ua/
+     within an isolated container view for visualization purposes.
+   - Use of the embedded alerts.in.ua service is subject to the terms and privacy
+     policy of its operators:
+     https://alerts.in.ua/privacy-policy
+   - AlertDesktop itself runs locally on the user's operating system, only stores
+     local application preferences (such as audio volume, monitored region, and
+     window size/position), and does not collect, track, or sell any personal data.
+
+3. Emergency & Life-Safety Disclaimer:
+   - THIS SOFTWARE IS PROVIDED FOR INFORMATIONAL PURPOSES ONLY.
+   - Air alert notifications delivered through software may be subject to network
+     delays, connectivity interruptions, system standby modes, or service outages.
+   - DO NOT RELY ON THIS SOFTWARE AS YOUR SOLE OR PRIMARY LIFE-SAFETY WARNING SYSTEM.
+   - Always prioritize official announcements from the State Emergency Service
+     of Ukraine (ДСНС), Air Force Command of the Armed Forces of Ukraine,
+     and local municipal warning sirens.
+
+===============================================================================
+ЮРИДИЧНІ ЗАСТЕРЕЖЕННЯ (УКРАЇНСЬКОЮ МОВОЮ)
+===============================================================================
+
+1. Застереження про відсутність афіліації та торгові марки:
+   - Застосунок AlertDesktop є незалежним вільним клієнтом із відкритим вихідним кодом.
+   - AlertDesktop НЕ є офіційним продуктом команди alerts.in.ua або волонтерської
+     ініціативи «УкрДзен».
+   - Усі торгові марки, графічні матеріали, картографічні шари та позначення,
+     пов'язані з alerts.in.ua, належать їхнім законним правовласникам.
+
+2. Завантаження веб-контенту та Політика конфіденційності:
+   - Програма відображає публічну веб-сторінку https://alerts.in.ua/ в ізольованому
+     вікні перегляду.
+   - Взаємодія з веб-сторінкою регулюється Політикою конфіденційності сервісу alerts.in.ua:
+     https://alerts.in.ua/privacy-policy
+   - Сам застосунок AlertDesktop функціонує локально, зберігає лише параметри
+     користувача (гучність, обрану область, геометрію вікна) і не збирає персональні дані.
+
+3. Застереження щодо безпеки життя:
+   - ПРОГРАМА НАДАЄТЬСЯ ВИКЛЮЧНО З ОЗНАЙОМЧОЮ ТА ІНФОРМАЦІЙНОЮ МЕТОЮ.
+   - Отримання сповіщень залежить від інтернет-зв'язку та сторонніх серверів.
+   - Завжди орієнтуйтеся на офіційні канали оповіщення ДСНС, Повітряних Сил ЗСУ
+     та вуличні системи сирен цивільного захисту.
