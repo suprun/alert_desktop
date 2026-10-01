@@ -27,7 +27,7 @@
     "tray",
     "monitoring"
   ],
-  "author": "",
+  "author": "AlertDesktop <alerts@in.ua>",
   "license": "ISC",
   "devDependencies": {
     "electron": "^32.2.0",
@@ -142,10 +142,6 @@
         }
       ]
     },
-    "pkg": {
-      "allowDowngrade": false,
-      "artifactName": "${productName}-${arch}-Setup-v${version}.${ext}"
-    },
     "linux": {
       "target": [
         {
@@ -163,15 +159,10 @@
           ]
         }
       ],
+      "maintainer": "AlertDesktop <alerts@in.ua>",
       "category": "Utility",
       "icon": "assets/icons/app-icon.png",
-      "artifactName": "${productName}-${arch}-v${version}.${ext}",
-      "desktop": {
-        "Name": "AlertDesktop",
-        "GenericName": "Моніторинг повітряних тривог",
-        "Comment": "Десктопний клієнт для моніторингу повітряних тривог на базі Electron",
-        "Categories": "Utility;Network;Monitor;"
-      }
+      "artifactName": "${productName}-${arch}-v${version}.${ext}"
     },
     "deb": {
       "packageCategory": "utils",
