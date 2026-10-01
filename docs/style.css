@@ -478,8 +478,8 @@ body::before {
 }
 
 .mockup-map-body {
-  height: 380px;
-  background: radial-gradient(circle at 50% 50%, #1e222b 0%, #111317 100%);
+  height: 400px;
+  background: radial-gradient(circle at 50% 50%, #171b22 0%, #0d0f13 100%);
   position: relative;
   display: flex;
   align-items: center;
@@ -488,26 +488,97 @@ body::before {
 }
 
 html.theme-light .mockup-map-body {
-  background: radial-gradient(circle at 50% 50%, #e2e8f0 0%, #cbd5e1 100%);
+  background: radial-gradient(circle at 50% 50%, #f1f5f9 0%, #e2e8f0 100%);
+}
+
+.mockup-map-bg {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px 24px;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.ukraine-admin-map {
+  width: 100%;
+  height: 100%;
+  max-height: 380px;
+  object-fit: contain;
+  filter: drop-shadow(0 6px 20px rgba(0, 0, 0, 0.35));
+}
+
+/* Стилі областей у темній темі */
+.ukraine-admin-map .map-oblast {
+  fill: #1c212c;
+  stroke: #2f384a;
+  stroke-width: 1.2px;
+  stroke-linejoin: round;
+  transition: fill 0.2s ease, stroke 0.2s ease;
+}
+
+.ukraine-admin-map .map-water {
+  fill: #11141b;
+  stroke: #1e2432;
+  stroke-width: 0.8px;
+}
+
+.ukraine-admin-map .map-oblast:hover {
+  fill: #272f3e;
+  stroke: #3b82f6;
+}
+
+/* Стилі областей у світлій темі */
+html.theme-light .ukraine-admin-map .map-oblast {
+  fill: #e8eff7;
+  stroke: #cbd5e1;
+  stroke-width: 1.2px;
+}
+
+html.theme-light .ukraine-admin-map .map-water {
+  fill: #dbeafe;
+  stroke: #93c5fd;
+  stroke-width: 0.8px;
+}
+
+html.theme-light .ukraine-admin-map .map-oblast:hover {
+  fill: #dbe7f5;
+  stroke: #0284c7;
 }
 
 .mockup-map-overlay {
+  position: relative;
+  z-index: 2;
   text-align: center;
-  padding: 24px;
-  background: rgba(20, 23, 28, 0.75);
-  backdrop-filter: blur(10px);
-  border: 1px solid var(--glass-border);
+  padding: 22px 28px;
+  background: rgba(18, 21, 26, 0.84);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: var(--radius-md);
-  max-width: 440px;
+  max-width: 420px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
 }
 
 html.theme-light .mockup-map-overlay {
-  background: rgba(255, 255, 255, 0.85);
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.08);
 }
 
 .mockup-overlay-icon {
-  font-size: 2rem;
-  margin-bottom: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-md);
+  background: var(--safe-bg);
+  color: var(--safe-green);
+  border: 1px solid var(--safe-border);
+  margin-bottom: 12px;
 }
 
 .mockup-overlay-title {
@@ -809,8 +880,22 @@ html.theme-light .mockup-map-overlay {
 }
 
 .legal-item-icon {
-  font-size: 1.3rem;
-  margin-bottom: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-color);
+  color: var(--accent-primary);
+  margin-bottom: 8px;
+}
+
+html.theme-light .legal-item-icon {
+  background: var(--bg-surface);
+  border-color: var(--border-color);
+  color: var(--accent-primary);
 }
 
 .legal-item-title {
