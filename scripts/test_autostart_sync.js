@@ -7,6 +7,11 @@ const config = require('../src/main/config');
 
 console.log('🧪 Запуск тесту синхронізації автозапуску (AutoStart Sync)...');
 
+if (process.platform !== 'win32') {
+  console.log(`ℹ️ Тест синхронізації реєстру Windows (AutoStart Sync) пропускається на платформі ${process.platform}.`);
+  process.exit(0);
+}
+
 const initialSystemState = autostart.isEnabled();
 const initialConfigState = config.get('autoStart');
 
