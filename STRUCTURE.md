@@ -6,6 +6,9 @@
 
 ```text
 alert_desktop/
+├── .github/                              # CI/CD автоматизація GitHub Actions
+│   └── workflows/
+│       └── release.yml                   # Мультиплатформенна збірка та реліз (Windows, macOS Universal, Linux)
 ├── .env                                  # Локальні змінні середовища та API-ключі (в .gitignore)
 ├── .env.example                          # Шаблон змінних середовища
 ├── .gitignore                            # Виключення з контролю версій Git
@@ -56,13 +59,14 @@ alert_desktop/
 │   └── installer.nsh                     # Хуки NSIS (дефолтна українська мова в preInit, збереження мови, багатомовні діалоги UA/EN, автозапуск)
 │
 ├── scripts/                              # Допоміжні скрипти генерації та обслуговування
-│   ├── build_installer.js                # Автоматична збірка NSIS інсталятора (electron-builder)
+│   ├── build_installer.js                # Мультиплатформенна збірка інсталяторів (--win, --web, --linux, --mac, --all)
 │   ├── deploy_remote.py                  # Автоматизоване SSH/SFTP розгортання проксі-сервера на Ubuntu
 │   ├── download_assets.js                # Завантаження шрифтів Inter у репозиторій
 │   ├── generate_audio.js                 # Генерація чистих синтезованих звуків сирени/відбою
 │   ├── generate_ico.js                   # Генерація Windows .ico з 6 роздільними здатностями
 │   ├── generate_icons.js                 # Генерація PNG-іконок через Electron nativeImage
 │   ├── generate_ui_icons.js              # Генерація лінійних SVG піктограм інтерфейсу
+│   ├── install.sh                        # Універсальний Linux веб-інсталятор (x86_64 та ARM64 AppImage)
 │   ├── parse_locations.js                # Завантаження та парсинг 1622 локацій з Google Spreadsheets
 │   ├── reset_config.js                   # Скидання та видалення файлу конфігурації у профілі користувача
 │   ├── smoke_test.js                     # Smoke-тест ініціалізації компонентів

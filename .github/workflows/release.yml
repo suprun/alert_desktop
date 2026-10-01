@@ -1,0 +1,103 @@
+name: Build and Release Multi-OS Installers
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build ${{ matrix.target }} on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            target: Windows
+            build-script: npm run dist:win && npm run dist:web
+          - os: macos-latest
+            target: macOS
+            build-script: npm run dist:mac
+          - os: ubuntu-latest
+            target: Linux
+            build-script: npm run dist:linux
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run verification tests
+        run: npm test
+
+      - name: Compile and Package (${{ matrix.target }})
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ${{ matrix.build-script }}
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: alert-desktop-${{ matrix.target }}
+          path: |
+            dist/*.exe
+            dist/*.blockmap
+            dist/*.yml
+            dist/*.dmg
+            dist/*.pkg
+            dist/*.zip
+            dist/*.AppImage
+            dist/*.deb
+          if-no-files-found: warn
+
+  release:
+    name: Publish GitHub Release
+    needs: build
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: all-artifacts
+
+      - name: Prepare release files
+        run: |
+          mkdir -p release-dist
+          find all-artifacts -type f -exec cp {} release-dist/ \;
+          ls -la release-dist/
+
+      - name: Create or Update GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            release-dist/*.exe
+            release-dist/*.blockmap
+            release-dist/*.yml
+            release-dist/*.dmg
+            release-dist/*.pkg
+            release-dist/*.zip
+            release-dist/*.AppImage
+            release-dist/*.deb
+            scripts/install.sh
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
