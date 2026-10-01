@@ -14,6 +14,8 @@ if (args.includes('--web')) mode = 'web';
 else if (args.includes('--linux')) mode = 'linux';
 else if (args.includes('--mac')) mode = 'mac';
 else if (args.includes('--all')) mode = 'all';
+else if (args.includes('--win-x64')) mode = 'win-x64';
+else if (args.includes('--win-arm64')) mode = 'win-arm64';
 else if (args.includes('--win')) mode = 'win';
 
 function ensureWindowsIcon() {
@@ -47,8 +49,20 @@ async function build() {
   switch (mode) {
     case 'win': {
       ensureWindowsIcon();
-      console.log('\n2. Компіляція Windows NSIS інсталятора...');
+      console.log('\n2. Компіляція Windows інсталяторів (Universal + x64 + ARM64 + Web)...');
+      runBuilder(['--win']);
+      break;
+    }
+    case 'win-x64': {
+      ensureWindowsIcon();
+      console.log('\n2. Компіляція Windows x64 інсталятора...');
       runBuilder(['--win', '--x64']);
+      break;
+    }
+    case 'win-arm64': {
+      ensureWindowsIcon();
+      console.log('\n2. Компіляція Windows ARM64 інсталятора...');
+      runBuilder(['--win', '--arm64']);
       break;
     }
     case 'web': {

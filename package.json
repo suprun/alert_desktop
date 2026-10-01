@@ -1,6 +1,6 @@
 {
   "name": "alert-desktop",
-  "version": "1.0.42",
+  "version": "1.0.43",
   "description": "Десктопний клієнт для моніторингу повітряних тривог на базі Electron",
   "main": "src/main/main.js",
   "repository": {
@@ -14,6 +14,9 @@
     "build:installer": "node scripts/build_installer.js --win",
     "dist": "node scripts/build_installer.js --win",
     "dist:win": "node scripts/build_installer.js --win",
+    "dist:win:all": "node scripts/build_installer.js --win",
+    "dist:win:x64": "node scripts/build_installer.js --win-x64",
+    "dist:win:arm64": "node scripts/build_installer.js --win-arm64",
     "dist:web": "node scripts/build_installer.js --web",
     "dist:linux": "node scripts/build_installer.js --linux",
     "dist:mac": "node scripts/build_installer.js --mac",
@@ -90,7 +93,7 @@
       "language": "1058",
       "displayLanguageSelector": true,
       "buildUniversalInstaller": true,
-      "artifactName": "${productName}-Setup-v${version}.${ext}"
+      "artifactName": "${productName}-${arch}-Setup-v${version}.${ext}"
     },
     "nsisWeb": {
       "artifactName": "${productName}-Web-Setup-v${version}.${ext}"

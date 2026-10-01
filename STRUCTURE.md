@@ -59,7 +59,7 @@ alert_desktop/
 │   └── installer.nsh                     # Хуки NSIS (дефолтна українська мова в preInit, збереження мови, багатомовні діалоги UA/EN, автозапуск)
 │
 ├── scripts/                              # Допоміжні скрипти генерації та обслуговування
-│   ├── build_installer.js                # Мультиплатформенна збірка інсталяторів (--win, --web, --linux, --mac, --all)
+│   ├── build_installer.js                # Мультиплатформенна збірка інсталяторів (--win, --win-x64, --win-arm64, --web, --linux, --mac, --all)
 │   ├── deploy_remote.py                  # Автоматизоване SSH/SFTP розгортання проксі-сервера на Ubuntu
 │   ├── download_assets.js                # Завантаження шрифтів Inter у репозиторій
 │   ├── generate_audio.js                 # Генерація чистих синтезованих звуків сирени/відбою
