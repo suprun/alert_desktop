@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="uk" class="theme-dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AlertDesktop — Оперативний десктопний клієнт моніторингу тривог</title>
+  
+  <!-- SEO & OpenGraph -->
+  <meta name="description" content="Вільний десктопний клієнт моніторингу повітряних тривог для Windows, macOS та Linux. Швидкісний фоновий сервіс, системний трей та інтерактивна мапа.">
+  <meta name="keywords" content="повітряна тривога, alert desktop, alerts in ua, десктопний клієнт, сирена, сповіщення windows, macos, linux, electron">
+  <meta name="author" content="suprun">
+  
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="AlertDesktop — Оперативний десктопний клієнт моніторингу тривог">
+  <meta property="og:description" content="Швидкісний фоновий клієнт, системний трей, нативні сповіщення та інтерактивна мапа тривог для Windows, macOS та Linux.">
+  <meta property="og:url" content="https://suprun.github.io/alert_desktop/">
+  <meta property="og:image" content="assets/app-icon.png">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml" href="assets/app-icon.svg">
+  <link rel="icon" type="image/png" href="assets/app-icon.png">
+
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Навігація -->
+  <header class="site-header">
+    <div class="nav-container">
+      <a href="#" class="brand-link" title="AlertDesktop Головна">
+        <img src="assets/app-icon.svg" alt="AlertDesktop Logo" class="brand-icon">
+        <span class="brand-name">AlertDesktop</span>
+        <span class="brand-badge release-version-tag">v1.0.46</span>
+      </a>
+
+      <nav>
+        <ul class="nav-links">
+          <li class="nav-item"><a href="#features">Можливості</a></li>
+          <li class="nav-item"><a href="#downloads">Завантаження</a></li>
+          <li class="nav-item"><a href="#legal">Ліцензія та право</a></li>
+        </ul>
+      </nav>
+
+      <div class="nav-actions">
+        <!-- Перемикач теми (Dark / Light) -->
+        <button type="button" id="themeToggleBtn" class="btn-icon-nav" title="Змінити тему оформлення" aria-label="Перемикач теми">
+          <span id="themeIcon">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="5"/>
+              <line x1="12" y1="1" x2="12" y2="3"/>
+              <line x1="12" y1="21" x2="12" y2="23"/>
+              <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+              <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+              <line x1="1" y1="12" x2="3" y2="12"/>
+              <line x1="21" y1="12" x2="23" y2="12"/>
+              <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+              <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+            </svg>
+          </span>
+        </button>
+
+        <!-- Посилання на GitHub -->
+        <a href="https://github.com/suprun/alert_desktop" target="_blank" rel="noopener noreferrer" class="btn-github" title="Вихідний код на GitHub">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+            <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/>
+          </svg>
+          <span>GitHub</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Головний екран (Hero Section) -->
+  <section class="hero-section">
+    <div class="container">
+      
+      <div class="hero-badge-live">
+        <span class="live-pulse-dot" aria-hidden="true"></span>
+        <span>Оперативний десктопний моніторинг тривог</span>
+      </div>
+
+      <h1 class="hero-title">
+        Своєчасна інформація про загрози на вашому <span class="gradient-title">робочому столі</span>
+      </h1>
+
+      <p class="hero-subtitle">
+        Вільний клієнт для Windows, macOS та Linux. Нативні системні сповіщення, кольоровий трей, налаштовувані звукові сигнали та інтерактивна мапа в одному швидкому додатку.
+      </p>
+
+      <!-- Smart CTA Кнопка завантаження -->
+      <div class="hero-actions">
+        <div class="cta-group">
+          <a href="#downloads" id="smartDownloadBtn" class="btn-primary-smart" title="Завантажити останній реліз">
+            <span id="smartBtnIcon">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+                <path d="M0 3.449L9.75 2.1v9.451H0m10.949-9.602L24 0v11.4H10.949M0 12.6h9.75v9.451L0 20.699M10.949 12.6H24V24l-12.9-1.801"/>
+              </svg>
+            </span>
+            <span id="smartBtnText">Завантажити для Windows</span>
+          </a>
+
+          <a href="#downloads" class="btn-secondary-link">
+            <span>Всі платформи та релізи</span>
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="7" y1="17" x2="17" y2="7"/>
+              <polyline points="7 7 17 7 17 17"/>
+            </svg>
+          </a>
+        </div>
+
+        <div class="cta-caption">
+          <span id="smartBtnMeta">Setup .exe (v1.0.46) • x64 & ARM64</span>
+          <span>•</span>
+          <span>Відкритий код (Apache 2.0)</span>
+        </div>
+      </div>
+
+      <!-- Інтерактивне прев'ю вікна застосунку -->
+      <div class="mockup-wrapper">
+        <div class="app-mockup">
+          <div class="mockup-titlebar">
+            <div class="mockup-controls">
+              <span class="mockup-dot close"></span>
+              <span class="mockup-dot min"></span>
+              <span class="mockup-dot max"></span>
+            </div>
+
+            <div class="mockup-status-center">
+              <div class="mockup-location-badge">
+                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                  <circle cx="12" cy="10" r="3"/>
+                </svg>
+                <span>Україна</span>
+              </div>
+
+              <div class="mockup-alert-state">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                  <path d="m9 12 2 2 4-4"/>
+                </svg>
+                <span>Немає тривоги</span>
+              </div>
+            </div>
+
+            <div class="mockup-actions-right">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="3"/>
+                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+              </svg>
+            </div>
+          </div>
+
+          <div class="mockup-map-body">
+            <div class="mockup-map-overlay">
+              <div class="mockup-overlay-icon">🗺️</div>
+              <h3 class="mockup-overlay-title">Інтерактивна мапа тривог</h3>
+              <p class="mockup-overlay-desc">Завантажується у безпечному ізольованому контейнері застосунку з веб-сервісу alerts.in.ua</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Секція переваг (Features) -->
+  <section id="features" class="section-features">
+    <div class="container">
+      <div class="section-header">
+        <h2 class="section-title">Створений для надійності та швидкості</h2>
+        <p class="section-desc">Клієнт оптимізований для фонової роботи без навантаження на систему.</p>
+      </div>
+
+      <div class="features-grid">
+        <!-- 1. Оперативний фоновий моніторинг -->
+        <div class="feature-card">
+          <div class="feature-icon-box">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+            </svg>
+          </div>
+          <h3 class="feature-title">Оперативний фоновий моніторинг</h3>
+          <p class="feature-desc">Миттєве отримання оновлень про небезпеку через надійний серверний шлюз з автоматичним перепідключенням при зміні мережі.</p>
+        </div>
+
+        <!-- 2. Системний трей -->
+        <div class="feature-card">
+          <div class="feature-icon-box">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+              <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+            </svg>
+          </div>
+          <h3 class="feature-title">Інтеграція в системний трей</h3>
+          <p class="feature-desc">Постійна кольорова індикація в панелі завдань Windows/macOS/Linux: зелена позначка спокою, червона тривога або сірий офлайн-статус.</p>
+        </div>
+
+        <!-- 3. Налаштовувані звукові сигнали -->
+        <div class="feature-card">
+          <div class="feature-icon-box">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+              <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/>
+            </svg>
+          </div>
+          <h3 class="feature-title">Налаштовувані аудіосигнали</h3>
+          <p class="feature-desc">Автономні звуки тривоги (класична сирена, пульс, радар) та приємні мелодійні тони відбою (передзвін, дзвіночок, марімба, гонг).</p>
+        </div>
+
+        <!-- 4. Автозапуск та фонові оновлення -->
+        <div class="feature-card">
+          <div class="feature-icon-box">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="23 4 23 10 17 10"/>
+              <polyline points="1 20 1 14 7 14"/>
+              <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+            </svg>
+          </div>
+          <h3 class="feature-title">Автозапуск та автооновлення</h3>
+          <p class="feature-desc">Підтримка старту разом із системою та безпечні фонові диференційні оновлення релізів безпосередньо з GitHub.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Секція завантажень (Downloads) -->
+  <section id="downloads" class="section-downloads">
+    <div class="container">
+      <div class="section-header">
+        <h2 class="section-title">Оберіть інсталятор для вашої ОС</h2>
+        <p class="section-desc">Останній стабільний реліз <span class="release-version-tag">v1.0.46</span> зібрано та перевірено автоматично.</p>
+      </div>
+
+      <div class="platform-grid">
+        
+        <!-- Картка Windows -->
+        <div class="platform-card" id="card-windows">
+          <div class="platform-icon-wrap">
+            <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
+              <path d="M0 3.449L9.75 2.1v9.451H0m10.949-9.602L24 0v11.4H10.949M0 12.6h9.75v9.451L0 20.699M10.949 12.6H24V24l-12.9-1.801"/>
+            </svg>
+          </div>
+          <h3 class="platform-name">Windows</h3>
+          <p class="platform-meta">Windows 10 / 11 (x64 та ARM64)</p>
+          
+          <a href="https://github.com/suprun/alert_desktop/releases/latest" id="link-win-main" class="platform-btn-main">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="7 10 12 15 17 10"/>
+              <line x1="12" y1="15" x2="12" y2="3"/>
+            </svg>
+            <span>Універсальний Setup (.exe)</span>
+          </a>
+
+          <ul class="platform-alt-links">
+            <li class="platform-alt-item">
+              <a href="https://github.com/suprun/alert_desktop/releases/latest" id="link-win-x64">
+                <span>Інсталятор для 64-bit систем</span>
+                <span class="arch-tag">x64</span>
+              </a>
+            </li>
+            <li class="platform-alt-item">
+              <a href="https://github.com/suprun/alert_desktop/releases/latest" id="link-win-arm64">
+                <span>Інсталятор для пристроїв ARM</span>
+                <span class="arch-tag">ARM64</span>
+              </a>
+            </li>
+            <li class="platform-alt-item">
+              <a href="https://github.com/suprun/alert_desktop/releases/latest" id="link-win-web">
+                <span>Легкий мережевий Web Setup</span>
+                <span class="arch-tag">Web .exe</span>
+              </a>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Картка macOS -->
+        <div class="platform-card" id="card-macos">
+          <div class="platform-icon-wrap">
+            <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
+              <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 6.37c.63-.77 1.06-1.85.94-2.94-.92.04-2.02.61-2.67 1.38-.57.66-1.07 1.74-.94 2.8 1.03.08 2.05-.47 2.67-1.24"/>
+            </svg>
+          </div>
+          <h3 class="platform-name">macOS</h3>
+          <p class="platform-meta">macOS 11+ (Apple Silicon & Intel)</p>
+          
+          <a href="https://github.com/suprun/alert_desktop/releases/latest" id="link-mac-main" class="platform-btn-main">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="7 10 12 15 17 10"/>
+              <line x1="12" y1="15" x2="12" y2="3"/>
+            </svg>
+            <span>Universal DMG образ</span>
+          </a>
+
+          <ul class="platform-alt-links">
+            <li class="platform-alt-item">
+              <a href="https://github.com/suprun/alert_desktop/releases/latest" id="link-mac-zip">
+                <span>ZIP архів застосунку</span>
+                <span class="arch-tag">.zip</span>
+              </a>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Картка Linux -->
+        <div class="platform-card" id="card-linux">
+          <div class="platform-icon-wrap">
+            <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
+              <line x1="8" y1="21" x2="16" y2="21"/>
+              <line x1="12" y1="17" x2="12" y2="21"/>
+            </svg>
+          </div>
+          <h3 class="platform-name">Linux</h3>
+          <p class="platform-meta">Ubuntu, Debian, Fedora, Arch та ін.</p>
+          
+          <a href="https://github.com/suprun/alert_desktop/releases/latest" id="link-linux-main" class="platform-btn-main">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="7 10 12 15 17 10"/>
+              <line x1="12" y1="15" x2="12" y2="3"/>
+            </svg>
+            <span>Автономний AppImage</span>
+          </a>
+
+          <ul class="platform-alt-links">
+            <li class="platform-alt-item">
+              <a href="https://github.com/suprun/alert_desktop/releases/latest" id="link-linux-deb">
+                <span>Пакет для Ubuntu / Debian</span>
+                <span class="arch-tag">.deb</span>
+              </a>
+            </li>
+          </ul>
+        </div>
+
+      </div>
+
+      <!-- Плашка посилання на всі релізи на GitHub -->
+      <div class="downloads-all-cta">
+        <div class="downloads-all-text">
+          <h4>Шукаєте інші збірки чи попередні версії?</h4>
+          <p>Усі інсталятори, контрольні суми SHA-256 та історія змін доступні у релізах на GitHub.</p>
+        </div>
+        <a href="https://github.com/suprun/alert_desktop/releases" target="_blank" rel="noopener noreferrer" class="btn-secondary-link">
+          <span>Переглянути всі релізи на GitHub</span>
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="7" y1="17" x2="17" y2="7"/>
+            <polyline points="7 7 17 7 17 17"/>
+          </svg>
+        </a>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Секція Ліцензії та Права (Legal) -->
+  <section id="legal" class="section-legal">
+    <div class="container">
+      <div class="legal-card-main">
+        <div class="legal-header">
+          <div class="legal-title-group">
+            <h3>Правовий статус та ліцензія</h3>
+            <p class="section-desc">Інформація про інтелектуальну власність, безпеку та правила використання.</p>
+          </div>
+          <a href="https://github.com/suprun/alert_desktop/blob/development/LICENSE" target="_blank" rel="noopener noreferrer" class="license-pill" title="Відкрити текст Apache-2.0 ліцензії">
+            <span>Ліцензія Apache 2.0</span>
+            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="7" y1="17" x2="17" y2="7"/>
+              <polyline points="7 7 17 7 17 17"/>
+            </svg>
+          </a>
+        </div>
+
+        <div class="legal-grid">
+          <!-- 1. Неофіційний клієнт -->
+          <div class="legal-item">
+            <span class="legal-item-icon">ℹ️</span>
+            <h4 class="legal-item-title">Неофіційний клієнт</h4>
+            <p class="legal-item-desc">
+              Застосунок AlertDesktop є незалежним відкритим проєктом і не є офіційним продуктом команди 
+              <a href="https://alerts.in.ua/" target="_blank" rel="noopener noreferrer" class="legal-link">alerts.in.ua</a> 
+              чи волонтерської ініціативи «УкрДзен». Усі права на сайт та мапу належать їхнім правовласникам.
+            </p>
+          </div>
+
+          <!-- 2. Політика конфіденційності -->
+          <div class="legal-item">
+            <span class="legal-item-icon">🔒</span>
+            <h4 class="legal-item-title">Політика конфіденційності</h4>
+            <p class="legal-item-desc">
+              Відображення веб-мапи регулюється 
+              <a href="https://alerts.in.ua/privacy-policy" target="_blank" rel="noopener noreferrer" class="legal-link">Політикою конфіденційності alerts.in.ua</a>. 
+              Сам застосунок функціонує локально та зберігає налаштування на вашому комп'ютері.
+            </p>
+          </div>
+
+          <!-- 3. Безпека життя -->
+          <div class="legal-item">
+            <span class="legal-item-icon">🛡️</span>
+            <h4 class="legal-item-title">Безпека життя</h4>
+            <p class="legal-item-desc">
+              Програма надається за принципом «ЯК Є» (*AS IS*) з інформаційною метою. Завжди дотримуйтесь офіційних оповіщень ДСНС, Повітряних Сил ЗСУ та вуличних систем сирен.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Підвал (Footer) -->
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <div class="footer-copy">
+        <img src="assets/app-icon.svg" alt="AlertDesktop" width="20" height="20">
+        <span>© 2026 AlertDesktop. Автор: <a href="https://github.com/suprun" target="_blank" rel="noopener noreferrer" class="legal-link">suprun</a>.</span>
+      </div>
+
+      <ul class="footer-links">
+        <li><a href="https://github.com/suprun/alert_desktop" target="_blank" rel="noopener noreferrer">GitHub Репозиторій</a></li>
+        <li><a href="https://github.com/suprun/alert_desktop/releases" target="_blank" rel="noopener noreferrer">Всі релізи</a></li>
+        <li><a href="https://github.com/suprun/alert_desktop/blob/development/LICENSE" target="_blank" rel="noopener noreferrer">Ліцензія</a></li>
+        <li><a href="https://alerts.in.ua/privacy-policy" target="_blank" rel="noopener noreferrer">Політика alerts.in.ua</a></li>
+      </ul>
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
