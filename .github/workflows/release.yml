@@ -5,6 +5,11 @@ on:
     tags:
       - 'v*'
   workflow_dispatch:
+    inputs:
+      tag_name:
+        description: 'Release Tag (leave empty to use version from package.json)'
+        required: false
+        default: ''
 
 permissions:
   contents: write
@@ -19,7 +24,7 @@ jobs:
         include:
           - os: windows-latest
             target: Windows
-            build-script: npm run dist:win && npm run dist:web
+            build-script: npm run dist:win
           - os: macos-latest
             target: macOS
             build-script: npm run dist:mac
@@ -41,7 +46,13 @@ jobs:
         run: npm ci
 
       - name: Run verification tests
-        run: npm test
+        run: |
+          if [ "$RUNNER_OS" = "Linux" ]; then
+            xvfb-run --auto-servernum npm test
+          else
+            npm test
+          fi
+        shell: bash
 
       - name: Compile and Package (${{ matrix.target }})
         env:
@@ -61,6 +72,7 @@ jobs:
             dist/*.zip
             dist/*.AppImage
             dist/*.deb
+            dist/nsis-web/*
           if-no-files-found: warn
 
   release:
@@ -71,6 +83,20 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Determine Release Tag
+        id: release_info
+        run: |
+          if [ -n "${{ github.event.inputs.tag_name }}" ]; then
+            TAG="${{ github.event.inputs.tag_name }}"
+          elif [[ "$GITHUB_REF" == refs/tags/* ]]; then
+            TAG="${GITHUB_REF#refs/tags/}"
+          else
+            PKG_VER=$(node -p "require('./package.json').version")
+            TAG="v${PKG_VER}"
+          fi
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+          echo "Determined release tag: $TAG"
 
       - name: Download build artifacts
         uses: actions/download-artifact@v4
@@ -86,6 +112,8 @@ jobs:
       - name: Create or Update GitHub Release
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: ${{ steps.release_info.outputs.tag }}
+          name: Release ${{ steps.release_info.outputs.tag }}
           files: |
             release-dist/*.exe
             release-dist/*.blockmap
@@ -95,6 +123,7 @@ jobs:
             release-dist/*.zip
             release-dist/*.AppImage
             release-dist/*.deb
+            release-dist/*.7z
             scripts/install.sh
           draft: false
           prerelease: false

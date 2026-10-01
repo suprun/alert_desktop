@@ -8,6 +8,7 @@
 alert_desktop/
 ├── .github/                              # CI/CD автоматизація GitHub Actions
 │   └── workflows/
+│       ├── ci.yml                        # Швидкий CI: синтаксис, тести та smoke-перевірки при push/PR
 │       └── release.yml                   # Мультиплатформенна збірка та реліз (Windows, macOS Universal, Linux)
 ├── .env                                  # Локальні змінні середовища та API-ключі (в .gitignore)
 ├── .env.example                          # Шаблон змінних середовища
@@ -68,6 +69,7 @@ alert_desktop/
 │   ├── generate_ui_icons.js              # Генерація лінійних SVG піктограм інтерфейсу
 │   ├── install.sh                        # Універсальний Linux веб-інсталятор (x86_64 та ARM64 AppImage)
 │   ├── parse_locations.js                # Завантаження та парсинг 1622 локацій з Google Spreadsheets
+│   ├── release_tag.js                    # Автоматичне створення та публікація Git-тегу версії для запуску CI Release
 │   ├── reset_config.js                   # Скидання та видалення файлу конфігурації у профілі користувача
 │   ├── smoke_test.js                     # Smoke-тест ініціалізації компонентів
 │   ├── test_threat_utils.js              # Unit-тести парсингу характеру загроз та анти-тавтології
