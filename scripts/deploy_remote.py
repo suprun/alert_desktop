@@ -183,7 +183,7 @@ def main():
             f"ALERTS_IN_UA_URL={cfg.get('ALERTS_IN_UA_URL', 'https://api.alerts.in.ua/v1/alerts/active.json')}\n"
             f"ALERTS_IN_UA_POLL_INTERVAL={cfg.get('ALERTS_IN_UA_POLL_INTERVAL', '8')}\n"
             f"UPSTREAM_API_URL={cfg.get('UPSTREAM_API_URL', 'https://api.ukrainealarm.com')}\n"
-            f"PUBLIC_WEBHOOK_URL={cfg.get('PUBLIC_WEBHOOK_URL', f'http://{host}:{port}/api/v3/webhook')}\n"
+            f"PUBLIC_WEBHOOK_URL={cfg.get('PUBLIC_WEBHOOK_URL', 'https://api.applink.pp.ua/api/v3/webhook')}\n"
             f"RESYNC_INTERVAL_SECONDS={cfg.get('RESYNC_INTERVAL_SECONDS', '300')}\n"
             f"SERVER_HOST={cfg.get('SERVER_HOST', '0.0.0.0')}\n"
             f"SERVER_PORT={port}\n"
