@@ -224,6 +224,8 @@ body {
   color: var(--text-secondary);
   cursor: pointer;
   transition: all var(--transition-fast);
+  padding: 0;
+  line-height: 0;
 }
 
 .btn-icon-nav:hover {
@@ -232,11 +234,26 @@ body {
   border-color: var(--border-hover);
 }
 
+#themeIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  line-height: 0;
+}
+
+#themeIcon svg {
+  display: block;
+}
+
 .btn-github {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
-  padding: 6px 14px;
+  height: 36px;
+  padding: 0 14px;
   border-radius: var(--radius-sm);
   border: 1px solid var(--border-color);
   background: var(--bg-card);
@@ -244,7 +261,12 @@ body {
   text-decoration: none;
   font-size: 0.88rem;
   font-weight: 500;
+  line-height: 1;
   transition: all var(--transition-fast);
+}
+
+.btn-github svg {
+  display: block;
 }
 
 .btn-github:hover {
@@ -336,6 +358,7 @@ body {
 .btn-primary-smart {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 10px;
   padding: 13px 28px;
   background-color: var(--accent-primary);
@@ -344,10 +367,29 @@ body {
   border-radius: var(--radius-md);
   font-size: 1rem;
   font-weight: 600;
+  line-height: 1;
   text-decoration: none;
   box-shadow: 0 4px 16px var(--accent-glow);
   transition: all var(--transition-fast);
   cursor: pointer;
+}
+
+#smartBtnIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 0;
+  flex-shrink: 0;
+}
+
+#smartBtnIcon svg {
+  display: block;
+}
+
+#smartBtnText {
+  display: inline-flex;
+  align-items: center;
+  line-height: 1;
 }
 
 .btn-primary-smart:hover {
@@ -359,6 +401,7 @@ body {
 .btn-secondary-link {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
   padding: 13px 24px;
   background-color: var(--bg-card);
@@ -367,14 +410,24 @@ body {
   border-radius: var(--radius-md);
   font-size: 0.96rem;
   font-weight: 500;
+  line-height: 1;
   text-decoration: none;
   transition: all var(--transition-fast);
+}
+
+.btn-secondary-link svg {
+  display: block;
+  transition: transform var(--transition-fast);
 }
 
 .btn-secondary-link:hover {
   background-color: var(--bg-card-hover);
   border-color: var(--border-hover);
   transform: translateY(-2px);
+}
+
+.btn-secondary-link:hover svg {
+  transform: translateX(3px);
 }
 
 .cta-caption {
@@ -623,18 +676,20 @@ html.theme-light .desktop-toast-card {
   box-shadow: 0 14px 32px rgba(0, 0, 0, 0.12);
 }
 
-/* Розташування для Windows: у лівому нижньому куті! */
+/* Розташування для Windows: у правому нижньому куті */
 .os-windows .desktop-toast-card {
   bottom: 58px;
-  left: 20px;
+  right: 20px;
+  left: auto;
   transform: translateY(18px);
 }
 
-/* Розташування для macOS / Linux: у лівому верхньому куті! */
+/* Розташування для macOS / Linux: у правому верхньому куті */
 .os-macos .desktop-toast-card,
 .os-linux .desktop-toast-card {
   top: 46px;
-  left: 20px;
+  right: 20px;
+  left: auto;
   transform: translateY(-18px);
 }
 
@@ -1166,16 +1221,82 @@ html.theme-light .section-features {
   color: var(--accent-primary);
   border: 1px solid rgba(0, 120, 212, 0.25);
   transition: all var(--transition-normal);
+  line-height: 0;
+  flex-shrink: 0;
+}
+
+.feature-icon-box svg {
+  display: block;
 }
 
 .feature-card:hover .feature-icon-box {
   transform: scale(1.06);
 }
 
-/* Динамічна іконка трею зі зміною загроз */
+/* 1. Анімація блискавки (енергія, трансформація та спалах жовтим) */
+.feature-icon-lightning {
+  animation: lightningEnergize 3s ease-in-out infinite;
+}
+
+.feature-icon-lightning svg {
+  transition: all 0.4s ease;
+}
+
+@keyframes lightningEnergize {
+  0%, 100% {
+    color: var(--accent-primary);
+    background: var(--accent-glow);
+    border-color: rgba(0, 120, 212, 0.25);
+    box-shadow: none;
+    transform: scale(1);
+  }
+  30% {
+    color: #f59e0b;
+    background: rgba(245, 158, 11, 0.16);
+    border-color: rgba(245, 158, 11, 0.45);
+    box-shadow: 0 0 18px rgba(245, 158, 11, 0.35);
+    transform: scale(1.08) rotate(-4deg);
+  }
+  45% {
+    color: #fbbf24;
+    background: rgba(251, 191, 36, 0.24);
+    border-color: rgba(251, 191, 36, 0.65);
+    box-shadow: 0 0 24px rgba(251, 191, 36, 0.55);
+    transform: scale(1.14) rotate(4deg);
+  }
+  60% {
+    color: #f59e0b;
+    background: rgba(245, 158, 11, 0.18);
+    border-color: rgba(245, 158, 11, 0.45);
+    box-shadow: 0 0 16px rgba(245, 158, 11, 0.3);
+    transform: scale(1.05) rotate(0deg);
+  }
+  75% {
+    color: var(--accent-primary);
+    background: var(--accent-glow);
+    border-color: rgba(0, 120, 212, 0.25);
+    box-shadow: none;
+    transform: scale(1);
+  }
+}
+
+/* 2. Динамічна іконка трею зі зміною загроз та ідеальним оптичним центруванням */
 .feature-tray-dynamic {
   transition: all 0.45s cubic-bezier(0.16, 1, 0.3, 1);
   cursor: pointer;
+}
+
+#dynamicTrayIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  line-height: 0;
+}
+
+#dynamicTrayIcon svg {
+  display: block;
 }
 
 .feature-tray-dynamic.threat-safe {
@@ -1191,6 +1312,10 @@ html.theme-light .section-features {
   border-color: var(--alert-border);
   box-shadow: 0 0 18px rgba(239, 68, 68, 0.4);
   animation: trayAlertPulse 1.8s infinite;
+}
+
+.feature-tray-dynamic.threat-alert svg {
+  transform: translateY(1px);
 }
 
 .feature-tray-dynamic.threat-drone {
@@ -1212,6 +1337,64 @@ html.theme-light .section-features {
   0% { transform: scale(1); }
   50% { transform: scale(1.08); }
   100% { transform: scale(1); }
+}
+
+/* 3. Динамічне збільшення та зменшення звукових хвиль динаміка */
+.feature-icon-audio svg {
+  overflow: visible;
+}
+
+.feature-icon-audio .sound-wave {
+  transform-origin: 11px 12px;
+  animation: soundWavesLoop 2.4s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+.feature-icon-audio .wave-1 {
+  animation-delay: 0s;
+}
+
+.feature-icon-audio .wave-2 {
+  animation-delay: 0.3s;
+}
+
+.feature-icon-audio .wave-3 {
+  animation-delay: 0.6s;
+}
+
+@keyframes soundWavesLoop {
+  0% {
+    opacity: 0.12;
+    transform: scale(0.85);
+    stroke-width: 1.5;
+  }
+  30%, 65% {
+    opacity: 1;
+    transform: scale(1);
+    stroke-width: 2.2;
+  }
+  85%, 100% {
+    opacity: 0.12;
+    transform: scale(1.05);
+    stroke-width: 1.5;
+  }
+}
+
+/* 4. Періодичний оберт іконки рефрешу */
+.feature-icon-refresh svg {
+  animation: periodicRefreshSpin 4.5s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+  transform-origin: center;
+}
+
+@keyframes periodicRefreshSpin {
+  0% {
+    transform: rotate(0deg);
+  }
+  20% {
+    transform: rotate(360deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 .feature-title {
