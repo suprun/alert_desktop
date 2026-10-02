@@ -13,21 +13,20 @@
   'use strict';
 
   const GITHUB_REPO = 'suprun/alert_desktop';
-  const FALLBACK_VERSION = 'v1.0.46';
+  const FALLBACK_VERSION = 'v1.0.51';
   const GITHUB_RELEASES_URL = `https://github.com/${GITHUB_REPO}/releases`;
   const GITHUB_LATEST_API = `https://api.github.com/repos/${GITHUB_REPO}/releases/latest`;
 
   // Статичні fallback-посилання на випадок відсутності зв'язку або ліміту API
   const DEFAULT_DOWNLOADS = {
-    winWeb: `${GITHUB_RELEASES_URL}/latest/download/AlertDesktop-Web-Setup-${FALLBACK_VERSION}.exe`,
-    win: `${GITHUB_RELEASES_URL}/latest/download/AlertDesktop-Setup-${FALLBACK_VERSION}.exe`,
-    winX64: `${GITHUB_RELEASES_URL}/latest/download/AlertDesktop-x64-Setup-${FALLBACK_VERSION}.exe`,
-    winArm64: `${GITHUB_RELEASES_URL}/latest/download/AlertDesktop-arm64-Setup-${FALLBACK_VERSION}.exe`,
-    winZip: `${GITHUB_RELEASES_URL}/latest/download/AlertDesktop-${FALLBACK_VERSION}-win-portable.zip`,
-    macDmg: `${GITHUB_RELEASES_URL}/latest/download/AlertDesktop-${FALLBACK_VERSION.replace('v', '')}-mac.dmg`,
-    macZip: `${GITHUB_RELEASES_URL}/latest/download/AlertDesktop-${FALLBACK_VERSION.replace('v', '')}-mac.zip`,
-    linuxAppImage: `${GITHUB_RELEASES_URL}/latest/download/AlertDesktop-${FALLBACK_VERSION.replace('v', '')}.AppImage`,
-    linuxDeb: `${GITHUB_RELEASES_URL}/latest/download/alert-desktop_${FALLBACK_VERSION.replace('v', '')}_amd64.deb`
+    winWeb: `${GITHUB_RELEASES_URL}/download/${FALLBACK_VERSION}/AlertDesktop-Web-Setup-${FALLBACK_VERSION}.exe`,
+    win: `${GITHUB_RELEASES_URL}/download/${FALLBACK_VERSION}/AlertDesktop-Setup-${FALLBACK_VERSION}.exe`,
+    winX64: `${GITHUB_RELEASES_URL}/download/${FALLBACK_VERSION}/AlertDesktop-x64-Setup-${FALLBACK_VERSION}.exe`,
+    winArm64: `${GITHUB_RELEASES_URL}/download/${FALLBACK_VERSION}/AlertDesktop-arm64-Setup-${FALLBACK_VERSION}.exe`,
+    macDmg: `${GITHUB_RELEASES_URL}/download/${FALLBACK_VERSION}/AlertDesktop-universal-${FALLBACK_VERSION}.dmg`,
+    macZip: `${GITHUB_RELEASES_URL}/download/${FALLBACK_VERSION}/AlertDesktop-universal-${FALLBACK_VERSION}.zip`,
+    linuxAppImage: `${GITHUB_RELEASES_URL}/download/${FALLBACK_VERSION}/AlertDesktop-x86_64-${FALLBACK_VERSION}.AppImage`,
+    linuxDeb: `${GITHUB_RELEASES_URL}/download/${FALLBACK_VERSION}/AlertDesktop-amd64-${FALLBACK_VERSION}.deb`
   };
 
   // 1. Визначення операційної системи відвідувача
@@ -122,19 +121,27 @@
 
             if (name.includes('web-setup') && name.endsWith('.exe')) {
               currentLinks.winWeb = url;
-            } else if (name.endsWith('-setup.exe') || name.includes('alertdesktop-setup')) {
-              currentLinks.win = url;
             } else if (name.includes('x64-setup') && name.endsWith('.exe')) {
               currentLinks.winX64 = url;
             } else if (name.includes('arm64-setup') && name.endsWith('.exe')) {
               currentLinks.winArm64 = url;
-            } else if (name.endsWith('.dmg')) {
+            } else if (name.includes('setup') && name.endsWith('.exe')) {
+              currentLinks.win = url;
+            } else if (name.includes('universal') && name.endsWith('.dmg')) {
               currentLinks.macDmg = url;
-            } else if (name.endsWith('-mac.zip')) {
+            } else if (!currentLinks.macDmg && name.endsWith('.dmg')) {
+              currentLinks.macDmg = url;
+            } else if (name.includes('universal') && name.endsWith('.zip')) {
               currentLinks.macZip = url;
-            } else if (name.endsWith('.appimage')) {
+            } else if (!currentLinks.macZip && name.endsWith('.zip')) {
+              currentLinks.macZip = url;
+            } else if ((name.includes('x86_64') || name.includes('amd64')) && name.endsWith('.appimage')) {
               currentLinks.linuxAppImage = url;
-            } else if (name.endsWith('.deb')) {
+            } else if (!currentLinks.linuxAppImage && name.endsWith('.appimage')) {
+              currentLinks.linuxAppImage = url;
+            } else if ((name.includes('amd64') || name.includes('x86_64')) && name.endsWith('.deb')) {
+              currentLinks.linuxDeb = url;
+            } else if (!currentLinks.linuxDeb && name.endsWith('.deb')) {
               currentLinks.linuxDeb = url;
             }
           }
