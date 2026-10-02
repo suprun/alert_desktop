@@ -1,7 +1,11 @@
 /**
  * AlertDesktop — GitHub Pages Client Logic
- * - Dynamic OS detection & Smart CTA
- * - GitHub Releases API live integration
+ * - Dynamic OS detection & Smart CTA (Web Setup prioritized for Windows)
+ * - Pseudo-desktop screen integration (Taskbar, Topbar, Toast notifications)
+ * - Animated Ukraine map alert state simulation
+ * - Frosted glass overlay appearance via IntersectionObserver
+ * - Dynamic threat icon cycling for the System Tray feature card
+ * - GitHub Releases API live integration & fallback links
  * - Dark / Light theme switcher
  */
 
@@ -15,10 +19,10 @@
 
   // Статичні fallback-посилання на випадок відсутності зв'язку або ліміту API
   const DEFAULT_DOWNLOADS = {
+    winWeb: `${GITHUB_RELEASES_URL}/latest/download/AlertDesktop-Web-Setup-${FALLBACK_VERSION}.exe`,
     win: `${GITHUB_RELEASES_URL}/latest/download/AlertDesktop-Setup-${FALLBACK_VERSION}.exe`,
     winX64: `${GITHUB_RELEASES_URL}/latest/download/AlertDesktop-x64-Setup-${FALLBACK_VERSION}.exe`,
     winArm64: `${GITHUB_RELEASES_URL}/latest/download/AlertDesktop-arm64-Setup-${FALLBACK_VERSION}.exe`,
-    winWeb: `${GITHUB_RELEASES_URL}/latest/download/AlertDesktop-Web-Setup-${FALLBACK_VERSION}.exe`,
     winZip: `${GITHUB_RELEASES_URL}/latest/download/AlertDesktop-${FALLBACK_VERSION}-win-portable.zip`,
     macDmg: `${GITHUB_RELEASES_URL}/latest/download/AlertDesktop-${FALLBACK_VERSION.replace('v', '')}-mac.dmg`,
     macZip: `${GITHUB_RELEASES_URL}/latest/download/AlertDesktop-${FALLBACK_VERSION.replace('v', '')}-mac.zip`,
@@ -43,7 +47,15 @@
     return 'windows';
   }
 
-  // 2. Оновлення головної кнопки Smart CTA
+  // 2. Застосування теми ОС до псевдо-екрану
+  function applyDesktopOS(os) {
+    const screen = document.getElementById('desktopScreenMockup');
+    if (!screen) return;
+    screen.classList.remove('os-windows', 'os-macos', 'os-linux');
+    screen.classList.add(`os-${os}`);
+  }
+
+  // 3. Оновлення головної кнопки Smart CTA
   function setupSmartCTA(os, links, version) {
     const smartBtn = document.getElementById('smartDownloadBtn');
     const smartBtnText = document.getElementById('smartBtnText');
@@ -52,9 +64,9 @@
 
     if (!smartBtn) return;
 
-    let targetUrl = links.win;
-    let label = `Завантажити для Windows`;
-    let meta = `Setup .exe (${version}) • x64 & ARM64`;
+    let targetUrl = links.winWeb || links.win;
+    let label = `Завантажити Web Setup (.exe)`;
+    let meta = `Web Setup (${version}) • Легкий мережевий інсталятор`;
 
     if (os === 'macos') {
       targetUrl = links.macDmg;
@@ -81,9 +93,12 @@
     if (currentCard) {
       currentCard.classList.add('highlight');
     }
+
+    // Оновлюємо вигляд псевдо-екрана
+    applyDesktopOS(os);
   }
 
-  // 3. Запит до GitHub Releases API
+  // 4. Запит до GitHub Releases API
   async function fetchLatestRelease() {
     const releaseVersionBadges = document.querySelectorAll('.release-version-tag');
     let currentLinks = { ...DEFAULT_DOWNLOADS };
@@ -101,19 +116,18 @@
         }
 
         if (Array.isArray(data.assets) && data.assets.length > 0) {
-          // Шукаємо прямі URL активів
           for (const asset of data.assets) {
             const name = (asset.name || '').toLowerCase();
             const url = asset.browser_download_url;
 
-            if (name.endsWith('-setup.exe') || name.includes('alertdesktop-setup')) {
+            if (name.includes('web-setup') && name.endsWith('.exe')) {
+              currentLinks.winWeb = url;
+            } else if (name.endsWith('-setup.exe') || name.includes('alertdesktop-setup')) {
               currentLinks.win = url;
             } else if (name.includes('x64-setup') && name.endsWith('.exe')) {
               currentLinks.winX64 = url;
             } else if (name.includes('arm64-setup') && name.endsWith('.exe')) {
               currentLinks.winArm64 = url;
-            } else if (name.includes('web-setup') && name.endsWith('.exe')) {
-              currentLinks.winWeb = url;
             } else if (name.endsWith('.dmg')) {
               currentLinks.macDmg = url;
             } else if (name.endsWith('-mac.zip')) {
@@ -127,7 +141,7 @@
         }
       }
     } catch (err) {
-      // При помилці або обмеженні запитів використовуються надійні fallback-посилання
+      // При помилці мережі використовуються надійні fallback-посилання
     }
 
     // Оновлюємо текстові бейджі версії
@@ -149,17 +163,204 @@
       if (el && url) el.href = url;
     };
 
-    setHref('link-win-main', links.win);
+    setHref('link-win-main', links.winWeb || links.win);
     setHref('link-win-x64', links.winX64);
     setHref('link-win-arm64', links.winArm64);
-    setHref('link-win-web', links.winWeb);
+    setHref('link-win-universal', links.win);
     setHref('link-mac-main', links.macDmg);
     setHref('link-mac-zip', links.macZip);
     setHref('link-linux-main', links.linuxAppImage);
     setHref('link-linux-deb', links.linuxDeb);
   }
 
-  // 4. Керування темами (Dark / Light)
+  // 5. Системні годинники для панелей псевдо-ОС
+  function updateDesktopClocks() {
+    const now = new Date();
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    const timeStr = `${hours}:${minutes}`;
+
+    const topClock = document.getElementById('topbarClock');
+    const taskClock = document.getElementById('taskbarClock');
+    if (topClock) topClock.textContent = timeStr;
+    if (taskClock) taskClock.textContent = timeStr;
+  }
+
+  // 6. Анімований цикл карток сповіщень (Toast Notifications)
+  function initDesktopToastLoop() {
+    const toast = document.getElementById('desktopToastCard');
+    const toastTitle = document.getElementById('toastCardTitle');
+    const toastDesc = document.getElementById('toastCardDesc');
+    const toastTime = document.getElementById('toastCardTime');
+    if (!toast) return;
+
+    const events = [
+      {
+        title: 'Повітряна тривога: м. Київ',
+        desc: 'Загроза застосування балістичного озброєння! Пройдіть в укриття.',
+        time: 'щойно'
+      },
+      {
+        title: 'Загроза ударних БпЛА: Київська обл.',
+        desc: 'Група «Shahed» наближається з південного сходу.',
+        time: 'щойно'
+      },
+      {
+        title: 'Відбій тривоги: м. Київ',
+        desc: 'Небезпека минула. Уважно слідкуйте за подальшими оновленнями.',
+        time: 'щойно'
+      }
+    ];
+
+    let currentIdx = 0;
+    function showNextToast() {
+      const ev = events[currentIdx % events.length];
+      if (toastTitle) toastTitle.textContent = ev.title;
+      if (toastDesc) toastDesc.textContent = ev.desc;
+      if (toastTime) toastTime.textContent = ev.time;
+
+      toast.classList.add('toast-visible');
+
+      // Відображається 4.5 секунди, потім зникає
+      setTimeout(() => {
+        toast.classList.remove('toast-visible');
+      }, 4500);
+
+      currentIdx++;
+    }
+
+    // Перший показ через 1.5 секунди після старту, далі кожні 9 секунд
+    setTimeout(showNextToast, 1500);
+    setInterval(showNextToast, 9000);
+  }
+
+  // 7. Динамічна анімована симуляція тривог на мапі України
+  function initMapAlertSimulation() {
+    const map = document.querySelector('.ukraine-admin-map');
+    if (!map) return;
+
+    // Всі доступні області на SVG
+    const oblastIds = [
+      'donetsk_obl', 'kharkiv_obl', 'zakarpattia_obl', 'kirovohrad_obl',
+      'mykolaiv_obl', 'luhansk_obl', 'dnipropetrovsk_obl', 'zaporizha_obl',
+      'kherson_obl', 'odesa_obl', 'kyiv_obl', 'lviv_obl', 'poltava_obl',
+      'sumy_obl', 'cherkasy_obl', 'vinnytsia_obl', 'zhytomyr_obl', 'chernihiv_obl'
+    ];
+
+    function randomizeAlerts() {
+      // Знімаємо попередні стани
+      map.querySelectorAll('.map-oblast.state-red, .map-oblast.state-yellow').forEach(el => {
+        el.classList.remove('state-red', 'state-yellow');
+      });
+
+      // Обираємо від 3 до 6 випадкових областей
+      const count = 3 + Math.floor(Math.random() * 4);
+      const shuffled = [...oblastIds].sort(() => 0.5 - Math.random());
+      const selected = shuffled.slice(0, count);
+
+      selected.forEach((id, idx) => {
+        const el = document.getElementById(id);
+        if (el) {
+          // Перша область - жовта (БпЛА), інші - червоні (повітряна тривога)
+          if (idx === 0) {
+            el.classList.add('state-yellow');
+          } else {
+            el.classList.add('state-red');
+          }
+        }
+      });
+    }
+
+    randomizeAlerts();
+    setInterval(randomizeAlerts, 4200);
+  }
+
+  // 8. Плавна поява плашки мапи (Frosted Glass) при скролі
+  function initMapOverlayObserver() {
+    const badge = document.getElementById('mapOverlayBadge');
+    const mockup = document.querySelector('.app-mockup');
+    if (!badge || !mockup) return;
+
+    if ('IntersectionObserver' in window) {
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          // Коли псевдо-вікно повністю або майже повністю у полі зору
+          if (entry.intersectionRatio >= 0.65) {
+            badge.classList.add('is-visible');
+          }
+        });
+      }, {
+        threshold: [0.3, 0.65, 0.9]
+      });
+
+      observer.observe(mockup);
+    } else {
+      // Fallback
+      badge.classList.add('is-visible');
+    }
+  }
+
+  // 9. Динамічний цикл іконок загроз у блоці «Інтеграція в системний трей»
+  function initTrayFeatureCycle() {
+    const box = document.getElementById('dynamicTrayIconBox');
+    const iconSpan = document.getElementById('dynamicTrayIcon');
+    if (!box || !iconSpan) return;
+
+    const states = [
+      {
+        class: 'threat-safe',
+        svg: `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          <path d="m9 12 2 2 4-4"/>
+        </svg>`
+      },
+      {
+        class: 'threat-alert',
+        svg: `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+          <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+        </svg>`
+      },
+      {
+        class: 'threat-drone',
+        svg: `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="9"/>
+          <path d="M12 3v18M3 12h18"/>
+          <circle cx="12" cy="12" r="3"/>
+        </svg>`
+      },
+      {
+        class: 'threat-missile',
+        svg: `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="m4.5 16.5-1.5 3 3-1.5L17.5 6.5l-3-3z"/>
+          <path d="m15 9 3 3"/>
+          <path d="m9 15 3 3"/>
+        </svg>`
+      }
+    ];
+
+    let current = 0;
+    function applyState(idx) {
+      const st = states[idx % states.length];
+      box.classList.remove('threat-safe', 'threat-alert', 'threat-drone', 'threat-missile');
+      box.classList.add(st.class);
+      iconSpan.innerHTML = st.svg;
+    }
+
+    applyState(0);
+    setInterval(() => {
+      current++;
+      applyState(current);
+    }, 2800);
+
+    // Дозволяємо також перемикати кліком для інтерактивності
+    box.addEventListener('click', () => {
+      current++;
+      applyState(current);
+    });
+  }
+
+  // 10. Керування темами (Dark / Light)
   function initTheme() {
     const savedTheme = localStorage.getItem('alert_desktop_theme');
     const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
@@ -194,7 +395,7 @@
     }
   }
 
-  // 5. Векторні SVG-іконки
+  // 11. Векторні SVG-іконки
   function getWindowsIconSvg() {
     return `<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
       <path d="M0 3.449L9.75 2.1v9.451H0m10.949-9.602L24 0v11.4H10.949M0 12.6h9.75v9.451L0 20.699M10.949 12.6H24V24l-12.9-1.801"/>
@@ -202,14 +403,14 @@
   }
 
   function getAppleIconSvg() {
-    return `<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+    return `<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" style="transform: translateY(-2px)">
       <path d="M12.152 6.896c-.948 0-2.415-1.078-3.96-1.04-2.04.027-3.91 1.183-4.961 3.014-2.117 3.675-.546 9.103 1.519 12.09 1.013 1.454 2.208 3.09 3.792 3.039 1.52-.065 2.09-.987 3.935-.987 1.831 0 2.35.987 3.96.948 1.637-.026 2.676-1.48 3.676-2.948 1.156-1.688 1.636-3.325 1.662-3.415-.039-.013-3.182-1.221-3.22-4.857-.026-3.04 2.48-4.494 2.597-4.559-1.429-2.09-3.623-2.324-4.39-2.376-2-.156-3.675 1.09-4.61 1.09zM15.53 3.83c.843-1.012 1.4-2.427 1.245-3.83-1.207.052-2.662.805-3.532 1.818-.78.896-1.454 2.338-1.273 3.714 1.338.104 2.715-.688 3.559-1.701"/>
     </svg>`;
   }
 
   function getLinuxIconSvg() {
-    return `<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
-      <path d="M12.504 0c-.155 0-.315.008-.48.021-4.226.333-3.105 4.807-3.17 6.298-.076 1.092-.3 1.953-1.05 3.02-.885 1.051-2.127 2.75-2.716 4.521-.278.832-.41 1.684-.287 2.489a.424.424 0 00-.11.135c-.26.268-.45.6-.663.839-.199.199-.485.267-.797.4-.313.136-.658.269-.864.68-.09.189-.136.394-.132.602 0 .199.027.4.055.536.058.399.116.728.04.97-.249.68-.28 1.145-.106 1.484.174.334.535.47.94.601.81.2 1.91.135 2.774.6.926.466 1.866.67 2.616.47.526-.116.97-.464 1.208-.946.587-.003 1.23-.269 2.26-.334.699-.058 1.574.267 2.577.2.025.134.063.198.114.333l.003.003c.391.778 1.113 1.132 1.884 1.071.771-.06 1.592-.536 2.257-1.306.631-.765 1.683-1.084 2.378-1.503.348-.199.629-.469.649-.853.023-.4-.2-.811-.714-1.376v-.097l-.003-.003c-.17-.2-.25-.535-.338-.926-.085-.401-.182-.786-.492-1.046h-.003c-.059-.054-.123-.067-.188-.135a.357.357 0 00-.19-.064c.431-1.278.264-2.55-.173-3.694-.533-1.41-1.465-2.638-2.175-3.483-.796-1.005-1.576-1.957-1.56-3.368.026-2.152.236-6.133-3.544-6.139zm.529 3.405h.013c.213 0 .396.062.584.198.19.135.33.332.438.533.105.259.158.459.166.724 0-.02.006-.04.006-.06v.105a.086.086 0 01-.004-.021l-.004-.024a1.807 1.807 0 01-.15.706.953.953 0 01-.213.335.71.71 0 00-.088-.042c-.104-.045-.198-.064-.284-.133a1.312 1.312 0 00-.22-.066c.05-.06.146-.133.183-.198.053-.128.082-.264.088-.402v-.02a1.21 1.21 0 00-.061-.4c-.045-.134-.101-.2-.183-.333-.084-.066-.167-.132-.267-.132h-.016c-.093 0-.176.03-.262.132a.8.8 0 00-.205.334 1.18 1.18 0 00-.09.4v.019c.002.089.008.179.02.267-.193-.067-.438-.135-.607-.202a1.635 1.635 0 01-.018-.2v-.02a1.772 1.772 0 01.15-.768c.082-.22.232-.406.43-.533a.985.985 0 01.594-.2zm-2.962.059h.036c.142 0 .27.048.399.135.146.129.264.288.344.465.09.199.14.4.153.667v.004c.007.134.006.2-.002.266v.08c-.03.007-.056.018-.083.024-.152.055-.274.135-.393.2.012-.09.013-.18.003-.267v-.015c-.012-.133-.04-.2-.082-.333a.613.613 0 00-.166-.267.248.248 0 00-.183-.064h-.021c-.071.006-.13.04-.186.132a.552.552 0 00-.12.27.944.944 0 00-.023.33v.015c.012.135.037.2.08.334.046.134.098.2.166.268.01.009.02.018.034.024-.07.057-.117.07-.176.136a.304.304 0 01-.131.068 2.62 2.62 0 01-.275-.402 1.772 1.772 0 01-.155-.667 1.759 1.759 0 01.08-.668 1.43 1.43 0 01.283-.535c.128-.133.26-.2.418-.2zm1.37 1.706c.332 0 .733.065 1.216.399.293.2.523.269 1.052.468h.003c.255.136.405.266.478.399v-.131a.571.571 0 01.016.47c-.123.31-.516.643-1.063.842v.002c-.268.135-.501.333-.775.465-.276.135-.588.292-1.012.267a1.139 1.139 0 01-.448-.067 3.566 3.566 0 01-.322-.198c-.195-.135-.363-.332-.612-.465v-.005h-.005c-.4-.246-.616-.512-.686-.71-.07-.268-.005-.47.193-.6.224-.135.38-.271.483-.336.104-.074.143-.102.176-.131h.002v-.003c.169-.202.436-.47.839-.601.139-.036.294-.065.466-.065zm2.8 2.142c.358 1.417 1.196 3.475 1.735 4.473.286.534.855 1.659 1.102 3.024.156-.005.33.018.513.064.646-1.671-.546-3.467-1.089-3.966-.22-.2-.232-.335-.123-.335.59.534 1.365 1.572 1.646 2.757.13.535.16 1.104.021 1.67.067.028.135.06.205.067 1.032.534 1.413.938 1.23 1.537v-.043c-.06-.003-.12 0-.18 0h-.016c.151-.467-.182-.825-1.065-1.224-.915-.4-1.646-.336-1.77.465-.008.043-.013.066-.018.135-.068.023-.139.053-.209.064-.43.268-.662.669-.793 1.187-.13.533-.17 1.156-.205 1.869v.003c-.02.334-.17.838-.319 1.35-1.5 1.072-3.58 1.538-5.348.334a2.645 2.645 0 00-.402-.533 1.45 1.45 0 00-.275-.333c.182 0 .338-.03.465-.067a.615.615 0 00.314-.334c.108-.267 0-.697-.345-1.163-.345-.467-.931-.995-1.788-1.521-.63-.4-.986-.87-1.15-1.396-.165-.534-.143-1.085-.015-1.645.245-1.07.873-2.11 1.274-2.763.107-.065.037.135-.408.974-.396.751-1.14 2.497-.122 3.854a8.123 8.123 0 01.647-2.876c.564-1.278 1.743-3.504 1.836-5.268.048.036.217.135.289.202.218.133.38.333.59.465.21.201.477.335.876.335.039.003.075.006.11.006.412 0 .73-.134.997-.268.29-.134.52-.334.74-.4h.005c.467-.135.835-.402 1.044-.7zm2.185 8.958c.037.6.343 1.245.882 1.377.588.134 1.434-.333 1.791-.765l.211-.01c.315-.007.577.01.847.268l.003.003c.208.199.305.53.391.876.085.4.154.78.409 1.066.486.527.645.906.636 1.14l.003-.007v.018l-.003-.012c-.015.262-.185.396-.498.595-.63.401-1.746.712-2.457 1.57-.618.737-1.37 1.14-2.036 1.191-.664.053-1.237-.2-1.574-.898l-.005-.003c-.21-.4-.12-1.025.056-1.69.176-.668.428-1.344.463-1.897.037-.714.076-1.335.195-1.814.12-.465.308-.797.641-.984l.045-.022zm-10.814.049h.01c.053 0 .105.005.157.014.376.055.706.333 1.023.752l.91 1.664.003.003c.243.533.754 1.064 1.189 1.637.434.598.77 1.131.729 1.57v.006c-.057.744-.48 1.148-1.125 1.294-.645.135-1.52.002-2.395-.464-.968-.536-2.118-.469-2.857-.602-.369-.066-.61-.2-.723-.4-.11-.2-.113-.602.123-1.23v-.004l.002-.003c.117-.334.03-.752-.027-1.118-.055-.401-.083-.71.043-.94.16-.334.396-.4.69-.533.294-.135.64-.202.915-.47h.002v-.002c.256-.268.445-.601.668-.838.19-.201.38-.336.663-.336zm7.159-9.074c-.435.201-.945.535-1.488.535-.542 0-.97-.267-1.28-.466-.154-.134-.28-.268-.373-.335-.164-.134-.144-.333-.074-.333.109.016.129.134.199.2.096.066.215.2.36.333.292.2.68.467 1.167.467.485 0 1.053-.267 1.398-.466.195-.135.445-.334.648-.467.156-.136.149-.267.279-.267.128.016.034.134-.147.332a8.097 8.097 0 01-.69.468zm-1.082-1.583V5.64c-.006-.02.013-.042.029-.05.074-.043.18-.027.26.004.063 0 .16.067.15.135-.006.049-.085.066-.135.066-.055 0-.092-.043-.141-.068-.052-.018-.146-.008-.163-.065zm-.551 0c-.02.058-.113.049-.166.066-.047.025-.086.068-.14.068-.05 0-.13-.02-.136-.068-.01-.066.088-.133.15-.133.08-.031.184-.047.259-.005.019.009.036.03.03.05v.02h.003z"/>
+    return `<svg viewBox="0 0 200 200" width="20" height="20" fill="currentColor">
+      <path d="M 86 9.314 C 84.075 9.924, 80.398 12.521, 77.829 15.084 C 70.519 22.380, 68.812 28.945, 68.235 51.972 L 67.772 70.445 62.052 79.972 C 55.156 91.460, 49.676 104.036, 46.989 114.544 C 44.336 124.918, 44.364 128, 47.114 128 C 50.905 128, 57.099 132.358, 61.343 138.009 C 63.629 141.054, 68.629 148.598, 72.454 154.773 C 76.915 161.974, 80.021 166, 81.115 166 C 83.578 166, 88 160.312, 88 157.146 C 88 153.153, 85.866 150.753, 77.778 145.652 C 67.855 139.393, 64.484 134.512, 64.548 126.500 C 64.614 118.377, 67.810 109.231, 76.298 92.880 L 83.368 79.260 89.620 79.762 C 95.292 80.217, 96.399 79.966, 101.558 77.054 C 104.686 75.289, 107.562 74.217, 107.949 74.672 C 108.337 75.128, 110.696 78.425, 113.192 82 C 121.998 94.612, 127.819 108.580, 130.061 122.478 C 131.092 128.872, 131.550 129.986, 132.895 129.381 C 138.741 126.753, 151.466 128.417, 157.055 132.541 C 158.888 133.893, 161.265 135, 162.335 135 C 164.152 135, 164.244 134.451, 163.719 126.750 C 162.767 112.784, 157.042 99.203, 144.393 80.910 C 134.079 65.992, 133.814 65.275, 128.018 36.515 C 124.518 19.150, 120.009 12.914, 108.438 9.431 C 102.919 7.770, 91.065 7.708, 86 9.314 M 80.269 34.250 C 77.242 37.526, 75.619 43.975, 76.442 49.460 C 77.255 54.882, 79.204 55.111, 80.054 49.884 C 81.068 43.647, 83.504 42.230, 86.732 46 C 89.132 48.803, 92 48.612, 92 45.649 C 92 39.783, 87.438 32, 84 32 C 83.092 32, 81.413 33.013, 80.269 34.250 M 100.313 34.250 C 97.920 36.894, 96 42.160, 96 46.076 C 96 49.981, 99.114 50.445, 100.702 46.776 C 102.932 41.624, 108 44.124, 108 50.375 C 108 52.821, 109.582 54.751, 110.684 53.650 C 111.947 52.387, 112.143 43.956, 110.994 40.369 C 109.539 35.831, 106.338 32, 104 32 C 103.092 32, 101.433 33.013, 100.313 34.250 M 86.500 57.861 C 84.850 58.880, 82.648 60.672, 81.607 61.844 C 79.726 63.960, 79.742 64, 84.107 67.946 C 89.740 73.039, 92.581 73.078, 100.996 68.179 C 107.050 64.654, 109.977 61, 106.746 61 C 105.975 61, 102.576 59.875, 99.192 58.500 C 91.841 55.513, 90.417 55.441, 86.500 57.861 M 38.684 141.994 C 33.434 147.146, 31.912 148.075, 27.832 148.617 C 25.080 148.982, 22.361 150.048, 21.358 151.157 C 19.729 152.957, 19.726 153.339, 21.315 157.784 C 23.630 164.264, 23.697 167.011, 21.643 171.339 C 18.321 178.339, 20.795 180.711, 34.783 183.935 C 39.889 185.112, 47.683 187.408, 52.102 189.037 C 64.491 193.605, 71.442 192.804, 74.452 186.460 C 77.655 179.710, 76.751 176.667, 66.750 160.551 C 57.179 145.127, 49.680 136, 46.579 136 C 45.595 136, 42.042 138.697, 38.684 141.994 M 136.092 136.922 C 134.899 137.677, 134.954 138.400, 136.452 141.657 C 138.709 146.561, 140.575 148, 144.675 148 C 149.236 148, 154.993 142.927, 153.404 140.307 C 151.342 136.907, 139.708 134.633, 136.092 136.922 M 128 153.810 C 128 159.470, 127.246 165.603, 125.889 170.966 C 123.276 181.302, 123.754 186.531, 127.616 189.854 C 129.997 191.901, 131.164 192.159, 136.519 191.818 C 142.165 191.458, 143.219 190.999, 149.091 186.335 C 152.616 183.535, 159.100 179.094, 163.500 176.466 C 178.053 167.772, 178.883 165.905, 170.561 160.582 C 165.193 157.149, 163.024 153.464, 163.006 147.750 C 162.997 145.182, 162.208 145.532, 156.983 150.419 C 151.538 155.513, 145.535 157.076, 138.974 155.110 C 135.090 153.947, 130 149.019, 130 146.423 C 130 145.640, 129.550 145, 129 145 C 128.409 145, 128 148.603, 128 153.810 M 112.071 173.227 C 104.721 176.981, 95.850 177.075, 88.131 173.481 L 82.762 170.982 83.367 173.241 C 83.700 174.483, 83.979 177.412, 83.986 179.750 L 84 184 100 184 L 116 184 116 180.065 C 116 177.901, 116.463 174.913, 117.028 173.426 C 117.593 171.939, 117.931 170.662, 117.778 170.588 C 117.625 170.515, 115.057 171.702, 112.071 173.227" stroke="none" fill="currentColor" fill-rule="evenodd"/>
     </svg>`;
   }
 
@@ -233,9 +434,15 @@
     </svg>`;
   }
 
-  // 6. Ініціалізація при завантаженні DOM
+  // 12. Ініціалізація компонентів при завантаженні DOM
   document.addEventListener('DOMContentLoaded', () => {
     initTheme();
     fetchLatestRelease();
+    updateDesktopClocks();
+    setInterval(updateDesktopClocks, 10000);
+    initDesktopToastLoop();
+    initMapAlertSimulation();
+    initMapOverlayObserver();
+    initTrayFeatureCycle();
   });
 })();

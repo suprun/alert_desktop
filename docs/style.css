@@ -108,6 +108,11 @@ html {
 body {
   font-family: var(--font-sans);
   background-color: var(--bg-body);
+  background-image: 
+    radial-gradient(ellipse 90% 55% at 50% -10%, var(--accent-glow) 0%, transparent 60%),
+    radial-gradient(ellipse 65% 45% at 90% 45%, rgba(0, 120, 212, 0.08) 0%, transparent 55%),
+    radial-gradient(ellipse 70% 50% at 10% 85%, rgba(0, 120, 212, 0.06) 0%, transparent 60%);
+  background-attachment: fixed;
   color: var(--text-primary);
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
@@ -115,21 +120,6 @@ body {
   overflow-x: hidden;
   position: relative;
   min-height: 100vh;
-}
-
-/* Фонове атмосферне підсвічування */
-body::before {
-  content: '';
-  position: fixed;
-  top: -150px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 900px;
-  height: 500px;
-  background: radial-gradient(circle, var(--accent-glow) 0%, rgba(0, 120, 212, 0.03) 60%, transparent 80%);
-  pointer-events: none;
-  z-index: 0;
-  opacity: 0.85;
 }
 
 .container {
@@ -396,14 +386,303 @@ body::before {
 }
 
 /* ==========================================================================
-   Window Mockup Preview
+   Window Mockup Preview & Desktop Screen Simulation
    ========================================================================== */
 
 .mockup-wrapper {
   margin: 0 auto;
-  max-width: 980px;
+  max-width: 1040px;
+  position: relative;
 }
 
+/* Псевдо-екран ОС клієнта */
+.desktop-screen-mockup {
+  position: relative;
+  border-radius: 20px;
+  background: radial-gradient(circle at 50% 15%, rgba(30, 41, 59, 0.55) 0%, rgba(13, 16, 22, 0.95) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 32px 80px -20px rgba(0, 0, 0, 0.75), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  overflow: hidden;
+  padding: 30px 24px 68px 24px;
+  transition: all var(--transition-normal);
+}
+
+html.theme-light .desktop-screen-mockup {
+  background: radial-gradient(circle at 50% 15%, rgba(226, 232, 240, 0.7) 0%, rgba(203, 213, 225, 0.92) 100%);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  box-shadow: 0 24px 60px -15px rgba(0, 0, 0, 0.14), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+/* macOS / Linux версія екрана */
+.desktop-screen-mockup.os-macos,
+.desktop-screen-mockup.os-linux {
+  padding: 58px 24px 30px 24px;
+}
+
+/* Верхня панель (macOS / Linux) */
+.desktop-topbar {
+  display: none;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 36px;
+  background: rgba(22, 27, 34, 0.82);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 18px;
+  z-index: 10;
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+}
+
+html.theme-light .desktop-topbar {
+  background: rgba(245, 247, 250, 0.85);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  color: var(--text-primary);
+}
+
+.os-macos .desktop-topbar,
+.os-linux .desktop-topbar {
+  display: flex;
+}
+
+.topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.topbar-brand-icon {
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+}
+
+.topbar-app-title {
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.01em;
+}
+
+.topbar-menu-label {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  cursor: default;
+}
+
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.topbar-tray-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background-color: var(--safe-green);
+  box-shadow: 0 0 8px rgba(16, 185, 129, 0.7);
+}
+
+.topbar-status-icon img {
+  display: block;
+  border-radius: 3px;
+}
+
+.topbar-clock {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Нижня панель завдань (Windows Taskbar) */
+.desktop-taskbar {
+  display: none;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 48px;
+  background: rgba(18, 22, 28, 0.86);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  z-index: 10;
+}
+
+html.theme-light .desktop-taskbar {
+  background: rgba(240, 243, 248, 0.88);
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.os-windows .desktop-taskbar {
+  display: flex;
+}
+
+.taskbar-center-group {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.taskbar-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+  position: relative;
+  transition: all var(--transition-fast);
+  cursor: default;
+}
+
+.taskbar-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-primary);
+}
+
+html.theme-light .taskbar-btn:hover {
+  background: rgba(0, 0, 0, 0.06);
+}
+
+.taskbar-btn-start {
+  color: var(--accent-primary);
+}
+
+.taskbar-app-active {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.taskbar-pip {
+  position: absolute;
+  bottom: 3px;
+  width: 14px;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--accent-primary);
+}
+
+.taskbar-tray-group {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.taskbar-tray-item {
+  display: flex;
+  align-items: center;
+  cursor: default;
+}
+
+.taskbar-clock {
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Плаваюча нативна нотифікація (Toast Notification) */
+.desktop-toast-card {
+  position: absolute;
+  z-index: 25;
+  width: 320px;
+  max-width: calc(100% - 40px);
+  background: rgba(20, 24, 32, 0.94);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.06);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1), transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  text-align: left;
+}
+
+html.theme-light .desktop-toast-card {
+  background: rgba(255, 255, 255, 0.94);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  box-shadow: 0 14px 32px rgba(0, 0, 0, 0.12);
+}
+
+/* Розташування для Windows: у лівому нижньому куті! */
+.os-windows .desktop-toast-card {
+  bottom: 58px;
+  left: 20px;
+  transform: translateY(18px);
+}
+
+/* Розташування для macOS / Linux: у лівому верхньому куті! */
+.os-macos .desktop-toast-card,
+.os-linux .desktop-toast-card {
+  top: 46px;
+  left: 20px;
+  transform: translateY(-18px);
+}
+
+.desktop-toast-card.toast-visible {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
+.toast-card-icon img {
+  display: block;
+  border-radius: var(--radius-sm);
+}
+
+.toast-card-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.toast-card-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 2px;
+  font-size: 0.74rem;
+  color: var(--text-muted);
+}
+
+.toast-card-app {
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.toast-card-title {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 3px;
+  line-height: 1.3;
+}
+
+.toast-card-desc {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  line-height: 1.35;
+}
+
+/* Вікно застосунку (BrowserWindow Mockup) */
 .app-mockup {
   background-color: var(--bg-surface);
   border: 1px solid var(--border-strong);
@@ -411,6 +690,8 @@ body::before {
   box-shadow: var(--shadow-mockup);
   overflow: hidden;
   text-align: left;
+  position: relative;
+  z-index: 2;
 }
 
 .mockup-titlebar {
@@ -516,7 +797,7 @@ html.theme-light .mockup-map-body {
   stroke: #2f384a;
   stroke-width: 1.2px;
   stroke-linejoin: round;
-  transition: fill 0.2s ease, stroke 0.2s ease;
+  transition: fill 0.8s ease, stroke 0.8s ease, filter 0.8s ease;
 }
 
 .ukraine-admin-map .map-water {
@@ -528,6 +809,19 @@ html.theme-light .mockup-map-body {
 .ukraine-admin-map .map-oblast:hover {
   fill: #272f3e;
   stroke: #3b82f6;
+}
+
+/* Динамічні статуси тривоги для областей мапи */
+.ukraine-admin-map .map-oblast.state-red {
+  fill: #dc2626 !important;
+  stroke: #ef4444 !important;
+  filter: drop-shadow(0 0 7px rgba(239, 68, 68, 0.65));
+}
+
+.ukraine-admin-map .map-oblast.state-yellow {
+  fill: #d97706 !important;
+  stroke: #f59e0b !important;
+  filter: drop-shadow(0 0 7px rgba(245, 158, 11, 0.55));
 }
 
 /* Стилі областей у світлій темі */
@@ -548,24 +842,45 @@ html.theme-light .ukraine-admin-map .map-oblast:hover {
   stroke: #0284c7;
 }
 
+html.theme-light .ukraine-admin-map .map-oblast.state-red {
+  fill: #ef4444 !important;
+  stroke: #dc2626 !important;
+}
+
+html.theme-light .ukraine-admin-map .map-oblast.state-yellow {
+  fill: #f59e0b !important;
+  stroke: #d97706 !important;
+}
+
+/* Плашка Frosted Glass «Інтерактивна мапа тривог» */
 .mockup-map-overlay {
   position: relative;
   z-index: 2;
   text-align: center;
-  padding: 22px 28px;
-  background: rgba(18, 21, 26, 0.84);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: var(--radius-md);
-  max-width: 420px;
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+  padding: 24px 32px;
+  background: rgba(15, 19, 27, 0.45);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: var(--radius-lg);
+  max-width: 440px;
+  box-shadow: 0 20px 48px rgba(0, 0, 0, 0.42), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  opacity: 0;
+  transform: scale(0.96) translateY(14px);
+  transition: opacity 0.75s cubic-bezier(0.16, 1, 0.3, 1), transform 0.75s cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: none;
 }
 
 html.theme-light .mockup-map-overlay {
-  background: rgba(255, 255, 255, 0.9);
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.08);
+  background: rgba(255, 255, 255, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.75);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.08), inset 0 1px 0 #ffffff;
+}
+
+.mockup-map-overlay.is-visible {
+  opacity: 1;
+  transform: scale(1) translateY(0);
+  pointer-events: auto;
 }
 
 .mockup-overlay-icon {
@@ -582,14 +897,16 @@ html.theme-light .mockup-map-overlay {
 }
 
 .mockup-overlay-title {
-  font-size: 1.05rem;
-  font-weight: 600;
-  margin-bottom: 4px;
+  font-size: 1.08rem;
+  font-weight: 700;
+  margin-bottom: 6px;
+  letter-spacing: -0.01em;
 }
 
 .mockup-overlay-desc {
-  font-size: 0.86rem;
+  font-size: 0.88rem;
   color: var(--text-secondary);
+  line-height: 1.45;
 }
 
 /* ==========================================================================
@@ -708,6 +1025,10 @@ html.theme-light .mockup-map-overlay {
   background: var(--accent-hover);
 }
 
+.platform-icon-macos svg {
+  transform: translateY(-2px);
+}
+
 .platform-alt-links {
   list-style: none;
   display: flex;
@@ -725,20 +1046,48 @@ html.theme-light .mockup-map-overlay {
   text-decoration: none;
   font-size: 0.84rem;
   color: var(--text-secondary);
-  transition: color var(--transition-fast);
+  background: var(--bg-surface);
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-color);
+  transition: all var(--transition-fast);
+  gap: 8px;
 }
 
 .platform-alt-item a:hover {
+  color: var(--text-primary);
+  border-color: var(--accent-primary);
+  background: var(--bg-card-hover);
+  transform: translateY(-1.5px);
+  box-shadow: 0 4px 12px rgba(0, 120, 212, 0.15);
+}
+
+.alt-link-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.download-icon-mini {
   color: var(--accent-primary);
+  flex-shrink: 0;
+  transition: transform var(--transition-fast);
+}
+
+.platform-alt-item a:hover .download-icon-mini {
+  transform: translateY(1.5px);
 }
 
 .arch-tag {
   font-size: 0.72rem;
-  padding: 1px 6px;
+  padding: 2px 7px;
   border-radius: var(--radius-sm);
-  background: var(--bg-surface);
+  background: var(--bg-card);
   color: var(--text-muted);
   border: 1px solid var(--border-color);
+  font-weight: 500;
+  flex-shrink: 0;
 }
 
 .downloads-all-cta {
@@ -766,14 +1115,21 @@ html.theme-light .mockup-map-overlay {
 }
 
 /* ==========================================================================
-   Features Section (Curated & Clean)
+   Features Section (Curated, Clean & Seamless)
    ========================================================================== */
 
 .section-features {
   padding: 80px 0;
-  background: var(--bg-surface);
+  background: rgba(20, 23, 28, 0.55);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   border-top: 1px solid var(--border-color);
   border-bottom: 1px solid var(--border-color);
+  position: relative;
+}
+
+html.theme-light .section-features {
+  background: rgba(241, 245, 249, 0.65);
 }
 
 .features-grid {
@@ -788,6 +1144,8 @@ html.theme-light .mockup-map-overlay {
   border-radius: var(--radius-lg);
   padding: 32px 28px;
   transition: all var(--transition-normal);
+  position: relative;
+  overflow: hidden;
 }
 
 .feature-card:hover {
@@ -797,8 +1155,8 @@ html.theme-light .mockup-map-overlay {
 }
 
 .feature-icon-box {
-  width: 44px;
-  height: 44px;
+  width: 46px;
+  height: 46px;
   border-radius: var(--radius-md);
   display: flex;
   align-items: center;
@@ -806,6 +1164,54 @@ html.theme-light .mockup-map-overlay {
   margin-bottom: 20px;
   background: var(--accent-glow);
   color: var(--accent-primary);
+  border: 1px solid rgba(0, 120, 212, 0.25);
+  transition: all var(--transition-normal);
+}
+
+.feature-card:hover .feature-icon-box {
+  transform: scale(1.06);
+}
+
+/* Динамічна іконка трею зі зміною загроз */
+.feature-tray-dynamic {
+  transition: all 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+  cursor: pointer;
+}
+
+.feature-tray-dynamic.threat-safe {
+  background: var(--safe-bg);
+  color: var(--safe-green);
+  border-color: var(--safe-border);
+  box-shadow: 0 0 16px rgba(16, 185, 129, 0.25);
+}
+
+.feature-tray-dynamic.threat-alert {
+  background: var(--alert-bg);
+  color: var(--alert-red);
+  border-color: var(--alert-border);
+  box-shadow: 0 0 18px rgba(239, 68, 68, 0.4);
+  animation: trayAlertPulse 1.8s infinite;
+}
+
+.feature-tray-dynamic.threat-drone {
+  background: var(--warning-bg);
+  color: var(--warning-amber);
+  border-color: var(--warning-border);
+  box-shadow: 0 0 16px rgba(245, 158, 11, 0.35);
+}
+
+.feature-tray-dynamic.threat-missile {
+  background: rgba(220, 38, 38, 0.22);
+  color: #ff3344;
+  border-color: rgba(220, 38, 38, 0.5);
+  box-shadow: 0 0 20px rgba(220, 38, 38, 0.45);
+  animation: trayAlertPulse 1.2s infinite;
+}
+
+@keyframes trayAlertPulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.08); }
+  100% { transform: scale(1); }
 }
 
 .feature-title {
