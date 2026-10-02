@@ -106,6 +106,10 @@ jobs:
         run: |
           mkdir -p release-dist
           find all-artifacts -type f -exec cp {} release-dist/ \;
+          cd release-dist
+          sha256sum *.exe *.dmg *.zip *.AppImage *.deb 2>/dev/null > SHA256SUMS.txt || true
+          cat SHA256SUMS.txt
+          cd ..
           ls -la release-dist/
 
       - name: Create or Update GitHub Release
@@ -122,6 +126,7 @@ jobs:
             release-dist/*.AppImage
             release-dist/*.deb
             release-dist/*.7z
+            release-dist/SHA256SUMS.txt
             scripts/install.sh
           draft: false
           prerelease: false
