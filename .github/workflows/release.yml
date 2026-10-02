@@ -68,7 +68,6 @@ jobs:
             dist/*.blockmap
             dist/*.yml
             dist/*.dmg
-            dist/*.pkg
             dist/*.zip
             dist/*.AppImage
             dist/*.deb
@@ -119,7 +118,6 @@ jobs:
             release-dist/*.blockmap
             release-dist/*.yml
             release-dist/*.dmg
-            release-dist/*.pkg
             release-dist/*.zip
             release-dist/*.AppImage
             release-dist/*.deb
