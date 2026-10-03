@@ -1,0 +1,15 @@
+[Desktop Entry]
+Name=Повітряні тривоги
+GenericName=Моніторинг повітряних тривог
+Comment=Оперативний десктопний клієнт моніторингу повітряних тривог в Україні
+Name[en]=AlertDesktop
+GenericName[en]=Air Raid Alerts Monitor
+Comment[en]=Real-time air raid and threat monitoring desktop client for Ukraine
+Exec=alert-desktop %U
+Terminal=false
+Type=Application
+Icon=ua.in.alerts.desktop
+StartupWMClass=alert-desktop
+Categories=Utility;Security;Network;
+Keywords=alert;air-raid;siren;ukraine;security;тривога;сирена;
+MimeType=x-scheme-handler/alertdesktop;

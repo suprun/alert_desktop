@@ -24,10 +24,13 @@
     winX64: `${GITHUB_RELEASES_URL}/download/${FALLBACK_VERSION}/AlertDesktop-x64-Setup-${FALLBACK_VERSION}.exe`,
     winArm64: `${GITHUB_RELEASES_URL}/download/${FALLBACK_VERSION}/AlertDesktop-arm64-Setup-${FALLBACK_VERSION}.exe`,
     winMsix: `${GITHUB_RELEASES_URL}/download/${FALLBACK_VERSION}/AlertDesktop-x64-${FALLBACK_VERSION}.msix`,
+    winPortable: `${GITHUB_RELEASES_URL}/download/${FALLBACK_VERSION}/AlertDesktop-x64-Portable-${FALLBACK_VERSION}.exe`,
     macDmg: `${GITHUB_RELEASES_URL}/download/${FALLBACK_VERSION}/AlertDesktop-universal-${FALLBACK_VERSION}.dmg`,
     macZip: `${GITHUB_RELEASES_URL}/download/${FALLBACK_VERSION}/AlertDesktop-universal-${FALLBACK_VERSION}.zip`,
     linuxAppImage: `${GITHUB_RELEASES_URL}/download/${FALLBACK_VERSION}/AlertDesktop-x86_64-${FALLBACK_VERSION}.AppImage`,
-    linuxDeb: `${GITHUB_RELEASES_URL}/download/${FALLBACK_VERSION}/AlertDesktop-amd64-${FALLBACK_VERSION}.deb`
+    linuxDeb: `${GITHUB_RELEASES_URL}/download/${FALLBACK_VERSION}/AlertDesktop-amd64-${FALLBACK_VERSION}.deb`,
+    linuxSnap: `${GITHUB_RELEASES_URL}/download/${FALLBACK_VERSION}/AlertDesktop-amd64-${FALLBACK_VERSION}.snap`,
+    linuxFlatpak: `${GITHUB_RELEASES_URL}/download/${FALLBACK_VERSION}/AlertDesktop-x86_64-${FALLBACK_VERSION}.flatpak`
   };
 
   // 1. Визначення операційної системи відвідувача
@@ -126,12 +129,18 @@
               currentLinks.winX64 = url;
             } else if (name.includes('arm64-setup') && name.endsWith('.exe')) {
               currentLinks.winArm64 = url;
+            } else if (name.includes('portable') && name.endsWith('.exe')) {
+              currentLinks.winPortable = url;
             } else if (name.includes('setup') && name.endsWith('.exe')) {
               currentLinks.win = url;
             } else if (name.endsWith('.msix')) {
               if (name.includes('x64') || !currentLinks.winMsix) {
                 currentLinks.winMsix = url;
               }
+            } else if (name.endsWith('.snap')) {
+              currentLinks.linuxSnap = url;
+            } else if (name.endsWith('.flatpak')) {
+              currentLinks.linuxFlatpak = url;
             } else if (name.includes('universal') && name.endsWith('.dmg')) {
               currentLinks.macDmg = url;
             } else if (!currentLinks.macDmg && name.endsWith('.dmg')) {
@@ -180,10 +189,13 @@
     setHref('link-win-arm64', links.winArm64);
     setHref('link-win-universal', links.win);
     setHref('link-win-msix', links.winMsix);
+    setHref('link-win-portable', links.winPortable);
     setHref('link-mac-main', links.macDmg);
     setHref('link-mac-zip', links.macZip);
     setHref('link-linux-main', links.linuxAppImage);
     setHref('link-linux-deb', links.linuxDeb);
+    setHref('link-linux-snap', links.linuxSnap);
+    setHref('link-linux-flatpak', links.linuxFlatpak);
   }
 
   // 5. Системні годинники для панелей псевдо-ОС

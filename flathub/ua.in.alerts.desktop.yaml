@@ -1,0 +1,53 @@
+app-id: ua.in.alerts.desktop
+runtime: org.freedesktop.Platform
+runtime-version: '24.08'
+sdk: org.freedesktop.Sdk
+base: org.electronjs.Electron2.BaseApp
+base-version: '24.08'
+command: alert-desktop
+separate-locales: false
+
+finish-args:
+  # Дозволи для графічного інтерфейсу (X11 та Wayland)
+  - --share=ipc
+  - --socket=x11
+  - --socket=wayland
+  - --device=dri
+
+  # Аудіосигнали тривоги
+  - --socket=pulseaudio
+
+  # Мережеві запити до шлюзу тривог та WebSocket
+  - --share=network
+
+  # Системні сповіщення Linux
+  - --talk-name=org.freedesktop.Notifications
+
+  # Інтеграція в системний трей (StatusNotifierItem / AppIndicator)
+  - --talk-name=org.kde.StatusNotifierWatcher
+  - --own-name=org.kde.StatusNotifierItem-*-*
+
+modules:
+  - name: alert-desktop
+    buildsystem: simple
+    build-commands:
+      # Завантаження та розпакування скомпільованого релізу з GitHub
+      - bsdtar -xf alert-desktop-linux.tar.gz -C /app/
+      - install -Dm755 /app/alert-desktop /app/bin/alert-desktop
+      # Десктопний файл, метаінформація та іконки
+      - install -Dm644 ua.in.alerts.desktop.desktop /app/share/applications/ua.in.alerts.desktop.desktop
+      - install -Dm644 ua.in.alerts.desktop.metainfo.xml /app/share/metainfo/ua.in.alerts.desktop.metainfo.xml
+      - install -Dm644 icons/128x128.png /app/share/icons/hicolor/128x128/apps/ua.in.alerts.desktop.png
+      - install -Dm644 icons/256x256.png /app/share/icons/hicolor/256x256/apps/ua.in.alerts.desktop.png
+      - install -Dm644 icons/512x512.png /app/share/icons/hicolor/512x512/apps/ua.in.alerts.desktop.png
+    sources:
+      - type: archive
+        url: https://github.com/suprun/alert_desktop/releases/download/v1.0.54/AlertDesktop-linux-x64-v1.0.54.tar.gz
+        sha256: 0000000000000000000000000000000000000000000000000000000000000000
+        only-arches: [x86_64]
+      - type: file
+        path: ua.in.alerts.desktop.desktop
+      - type: file
+        path: ua.in.alerts.desktop.metainfo.xml
+      - type: dir
+        path: icons

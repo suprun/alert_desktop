@@ -13,6 +13,15 @@ let mode = 'win';
 if (args.includes('--msix-x64')) mode = 'msix-x64';
 else if (args.includes('--msix-arm64')) mode = 'msix-arm64';
 else if (args.includes('--msix')) mode = 'msix';
+else if (args.includes('--portable-x64')) mode = 'portable-x64';
+else if (args.includes('--portable-arm64')) mode = 'portable-arm64';
+else if (args.includes('--portable')) mode = 'portable';
+else if (args.includes('--snap-x64')) mode = 'snap-x64';
+else if (args.includes('--snap-arm64')) mode = 'snap-arm64';
+else if (args.includes('--snap')) mode = 'snap';
+else if (args.includes('--flatpak-x64')) mode = 'flatpak-x64';
+else if (args.includes('--flatpak-arm64')) mode = 'flatpak-arm64';
+else if (args.includes('--flatpak')) mode = 'flatpak';
 else if (args.includes('--web')) mode = 'web';
 else if (args.includes('--linux')) mode = 'linux';
 else if (args.includes('--mac')) mode = 'mac';
@@ -98,6 +107,54 @@ async function build() {
       ensureAppxAssets();
       console.log('\n2. Компіляція Windows ARM64 MSIX пакета для Microsoft Store...');
       runBuilder(['--win', '--target', 'appx', '--arm64']);
+      break;
+    }
+    case 'portable': {
+      ensureWindowsIcon();
+      console.log('\n2. Компіляція Windows Portable (.exe без встановлення, x64 + ARM64)...');
+      runBuilder(['--win', '--target', 'portable', '--x64', '--arm64']);
+      break;
+    }
+    case 'portable-x64': {
+      ensureWindowsIcon();
+      console.log('\n2. Компіляція Windows x64 Portable (.exe)...');
+      runBuilder(['--win', '--target', 'portable', '--x64']);
+      break;
+    }
+    case 'portable-arm64': {
+      ensureWindowsIcon();
+      console.log('\n2. Компіляція Windows ARM64 Portable (.exe)...');
+      runBuilder(['--win', '--target', 'portable', '--arm64']);
+      break;
+    }
+    case 'snap': {
+      console.log('\n2. Компіляція Snap пакетів для Linux (amd64 + arm64)...');
+      runBuilder(['--linux', '--target', 'snap', '--x64', '--arm64']);
+      break;
+    }
+    case 'snap-x64': {
+      console.log('\n2. Компіляція Snap пакета для Linux (amd64)...');
+      runBuilder(['--linux', '--target', 'snap', '--x64']);
+      break;
+    }
+    case 'snap-arm64': {
+      console.log('\n2. Компіляція Snap пакета для Linux (arm64)...');
+      runBuilder(['--linux', '--target', 'snap', '--arm64']);
+      break;
+    }
+    case 'flatpak': {
+      console.log('\n2. Компіляція Flatpak пакетів для Linux (x64 + arm64)...');
+      runBuilder(['--linux', '--target', 'flatpak', '--x64', '--arm64']);
+      break;
+    }
+    case 'flatpak-x64': {
+      console.log('\n2. Компіляція Flatpak пакета для Linux (x64)...');
+      runBuilder(['--linux', '--target', 'flatpak', '--x64']);
+      break;
+    }
+    case 'flatpak-arm64': {
+      console.log('\n2. Компіляція Flatpak пакета для Linux (arm64)...');
+      runBuilder(['--linux', '--target', 'flatpak', '--arm64']);
       break;
     }
     case 'web': {

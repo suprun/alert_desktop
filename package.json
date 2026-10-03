@@ -1,6 +1,6 @@
 {
   "name": "alert-desktop",
-  "version": "1.0.53",
+  "version": "1.0.54",
   "description": "Десктопний клієнт для моніторингу повітряних тривог на базі Electron",
   "main": "src/main/main.js",
   "repository": {
@@ -21,8 +21,17 @@
     "dist:msix": "node scripts/build_installer.js --msix",
     "dist:msix:x64": "node scripts/build_installer.js --msix-x64",
     "dist:msix:arm64": "node scripts/build_installer.js --msix-arm64",
+    "dist:portable": "node scripts/build_installer.js --portable",
+    "dist:portable:x64": "node scripts/build_installer.js --portable-x64",
+    "dist:portable:arm64": "node scripts/build_installer.js --portable-arm64",
     "dist:web": "node scripts/build_installer.js --web",
     "dist:linux": "node scripts/build_installer.js --linux",
+    "dist:snap": "node scripts/build_installer.js --snap",
+    "dist:snap:x64": "node scripts/build_installer.js --snap-x64",
+    "dist:snap:arm64": "node scripts/build_installer.js --snap-arm64",
+    "dist:flatpak": "node scripts/build_installer.js --flatpak",
+    "dist:flatpak:x64": "node scripts/build_installer.js --flatpak-x64",
+    "dist:flatpak:arm64": "node scripts/build_installer.js --flatpak-arm64",
     "dist:mac": "node scripts/build_installer.js --mac",
     "dist:all": "node scripts/build_installer.js --all",
     "reset:config": "node scripts/reset_config.js",
@@ -119,6 +128,42 @@
       ],
       "showNameOnTiles": false,
       "addAutoLaunchExtension": true
+    },
+    "portable": {
+      "artifactName": "${productName}-${arch}-Portable-v${version}.${ext}",
+      "requestExecutionLevel": "asInvoker",
+      "splashImage": null
+    },
+    "snap": {
+      "summary": "Оперативний десктопний клієнт моніторингу повітряних тривог",
+      "category": "Utility",
+      "grade": "stable",
+      "confinement": "strict",
+      "autoStart": true,
+      "plugs": [
+        "default",
+        "network",
+        "audio-playback",
+        "unity7"
+      ]
+    },
+    "flatpak": {
+      "license": "LICENSE",
+      "runtime": "org.freedesktop.Platform",
+      "runtimeVersion": "24.08",
+      "sdk": "org.freedesktop.Sdk",
+      "base": "org.electronjs.Electron2.BaseApp",
+      "baseVersion": "24.08",
+      "finishArgs": [
+        "--socket=wayland",
+        "--socket=x11",
+        "--share=ipc",
+        "--device=dri",
+        "--socket=pulseaudio",
+        "--share=network",
+        "--talk-name=org.freedesktop.Notifications",
+        "--talk-name=org.kde.StatusNotifierWatcher"
+      ]
     },
     "mac": {
       "category": "public.app-category.utilities",

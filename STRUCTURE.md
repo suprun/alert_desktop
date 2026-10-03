@@ -75,11 +75,17 @@ alert_desktop/
 │   ├── app.js                            # Логіка визначення ОС, GitHub Releases API та перемикача тем
 │   └── assets/                           # Графічні матеріали (векторна карта ukraine-map.svg, логотипи apple.svg, linux.svg, app-icon)
 │
+├── flathub/                              # Комплект для офіційної публікації у глобальному каталозі Flathub
+│   ├── ua.in.alerts.desktop.yaml         # Маніфест збірки Flatpak
+│   ├── ua.in.alerts.desktop.metainfo.xml # Метадані AppStream для магазинів застосунків (Discover, GNOME Software)
+│   ├── ua.in.alerts.desktop.desktop      # XDG Desktop-файл запуску
+│   └── README.md                         # Інструкція з відкриття Pull Request до flathub/flathub
+│
 ├── installer/                            # Кастомні конфігураційні скрипти інсталятора
 │   └── installer.nsh                     # Хуки NSIS (дефолтна українська мова в preInit, збереження мови, багатомовні діалоги UA/EN, автозапуск)
 │
 ├── scripts/                              # Допоміжні скрипти генерації та обслуговування
-│   ├── build_installer.js                # Мультиплатформенна збірка інсталяторів (--win, --win-x64, --win-arm64, --msix, --msix-x64, --msix-arm64, --web, --linux, --mac, --all)
+│   ├── build_installer.js                # Мультиплатформенна збірка інсталяторів (--win, --win-x64, --win-arm64, --msix, --portable, --linux, --snap, --flatpak, --mac, --all)
 │   ├── deploy_remote.py                  # Автоматизоване SSH/SFTP розгортання проксі-сервера на Ubuntu
 │   ├── download_assets.js                # Завантаження шрифтів Inter у репозиторій
 │   ├── generate_appx_assets.js           # Генерація плиток та логотипів AppX/MSIX для Windows і Microsoft Store

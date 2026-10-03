@@ -24,13 +24,13 @@ jobs:
         include:
           - os: windows-latest
             target: Windows
-            build-script: npm run dist:win && npm run dist:msix
+            build-script: npm run dist:win && npm run dist:msix && npm run dist:portable
           - os: macos-latest
             target: macOS
             build-script: npm run dist:mac
           - os: ubuntu-latest
             target: Linux
-            build-script: npm run dist:linux
+            build-script: npm run dist:linux && npm run dist:snap && npm run dist:flatpak
 
     steps:
       - name: Checkout repository
@@ -44,6 +44,13 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+
+      - name: Install Linux build dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y flatpak flatpak-builder snapd
+        shell: bash
 
       - name: Run verification tests
         run: |
@@ -72,6 +79,8 @@ jobs:
             dist/*.zip
             dist/*.AppImage
             dist/*.deb
+            dist/*.snap
+            dist/*.flatpak
             dist/nsis-web/*
           if-no-files-found: warn
 
@@ -108,7 +117,7 @@ jobs:
           mkdir -p release-dist
           find all-artifacts -type f -exec cp {} release-dist/ \;
           cd release-dist
-          sha256sum *.exe *.msix *.dmg *.zip *.AppImage *.deb 2>/dev/null > SHA256SUMS.txt || true
+          sha256sum *.exe *.msix *.dmg *.zip *.AppImage *.deb *.snap *.flatpak 2>/dev/null > SHA256SUMS.txt || true
           cat SHA256SUMS.txt
           cd ..
           ls -la release-dist/
@@ -127,6 +136,8 @@ jobs:
             release-dist/*.zip
             release-dist/*.AppImage
             release-dist/*.deb
+            release-dist/*.snap
+            release-dist/*.flatpak
             release-dist/*.7z
             release-dist/SHA256SUMS.txt
             scripts/install.sh
@@ -135,3 +146,13 @@ jobs:
           generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish to Snap Store
+        if: env.SNAPCRAFT_STORE_CREDENTIALS != ''
+        uses: snapcore/action-publish@v1
+        env:
+          SNAP_STORE_ACTION: publish
+          SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
+        with:
+          snap: release-dist/*.snap
+          release: stable

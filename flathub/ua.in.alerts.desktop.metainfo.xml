@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>ua.in.alerts.desktop</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>Apache-2.0</project_license>
+  <name>AlertDesktop</name>
+  <summary>Real-time air raid and threat monitoring desktop client for Ukraine</summary>
+  <summary xml:lang="uk">Оперативний десктопний клієнт моніторингу повітряних тривог в Україні</summary>
+  
+  <description>
+    <p>
+      AlertDesktop is an open-source desktop client for monitoring air raid alerts and threats across Ukraine.
+      It features real-time notifications, system tray integration with threat status indicators, customizable audio signals, and an interactive map.
+    </p>
+    <p xml:lang="uk">
+      AlertDesktop — це вільний десктопний клієнт для моніторингу повітряних тривог та загроз по всій Україні.
+      Застосунок забезпечує нативні системні сповіщення, інтеграцію в системний трей із кольоровими статусами загроз (шахеди, балістика, ракети, авіація), налаштовувані звукові сигнали та інтерактивну мапу.
+    </p>
+  </description>
+
+  <launchable type="desktop-id">ua.in.alerts.desktop.desktop</launchable>
+
+  <url type="homepage">https://suprun.github.io/alert_desktop/</url>
+  <url type="bugtracker">https://github.com/suprun/alert_desktop/issues</url>
+  <url type="vcs-browser">https://github.com/suprun/alert_desktop</url>
+
+  <categories>
+    <category>Utility</category>
+    <category>Security</category>
+    <category>Network</category>
+  </categories>
+
+  <developer_name>suprun</developer_name>
+  <developer id="github.com">
+    <name>suprun</name>
+  </developer>
+
+  <provides>
+    <binary>alert-desktop</binary>
+  </provides>
+
+  <screenshots>
+    <screenshot type="default">
+      <image>https://raw.githubusercontent.com/suprun/alert_desktop/main/docs/assets/screenshot-main.png</image>
+      <caption>AlertDesktop interface with live threats map</caption>
+      <caption xml:lang="uk">Інтерфейс AlertDesktop з інтерактивною мапою тривог</caption>
+    </screenshot>
+  </screenshots>
+
+  <content_rating type="oars-1.1" />
+
+  <releases>
+    <release version="1.0.54" date="2026-10-03">
+      <description>
+        <p>Added Windows Portable, Snap, and Flatpak distribution packages.</p>
+        <p xml:lang="uk">Додано підтримку пакунків Windows Portable, Snap та Flatpak.</p>
+      </description>
+    </release>
+  </releases>
+</component>
