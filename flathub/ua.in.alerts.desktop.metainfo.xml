@@ -50,7 +50,7 @@
   <content_rating type="oars-1.1" />
 
   <releases>
-    <release version="1.0.56" date="2026-10-03">
+    <release version="1.0.57" date="2026-10-03">
       <description>
         <p>Full multi-platform release with Windows NSIS, MSIX, Portable, Linux AppImage, DEB, Snap, Flatpak, and macOS DMG/ZIP.</p>
         <p xml:lang="uk">Повний мультиплатформенний реліз: Windows NSIS, MSIX, Portable, Linux AppImage, DEB, Snap, Flatpak та macOS DMG/ZIP.</p>

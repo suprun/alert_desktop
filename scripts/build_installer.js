@@ -54,8 +54,10 @@ function ensureAppxAssets() {
 
 function runBuilder(builderArgs) {
   const npxCmd = process.platform === 'win32' ? 'npx.cmd' : 'npx';
-  console.log(`\nВиконання: npx electron-builder ${builderArgs.join(' ')}`);
-  const res = spawnSync(npxCmd, ['electron-builder', ...builderArgs], {
+  // Реліз на GitHub формує окремий job у release.yml, тому electron-builder нічого не публікує сам
+  const fullArgs = [...builderArgs, '--publish', 'never'];
+  console.log(`\nВиконання: npx electron-builder ${fullArgs.join(' ')}`);
+  const res = spawnSync(npxCmd, ['electron-builder', ...fullArgs], {
     cwd: rootDir,
     stdio: 'inherit',
     shell: true
@@ -92,75 +94,75 @@ async function build() {
       ensureWindowsIcon();
       ensureAppxAssets();
       console.log('\n2. Компіляція Windows MSIX пакетів для Microsoft Store (x64 + ARM64)...');
-      runBuilder(['--win', '--target', 'appx', '--x64', '--arm64']);
+      runBuilder(['--win', 'appx', '--x64', '--arm64']);
       break;
     }
     case 'msix-x64': {
       ensureWindowsIcon();
       ensureAppxAssets();
       console.log('\n2. Компіляція Windows x64 MSIX пакета для Microsoft Store...');
-      runBuilder(['--win', '--target', 'appx', '--x64']);
+      runBuilder(['--win', 'appx', '--x64']);
       break;
     }
     case 'msix-arm64': {
       ensureWindowsIcon();
       ensureAppxAssets();
       console.log('\n2. Компіляція Windows ARM64 MSIX пакета для Microsoft Store...');
-      runBuilder(['--win', '--target', 'appx', '--arm64']);
+      runBuilder(['--win', 'appx', '--arm64']);
       break;
     }
     case 'portable': {
       ensureWindowsIcon();
       console.log('\n2. Компіляція Windows Portable (.exe без встановлення, x64 + ARM64)...');
-      runBuilder(['--win', '--target', 'portable', '--x64', '--arm64']);
+      runBuilder(['--win', 'portable', '--x64', '--arm64']);
       break;
     }
     case 'portable-x64': {
       ensureWindowsIcon();
       console.log('\n2. Компіляція Windows x64 Portable (.exe)...');
-      runBuilder(['--win', '--target', 'portable', '--x64']);
+      runBuilder(['--win', 'portable', '--x64']);
       break;
     }
     case 'portable-arm64': {
       ensureWindowsIcon();
       console.log('\n2. Компіляція Windows ARM64 Portable (.exe)...');
-      runBuilder(['--win', '--target', 'portable', '--arm64']);
+      runBuilder(['--win', 'portable', '--arm64']);
       break;
     }
     case 'snap': {
       console.log('\n2. Компіляція Snap пакета для Linux (amd64)...');
-      runBuilder(['--linux', '--target', 'snap', '--x64']);
+      runBuilder(['--linux', 'snap', '--x64']);
       break;
     }
     case 'snap-x64': {
       console.log('\n2. Компіляція Snap пакета для Linux (amd64)...');
-      runBuilder(['--linux', '--target', 'snap', '--x64']);
+      runBuilder(['--linux', 'snap', '--x64']);
       break;
     }
     case 'snap-arm64': {
       console.log('\n2. Компіляція Snap пакета для Linux (arm64)...');
-      runBuilder(['--linux', '--target', 'snap', '--arm64']);
+      runBuilder(['--linux', 'snap', '--arm64']);
       break;
     }
     case 'flatpak': {
       console.log('\n2. Компіляція Flatpak пакета для Linux (x64)...');
-      runBuilder(['--linux', '--target', 'flatpak', '--x64']);
+      runBuilder(['--linux', 'flatpak', '--x64']);
       break;
     }
     case 'flatpak-x64': {
       console.log('\n2. Компіляція Flatpak пакета для Linux (x64)...');
-      runBuilder(['--linux', '--target', 'flatpak', '--x64']);
+      runBuilder(['--linux', 'flatpak', '--x64']);
       break;
     }
     case 'flatpak-arm64': {
       console.log('\n2. Компіляція Flatpak пакета для Linux (arm64)...');
-      runBuilder(['--linux', '--target', 'flatpak', '--arm64']);
+      runBuilder(['--linux', 'flatpak', '--arm64']);
       break;
     }
     case 'web': {
       ensureWindowsIcon();
       console.log('\n2. Компіляція Windows NSIS Web-інсталятора...');
-      runBuilder(['--win', '--target', 'nsis-web']);
+      runBuilder(['--win', 'nsis-web']);
       break;
     }
     case 'linux': {

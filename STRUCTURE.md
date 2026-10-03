@@ -10,7 +10,7 @@ alert_desktop/
 │   └── workflows/
 │       ├── ci.yml                        # Швидкий CI: синтаксис, тести та smoke-перевірки при push/PR
 │       ├── pages.yml                     # Автоматизований деплой лендингу на GitHub Pages
-│       └── release.yml                   # Мультиплатформенна збірка та реліз (Windows, macOS Universal, Linux)
+│       └── release.yml                   # Мультиплатформенна збірка та реліз: обов'язкові NSIS / DMG / AppImage+DEB, опційні (continue-on-error) MSIX, Portable, Snap, Flatpak
 ├── .env                                  # Локальні змінні середовища та API-ключі (в .gitignore)
 ├── .env.example                          # Шаблон змінних середовища
 ├── .gitignore                            # Виключення з контролю версій Git

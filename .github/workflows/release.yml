@@ -24,13 +24,13 @@ jobs:
         include:
           - os: windows-latest
             target: Windows
-            build-script: npm run dist:win && npm run dist:msix && npm run dist:portable
+            build-script: npm run dist:win
           - os: macos-latest
             target: macOS
             build-script: npm run dist:mac
           - os: ubuntu-latest
             target: Linux
-            build-script: npm run dist:linux && npm run dist:snap && npm run dist:flatpak
+            build-script: npm run dist:linux
 
     steps:
       - name: Checkout repository
@@ -49,7 +49,8 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
-          sudo apt-get install -y flatpak flatpak-builder snapd
+          sudo apt-get install -y flatpak flatpak-builder squashfs-tools
+          flatpak remote-add --user --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
         shell: bash
 
       - name: Run verification tests
@@ -65,6 +66,35 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: ${{ matrix.build-script }}
+
+      # Додаткові формати не повинні блокувати публікацію основних інсталяторів
+      - name: Package MSIX (Windows)
+        if: runner.os == 'Windows'
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npm run dist:msix
+
+      - name: Package Portable (Windows)
+        if: runner.os == 'Windows'
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npm run dist:portable
+
+      - name: Package Snap (Linux)
+        if: runner.os == 'Linux'
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npm run dist:snap
+
+      - name: Package Flatpak (Linux)
+        if: runner.os == 'Linux'
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npm run dist:flatpak
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
