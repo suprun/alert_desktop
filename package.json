@@ -1,6 +1,6 @@
 {
   "name": "alert-desktop",
-  "version": "1.0.52",
+  "version": "1.0.53",
   "description": "Десктопний клієнт для моніторингу повітряних тривог на базі Electron",
   "main": "src/main/main.js",
   "repository": {
@@ -11,12 +11,16 @@
     "start": "electron .",
     "test": "node --check src/main/main.js && node --check src/main/config.js && node --check src/main/autostart.js && node --check src/main/threat-utils.js && node --check src/main/api.js && node --check src/main/tray.js && node --check src/main/window.js && node --check src/main/settings-window.js && node --check src/main/notifier.js && node --check src/main/updater.js && node --check src/preload/preload-main.js && node --check src/preload/preload-settings.js && node --check src/preload/preload-map.js && node --check src/renderer/main/renderer.js && node --check src/renderer/settings/settings.js && node --check scripts/reset_config.js && node --check scripts/build_installer.js && node --check scripts/release_tag.js && node --check scripts/test_updater.js && node --check scripts/test_autostart_sync.js && node scripts/test_threat_utils.js && node scripts/test_notifier.js && node scripts/test_oblast_aggregation.js && node scripts/test_updater.js && node scripts/test_autostart_sync.js && electron --no-sandbox scripts/smoke_test.js",
     "build:ico": "electron scripts/generate_ico.js",
+    "build:appx": "electron scripts/generate_appx_assets.js",
     "build:installer": "node scripts/build_installer.js --win",
     "dist": "node scripts/build_installer.js --win",
     "dist:win": "node scripts/build_installer.js --win",
     "dist:win:all": "node scripts/build_installer.js --win",
     "dist:win:x64": "node scripts/build_installer.js --win-x64",
     "dist:win:arm64": "node scripts/build_installer.js --win-arm64",
+    "dist:msix": "node scripts/build_installer.js --msix",
+    "dist:msix:x64": "node scripts/build_installer.js --msix-x64",
+    "dist:msix:arm64": "node scripts/build_installer.js --msix-arm64",
     "dist:web": "node scripts/build_installer.js --web",
     "dist:linux": "node scripts/build_installer.js --linux",
     "dist:mac": "node scripts/build_installer.js --mac",
@@ -101,6 +105,20 @@
     },
     "nsisWeb": {
       "artifactName": "${productName}-Web-Setup-v${version}.${ext}"
+    },
+    "appx": {
+      "artifactName": "${productName}-${arch}-v${version}.msix",
+      "backgroundColor": "#0f172a",
+      "displayName": "AlertDesktop",
+      "identityName": "suprun.AlertDesktop",
+      "publisher": "CN=suprun",
+      "publisherDisplayName": "suprun",
+      "languages": [
+        "uk-UA",
+        "en-US"
+      ],
+      "showNameOnTiles": false,
+      "addAutoLaunchExtension": true
     },
     "mac": {
       "category": "public.app-category.utilities",

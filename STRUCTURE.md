@@ -22,6 +22,15 @@ alert_desktop/
 ├── package.json                          # Конфігурація проєкту та npm-скрипти
 ├── package-lock.json                     # Фіксація версій залежностей
 │
+├── build/                                # Візуальні ресурси платформних бінарників
+│   └── appx/                             # Плитки та логотипи для Windows AppX/MSIX та Microsoft Store
+│       ├── StoreLogo.png                 # Логотип для каталогу Microsoft Store (50x50)
+│       ├── Square44x44Logo.png           # Піктограма списку програм (44x44)
+│       ├── Square150x150Logo.png         # Стандартна плитка меню «Пуск» (150x150)
+│       ├── Square310x310Logo.png         # Велика плитка меню «Пуск» (310x310)
+│       ├── Wide310x150Logo.png           # Широка плитка меню «Пуск» (310x150)
+│       └── SplashScreen.png              # Заставка запуску UWP/WinRT (620x300)
+│
 ├── assets/                               # Локальні ресурси (без зовнішніх CDN)
 │   ├── audio/                            # Автономні системні звукові сигнали (WAV)
 │   │   ├── alert-siren.wav / alert.wav   # Класична двохтонова сирена
@@ -70,9 +79,10 @@ alert_desktop/
 │   └── installer.nsh                     # Хуки NSIS (дефолтна українська мова в preInit, збереження мови, багатомовні діалоги UA/EN, автозапуск)
 │
 ├── scripts/                              # Допоміжні скрипти генерації та обслуговування
-│   ├── build_installer.js                # Мультиплатформенна збірка інсталяторів (--win, --win-x64, --win-arm64, --web, --linux, --mac, --all)
+│   ├── build_installer.js                # Мультиплатформенна збірка інсталяторів (--win, --win-x64, --win-arm64, --msix, --msix-x64, --msix-arm64, --web, --linux, --mac, --all)
 │   ├── deploy_remote.py                  # Автоматизоване SSH/SFTP розгортання проксі-сервера на Ubuntu
 │   ├── download_assets.js                # Завантаження шрифтів Inter у репозиторій
+│   ├── generate_appx_assets.js           # Генерація плиток та логотипів AppX/MSIX для Windows і Microsoft Store
 │   ├── generate_audio.js                 # Генерація чистих синтезованих звуків сирени/відбою
 │   ├── generate_ico.js                   # Генерація Windows .ico з 6 роздільними здатностями
 │   ├── generate_icons.js                 # Генерація PNG-іконок через Electron nativeImage

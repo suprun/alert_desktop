@@ -23,6 +23,7 @@
     win: `${GITHUB_RELEASES_URL}/download/${FALLBACK_VERSION}/AlertDesktop-Setup-${FALLBACK_VERSION}.exe`,
     winX64: `${GITHUB_RELEASES_URL}/download/${FALLBACK_VERSION}/AlertDesktop-x64-Setup-${FALLBACK_VERSION}.exe`,
     winArm64: `${GITHUB_RELEASES_URL}/download/${FALLBACK_VERSION}/AlertDesktop-arm64-Setup-${FALLBACK_VERSION}.exe`,
+    winMsix: `${GITHUB_RELEASES_URL}/download/${FALLBACK_VERSION}/AlertDesktop-x64-${FALLBACK_VERSION}.msix`,
     macDmg: `${GITHUB_RELEASES_URL}/download/${FALLBACK_VERSION}/AlertDesktop-universal-${FALLBACK_VERSION}.dmg`,
     macZip: `${GITHUB_RELEASES_URL}/download/${FALLBACK_VERSION}/AlertDesktop-universal-${FALLBACK_VERSION}.zip`,
     linuxAppImage: `${GITHUB_RELEASES_URL}/download/${FALLBACK_VERSION}/AlertDesktop-x86_64-${FALLBACK_VERSION}.AppImage`,
@@ -127,6 +128,10 @@
               currentLinks.winArm64 = url;
             } else if (name.includes('setup') && name.endsWith('.exe')) {
               currentLinks.win = url;
+            } else if (name.endsWith('.msix')) {
+              if (name.includes('x64') || !currentLinks.winMsix) {
+                currentLinks.winMsix = url;
+              }
             } else if (name.includes('universal') && name.endsWith('.dmg')) {
               currentLinks.macDmg = url;
             } else if (!currentLinks.macDmg && name.endsWith('.dmg')) {
@@ -174,6 +179,7 @@
     setHref('link-win-x64', links.winX64);
     setHref('link-win-arm64', links.winArm64);
     setHref('link-win-universal', links.win);
+    setHref('link-win-msix', links.winMsix);
     setHref('link-mac-main', links.macDmg);
     setHref('link-mac-zip', links.macZip);
     setHref('link-linux-main', links.linuxAppImage);

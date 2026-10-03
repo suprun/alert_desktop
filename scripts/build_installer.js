@@ -10,7 +10,10 @@ const version = pkg.version || '1.0.0';
 const args = process.argv.slice(2);
 let mode = 'win';
 
-if (args.includes('--web')) mode = 'web';
+if (args.includes('--msix-x64')) mode = 'msix-x64';
+else if (args.includes('--msix-arm64')) mode = 'msix-arm64';
+else if (args.includes('--msix')) mode = 'msix';
+else if (args.includes('--web')) mode = 'web';
 else if (args.includes('--linux')) mode = 'linux';
 else if (args.includes('--mac')) mode = 'mac';
 else if (args.includes('--all')) mode = 'all';
@@ -26,6 +29,17 @@ function ensureWindowsIcon() {
     spawnSync(npxCmd, ['electron', 'scripts/generate_ico.js'], { cwd: rootDir, stdio: 'inherit', shell: true });
   } else {
     console.log('1. Windows ICO іконка наявна.');
+  }
+}
+
+function ensureAppxAssets() {
+  const storeLogoPath = path.join(rootDir, 'build', 'appx', 'StoreLogo.png');
+  if (!fs.existsSync(storeLogoPath)) {
+    console.log('1.1. Генерація AppX/MSIX візуальних ресурсів у build/appx/...');
+    const npxCmd = process.platform === 'win32' ? 'npx.cmd' : 'npx';
+    spawnSync(npxCmd, ['electron', 'scripts/generate_appx_assets.js'], { cwd: rootDir, stdio: 'inherit', shell: true });
+  } else {
+    console.log('1.1. AppX/MSIX ресурси наявні у build/appx/.');
   }
 }
 
@@ -63,6 +77,27 @@ async function build() {
       ensureWindowsIcon();
       console.log('\n2. Компіляція Windows ARM64 інсталятора...');
       runBuilder(['--win', '--arm64']);
+      break;
+    }
+    case 'msix': {
+      ensureWindowsIcon();
+      ensureAppxAssets();
+      console.log('\n2. Компіляція Windows MSIX пакетів для Microsoft Store (x64 + ARM64)...');
+      runBuilder(['--win', '--target', 'appx', '--x64', '--arm64']);
+      break;
+    }
+    case 'msix-x64': {
+      ensureWindowsIcon();
+      ensureAppxAssets();
+      console.log('\n2. Компіляція Windows x64 MSIX пакета для Microsoft Store...');
+      runBuilder(['--win', '--target', 'appx', '--x64']);
+      break;
+    }
+    case 'msix-arm64': {
+      ensureWindowsIcon();
+      ensureAppxAssets();
+      console.log('\n2. Компіляція Windows ARM64 MSIX пакета для Microsoft Store...');
+      runBuilder(['--win', '--target', 'appx', '--arm64']);
       break;
     }
     case 'web': {
