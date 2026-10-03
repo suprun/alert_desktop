@@ -24,12 +24,20 @@ app.whenReady().then(async () => {
       }
     });
 
-    // Завантажуємо SVG як Data URL
-    const svgDataUrl = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svgContent)}`;
-    await win.loadURL(svgDataUrl);
+    // SVG має власні width/height (128px), тому без примусового масштабування
+    // він малюється лише у верхньому лівому куті 512px полотна.
+    const scaledSvg = svgContent
+      .replace(/\swidth="[^"]*"/, ' width="512"')
+      .replace(/\sheight="[^"]*"/, ' height="512"');
+    const html = `<!DOCTYPE html><html><head><style>html,body{margin:0;padding:0;overflow:hidden;background:transparent;}svg{display:block;width:512px;height:512px;}</style></head><body>${scaledSvg}</body></html>`;
+    await win.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(html)}`);
+    await new Promise(resolve => setTimeout(resolve, 150));
 
-    // Знімаємо сторінку у високій роздільності
-    const image = await win.webContents.capturePage({ x: 0, y: 0, width: 512, height: 512 });
+    let image = await win.webContents.capturePage({ x: 0, y: 0, width: 512, height: 512 });
+    // На HiDPI-екранах capturePage може повернути зображення з множником масштабу
+    if (image.getSize().width !== 512) {
+      image = image.resize({ width: 512, height: 512, quality: 'best' });
+    }
     const pngBuffer = image.toPNG();
     fs.writeFileSync(pngPath, pngBuffer);
     console.log(`[✓] Створено ${pngPath} (розмір: 512x512, вага: ${pngBuffer.length} байт)`);
