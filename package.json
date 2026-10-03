@@ -1,6 +1,6 @@
 {
   "name": "alert-desktop",
-  "version": "1.0.55",
+  "version": "1.0.56",
   "description": "Десктопний клієнт для моніторингу повітряних тривог на базі Electron",
   "main": "src/main/main.js",
   "repository": {
@@ -86,7 +86,6 @@
       ],
       "icon": "assets/icons/app-icon.ico",
       "artifactName": "${productName}-${arch}-Setup-v${version}.${ext}",
-      "publisherName": "suprun",
       "requestedExecutionLevel": "asInvoker",
       "legalTrademarks": "Copyright © suprun"
     },
@@ -131,7 +130,7 @@
     },
     "portable": {
       "artifactName": "${productName}-${arch}-Portable-v${version}.${ext}",
-      "requestExecutionLevel": "asInvoker",
+      "requestExecutionLevel": "user",
       "splashImage": null
     },
     "snap": {

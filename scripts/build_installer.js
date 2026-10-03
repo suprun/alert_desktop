@@ -128,8 +128,8 @@ async function build() {
       break;
     }
     case 'snap': {
-      console.log('\n2. Компіляція Snap пакетів для Linux (amd64 + arm64)...');
-      runBuilder(['--linux', '--target', 'snap', '--x64', '--arm64']);
+      console.log('\n2. Компіляція Snap пакета для Linux (amd64)...');
+      runBuilder(['--linux', '--target', 'snap', '--x64']);
       break;
     }
     case 'snap-x64': {
@@ -143,8 +143,8 @@ async function build() {
       break;
     }
     case 'flatpak': {
-      console.log('\n2. Компіляція Flatpak пакетів для Linux (x64 + arm64)...');
-      runBuilder(['--linux', '--target', 'flatpak', '--x64', '--arm64']);
+      console.log('\n2. Компіляція Flatpak пакета для Linux (x64)...');
+      runBuilder(['--linux', '--target', 'flatpak', '--x64']);
       break;
     }
     case 'flatpak-x64': {
