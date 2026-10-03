@@ -13,7 +13,7 @@
   'use strict';
 
   const GITHUB_REPO = 'suprun/alert_desktop';
-  const FALLBACK_VERSION = 'v1.0.51';
+  const FALLBACK_VERSION = 'v1.0.55';
   const GITHUB_RELEASES_URL = `https://github.com/${GITHUB_REPO}/releases`;
   const GITHUB_LATEST_API = `https://api.github.com/repos/${GITHUB_REPO}/releases/latest`;
 

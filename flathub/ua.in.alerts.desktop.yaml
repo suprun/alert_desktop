@@ -42,7 +42,7 @@ modules:
       - install -Dm644 icons/512x512.png /app/share/icons/hicolor/512x512/apps/ua.in.alerts.desktop.png
     sources:
       - type: archive
-        url: https://github.com/suprun/alert_desktop/releases/download/v1.0.54/AlertDesktop-linux-x64-v1.0.54.tar.gz
+        url: https://github.com/suprun/alert_desktop/releases/download/v1.0.55/AlertDesktop-linux-x64-v1.0.55.tar.gz
         sha256: 0000000000000000000000000000000000000000000000000000000000000000
         only-arches: [x86_64]
       - type: file
