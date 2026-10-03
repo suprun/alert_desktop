@@ -97,6 +97,8 @@ if (!gotTheLock) {
     return { isDark: windowManager.isDarkTheme };
   });
 
+  ipcMain.handle('get-app-version', () => app.getVersion());
+
   ipcMain.on('map-theme-changed', (_event, { isDark }) => {
     windowManager.setTheme(isDark, true);
     settingsWindowManager.setTheme(isDark, true);

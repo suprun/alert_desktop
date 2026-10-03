@@ -394,6 +394,14 @@ async function init() {
   try {
     if (!window.settingsAPI) return;
 
+    try {
+      const version = await window.settingsAPI.getAppVersion();
+      const versionEl = document.querySelector('.about-version');
+      if (versionEl && version) versionEl.textContent = `v${version}`;
+    } catch (err) {
+      console.error('Не вдалося отримати версію застосунку:', err);
+    }
+
     // 1. Завантаження повного довідника локацій
     allLocations = await window.settingsAPI.getLocations();
     populateOblasts();

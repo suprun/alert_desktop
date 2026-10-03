@@ -5,6 +5,7 @@ contextBridge.exposeInMainWorld('settingsAPI', {
   saveConfig: (newConfig) => ipcRenderer.invoke('save-config', newConfig),
   getLocations: () => ipcRenderer.invoke('get-locations'),
   getTheme: () => ipcRenderer.invoke('get-theme'),
+  getAppVersion: () => ipcRenderer.invoke('get-app-version'),
   onThemeUpdated: (callback) => {
     const handler = (_event, data) => callback(data);
     ipcRenderer.on('theme-updated', handler);
