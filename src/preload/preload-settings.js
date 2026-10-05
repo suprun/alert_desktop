@@ -12,5 +12,6 @@ contextBridge.exposeInMainWorld('settingsAPI', {
     return () => ipcRenderer.removeListener('theme-updated', handler);
   },
   closeSettings: () => ipcRenderer.send('close-settings'),
-  openExternal: (url) => ipcRenderer.send('open-external', url)
+  openExternal: (url) => ipcRenderer.send('open-external', url),
+  notifyReady: () => ipcRenderer.send('settings-window-ready')
 });

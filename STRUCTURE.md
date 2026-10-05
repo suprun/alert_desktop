@@ -109,6 +109,7 @@ alert_desktop/
 │   ├── test_net_check.js                 # Unit-тести модуля перевірки зв'язку через Anycast IP Google та Cloudflare
 │   ├── test_fallback_resilience.js       # Unit-тести стійкості Fallback API, пріоритетів джерел, суворого режиму та відновлення
 │   ├── test_maps_tabs.js                 # Unit-тести панелі вкладок, геоданих векторної карти, повної відсутності емодзі та перемикання карт
+│   ├── test_settings_ui.js               # Unit-тести інтерфейсу вікна налаштувань (мета-посилання, розташування блоків, readonly URL, відсутність емодзі)
 │   └── test_history_service.js           # Unit-тести клієнтського сервісу історії тривог, форматування тривалості, перевірка gateway та fallback
 │
 ├── server/                               # Гібридний шлюз тривог на Python для Ubuntu (Webhook, WebSocket & Threats Enricher & History Proxy)

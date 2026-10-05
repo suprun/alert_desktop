@@ -114,62 +114,69 @@ function getSelectedApiProvider() {
 
 function updateApiProviderState() {
   const provider = getSelectedApiProvider();
+  if (inputServerUrl) {
+    inputServerUrl.readOnly = true;
+    inputServerUrl.disabled = false;
+  }
+
   if (provider === 'gateway') {
-    inputServerUrl.disabled = true;
-    inputServerUrl.value = '';
-    inputServerUrl.placeholder = 'Адреса не потрібна для вбудованого шлюзу';
-
-    inputApiKey.disabled = true;
-    inputApiKey.value = '';
-    inputApiKey.placeholder = 'Токен не потрібен для вбудованого шлюзу';
+    if (inputServerUrl) {
+      inputServerUrl.value = DEFAULT_PROXY_URL;
+      inputServerUrl.placeholder = DEFAULT_PROXY_URL;
+    }
+    if (inputApiKey) {
+      inputApiKey.disabled = true;
+      inputApiKey.value = '';
+      inputApiKey.placeholder = 'Токен не потрібен для вбудованого шлюзу';
+    }
   } else if (provider === 'ukrainealarm') {
-    inputServerUrl.disabled = false;
-    inputServerUrl.placeholder = URL_UKRAINE_ALARM;
-    if (!inputServerUrl.value || inputServerUrl.value === DEFAULT_PROXY_URL || inputServerUrl.value === URL_ALERTS_IN_UA) {
+    if (inputServerUrl) {
       inputServerUrl.value = URL_UKRAINE_ALARM;
+      inputServerUrl.placeholder = URL_UKRAINE_ALARM;
     }
-
-    inputApiKey.disabled = false;
-    inputApiKey.placeholder = 'Введіть токен UkraineAlarm';
+    if (inputApiKey) {
+      inputApiKey.disabled = false;
+      inputApiKey.placeholder = 'Введіть токен UkraineAlarm';
+    }
   } else if (provider === 'alertsinua') {
-    inputServerUrl.disabled = false;
-    inputServerUrl.placeholder = URL_ALERTS_IN_UA;
-    if (!inputServerUrl.value || inputServerUrl.value === DEFAULT_PROXY_URL || inputServerUrl.value === URL_UKRAINE_ALARM) {
+    if (inputServerUrl) {
       inputServerUrl.value = URL_ALERTS_IN_UA;
+      inputServerUrl.placeholder = URL_ALERTS_IN_UA;
     }
-
-    inputApiKey.disabled = false;
-    inputApiKey.placeholder = 'Введіть токен alerts.in.ua';
+    if (inputApiKey) {
+      inputApiKey.disabled = false;
+      inputApiKey.placeholder = 'Введіть токен alerts.in.ua';
+    }
   } else if (provider === 'ubilling') {
-    inputServerUrl.disabled = false;
-    inputServerUrl.placeholder = URL_UBILLING;
-    if (!inputServerUrl.value || inputServerUrl.value === DEFAULT_PROXY_URL || inputServerUrl.value === URL_UKRAINE_ALARM || inputServerUrl.value === URL_ALERTS_IN_UA) {
+    if (inputServerUrl) {
       inputServerUrl.value = URL_UBILLING;
+      inputServerUrl.placeholder = URL_UBILLING;
     }
-
-    inputApiKey.disabled = true;
-    inputApiKey.value = '';
-    inputApiKey.placeholder = 'Токен не потрібен для Ubilling API';
+    if (inputApiKey) {
+      inputApiKey.disabled = true;
+      inputApiKey.value = '';
+      inputApiKey.placeholder = 'Токен не потрібен для Ubilling API';
+    }
   } else if (provider === 'neptun') {
-    inputServerUrl.disabled = false;
-    inputServerUrl.placeholder = URL_NEPTUN;
-    if (!inputServerUrl.value || inputServerUrl.value === DEFAULT_PROXY_URL || inputServerUrl.value === URL_UKRAINE_ALARM || inputServerUrl.value === URL_ALERTS_IN_UA || inputServerUrl.value === URL_UBILLING || inputServerUrl.value === URL_JAAM) {
+    if (inputServerUrl) {
       inputServerUrl.value = URL_NEPTUN;
+      inputServerUrl.placeholder = URL_NEPTUN;
     }
-
-    inputApiKey.disabled = true;
-    inputApiKey.value = '';
-    inputApiKey.placeholder = 'Токен не потрібен для NEPTUN API';
+    if (inputApiKey) {
+      inputApiKey.disabled = true;
+      inputApiKey.value = '';
+      inputApiKey.placeholder = 'Токен не потрібен для NEPTUN API';
+    }
   } else if (provider === 'jaam') {
-    inputServerUrl.disabled = false;
-    inputServerUrl.placeholder = URL_JAAM;
-    if (!inputServerUrl.value || inputServerUrl.value === DEFAULT_PROXY_URL || inputServerUrl.value === URL_UKRAINE_ALARM || inputServerUrl.value === URL_ALERTS_IN_UA || inputServerUrl.value === URL_UBILLING || inputServerUrl.value === URL_NEPTUN) {
+    if (inputServerUrl) {
       inputServerUrl.value = URL_JAAM;
+      inputServerUrl.placeholder = URL_JAAM;
     }
-
-    inputApiKey.disabled = true;
-    inputApiKey.value = '';
-    inputApiKey.placeholder = 'Токен не потрібен для JAAM API';
+    if (inputApiKey) {
+      inputApiKey.disabled = true;
+      inputApiKey.value = '';
+      inputApiKey.placeholder = 'Токен не потрібен для JAAM API';
+    }
   }
 }
 
@@ -191,8 +198,8 @@ apiProviderRadios.forEach(radio => {
   radio.addEventListener('change', updateApiProviderState);
 });
 
-// Безпечне відкриття зовнішніх посилань на документацію API
-document.querySelectorAll('.external-api-link').forEach(link => {
+// Безпечне відкриття зовнішніх посилань на документацію API, репозиторій та політики
+document.querySelectorAll('.external-api-link, .about-link, .about-meta-link').forEach(link => {
   link.addEventListener('click', (e) => {
     e.preventDefault();
     const href = link.getAttribute('href');
@@ -518,15 +525,26 @@ async function init() {
     }
 
     if (window.settingsAPI.getTheme) {
-      window.settingsAPI.getTheme().then((themeInfo) => {
+      try {
+        const themeInfo = await window.settingsAPI.getTheme();
         if (themeInfo && typeof themeInfo.isDark === 'boolean') {
           applyTheme(themeInfo.isDark);
         }
-      }).catch(() => {});
+      } catch (e) {
+        // ignore theme error
+      }
+    }
+
+    // Сповіщаємо головний процес про повну готовність інтерфейсу
+    if (window.settingsAPI && typeof window.settingsAPI.notifyReady === 'function') {
+      window.settingsAPI.notifyReady();
     }
 
   } catch (err) {
     console.error('Помилка ініціалізації налаштувань:', err);
+    if (window.settingsAPI && typeof window.settingsAPI.notifyReady === 'function') {
+      window.settingsAPI.notifyReady();
+    }
   }
 }
 
@@ -557,16 +575,19 @@ btnSave.addEventListener('click', async () => {
       finalServerUrl = DEFAULT_PROXY_URL;
       finalApiKey = '';
     } else if (currentProvider === 'ubilling') {
-      finalServerUrl = inputServerUrl.value.trim() || URL_UBILLING;
+      finalServerUrl = URL_UBILLING;
       finalApiKey = '';
     } else if (currentProvider === 'neptun') {
-      finalServerUrl = inputServerUrl.value.trim() || URL_NEPTUN;
+      finalServerUrl = URL_NEPTUN;
       finalApiKey = '';
     } else if (currentProvider === 'jaam') {
-      finalServerUrl = inputServerUrl.value.trim() || URL_JAAM;
+      finalServerUrl = URL_JAAM;
       finalApiKey = '';
-    } else {
-      finalServerUrl = inputServerUrl.value.trim() || (currentProvider === 'ukrainealarm' ? URL_UKRAINE_ALARM : URL_ALERTS_IN_UA);
+    } else if (currentProvider === 'ukrainealarm') {
+      finalServerUrl = URL_UKRAINE_ALARM;
+      finalApiKey = inputApiKey.value.trim();
+    } else if (currentProvider === 'alertsinua') {
+      finalServerUrl = URL_ALERTS_IN_UA;
       finalApiKey = inputApiKey.value.trim();
     }
   }

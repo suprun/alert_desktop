@@ -1,4 +1,4 @@
-const { BrowserWindow, nativeTheme, shell } = require('electron');
+const { BrowserWindow, nativeTheme, shell, ipcMain } = require('electron');
 const path = require('path');
 
 class SettingsWindowManager {
@@ -77,13 +77,27 @@ class SettingsWindowManager {
       this.settingsWindow.webContents.send('theme-updated', { isDark: this.isDarkTheme });
     });
 
+    let isShown = false;
+    const showWindow = () => {
+      if (isShown) return;
+      isShown = true;
+      if (this.settingsWindow && !this.settingsWindow.isDestroyed()) {
+        this.settingsWindow.show();
+        this.settingsWindow.focus();
+      }
+    };
+
+    const onSettingsReady = () => showWindow();
+    ipcMain.once('settings-window-ready', onSettingsReady);
+
     this.settingsWindow.once('ready-to-show', () => {
       this.settingsWindow.webContents.send('theme-updated', { isDark: this.isDarkTheme });
-      this.settingsWindow.show();
-      this.settingsWindow.focus();
+      // Запобіжний фолбек, якщо рендерер затримався
+      setTimeout(showWindow, 300);
     });
 
     this.settingsWindow.on('closed', () => {
+      ipcMain.removeListener('settings-window-ready', onSettingsReady);
       this.settingsWindow = null;
     });
 
