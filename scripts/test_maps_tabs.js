@@ -176,7 +176,7 @@ console.log('✔ Тест 17 пройдено (toggle() фокусує вікн�
 
 // Тест 18: Згасання тіні бічної панелі деталей при закритті до 0
 assert.ok(styleCss.includes('box-shadow: 0 0 0 rgba(0, 0, 0, 0);'), 'region-history-drawer повинен мати нульову тінь у закритому стані');
-assert.ok(styleCss.includes('box-shadow 0.24s'), 'region-history-drawer повинен плавно анімувати згасання тіні');
+assert.ok(styleCss.includes('box-shadow 0.36s') || styleCss.includes('box-shadow 0.32s'), 'region-history-drawer повинен плавно анімувати згасання тіні');
 assert.ok(styleCss.includes('box-shadow: -6px 0 24px rgba(0, 0, 0, 0.35);'), 'region-history-drawer.open повинен мати тінь лише у відкритому стані');
 console.log('✔ Тест 18 пройдено (тінь висувної бічної панелі плавно згасає до 0 при закритті)');
 
@@ -194,6 +194,14 @@ assert.ok(!preloadMapJs.includes('NationwideBanner'), 'preload-map.js не по�
 assert.ok(windowJs.includes('BottomDock_dock'), 'window.js повинен містити insertCSS для очищення реклами Neptun');
 assert.ok(windowJs.includes('adFilter'), 'window.js повинен містити мережевий adFilter для блокування рекламних мереж');
 console.log('✔ Тест 20 пройдено (рекламні банери та док на карті Neptun надійно блокуються, а NationwideBanner збережено)');
+
+// Тест 21: Плавні анімації карток панелі, узгодження іконок загроз та запам'ятовування вікна
+assert.ok(styleCss.includes('drawerCardFadeIn'), 'style.css повинен містити анімацію drawerCardFadeIn для карток');
+assert.ok(styleCss.includes('.drawer-animate-in'), 'style.css повинен містити клас .drawer-animate-in');
+assert.ok(styleCss.includes('.drawer-loading.fade-out'), 'style.css повинен містити плавний fade-out лоадера');
+assert.ok(rendererJs.includes('threatIcons.drone'), 'renderer.js повинен використовувати threatIcons.drone для картки статусу');
+assert.ok(windowJs.includes('windowBounds'), 'window.js повинен відновлювати та зберігати windowBounds');
+console.log('✔ Тест 21 пройдено (анімації карток, плавний лоадер, іконки загроз та збереження розміру вікна)');
 
 console.log('🎉 Усі тести панелі вкладок, тем та векторної карти успішно виконано!');
 

@@ -1,4 +1,4 @@
-const { BrowserWindow, WebContentsView, BrowserView, shell, nativeTheme, session } = require('electron');
+const { BrowserWindow, WebContentsView, BrowserView, shell, nativeTheme, session, screen } = require('electron');
 const path = require('path');
 const config = require('./config');
 
@@ -86,9 +86,42 @@ class WindowManager {
     const iconPath = path.join(__dirname, '..', '..', 'assets', 'icons', 'app-icon.png');
     const initialBgColor = this.isDarkTheme ? '#232529' : '#eff0f2';
 
-    this.mainWindow = new BrowserWindow({
-      width: 1060,
-      height: 760,
+    // Відновлення збереженого розміру та положення вікна
+    const savedBounds = config.get('windowBounds') || {};
+    let initialWidth = typeof savedBounds.width === 'number' && savedBounds.width >= 700 ? savedBounds.width : 1060;
+    let initialHeight = typeof savedBounds.height === 'number' && savedBounds.height >= 500 ? savedBounds.height : 760;
+    let initialX = typeof savedBounds.x === 'number' ? savedBounds.x : undefined;
+    let initialY = typeof savedBounds.y === 'number' ? savedBounds.y : undefined;
+
+    // Перевірка видимості збережених координат на підключених дисплеях
+    if (initialX !== undefined && initialY !== undefined && screen && typeof screen.getDisplayMatching === 'function') {
+      try {
+        const matchingDisplay = screen.getDisplayMatching({
+          x: initialX,
+          y: initialY,
+          width: initialWidth,
+          height: initialHeight
+        });
+        const workArea = matchingDisplay.workArea;
+        const isVisible = (
+          initialX + initialWidth > workArea.x &&
+          initialX < workArea.x + workArea.width &&
+          initialY + initialHeight > workArea.y &&
+          initialY < workArea.y + workArea.height
+        );
+        if (!isVisible) {
+          initialX = undefined;
+          initialY = undefined;
+        }
+      } catch (e) {
+        initialX = undefined;
+        initialY = undefined;
+      }
+    }
+
+    const browserWindowOptions = {
+      width: initialWidth,
+      height: initialHeight,
       minWidth: 700,
       minHeight: 500,
       title: 'Повітряні тривоги',
@@ -102,7 +135,18 @@ class WindowManager {
         nodeIntegration: false,
         sandbox: true
       }
-    });
+    };
+
+    if (initialX !== undefined && initialY !== undefined) {
+      browserWindowOptions.x = initialX;
+      browserWindowOptions.y = initialY;
+    }
+
+    this.mainWindow = new BrowserWindow(browserWindowOptions);
+
+    if (savedBounds.isMaximized) {
+      this.mainWindow.maximize();
+    }
 
     this.mainWindow.removeMenu();
     this.mainWindow.setMenuBarVisibility(false);
@@ -122,8 +166,49 @@ class WindowManager {
       }
     });
 
+    let saveBoundsTimer = null;
+    const saveBounds = () => {
+      if (!this.mainWindow || this.mainWindow.isDestroyed()) return;
+      if (saveBoundsTimer) clearTimeout(saveBoundsTimer);
+      saveBoundsTimer = setTimeout(() => {
+        if (!this.mainWindow || this.mainWindow.isDestroyed()) return;
+        const isMaximized = this.mainWindow.isMaximized();
+        if (isMaximized) {
+          const current = config.get('windowBounds') || {};
+          config.set('windowBounds', {
+            ...current,
+            isMaximized: true
+          });
+        } else {
+          const bounds = typeof this.mainWindow.getNormalBounds === 'function' && !this.mainWindow.isMinimized()
+            ? this.mainWindow.getNormalBounds()
+            : this.mainWindow.getBounds();
+          config.set('windowBounds', {
+            width: bounds.width,
+            height: bounds.height,
+            x: bounds.x,
+            y: bounds.y,
+            isMaximized: false
+          });
+        }
+      }, 300);
+    };
+
     this.mainWindow.on('resize', () => {
       this.updateViewBounds();
+      saveBounds();
+    });
+
+    this.mainWindow.on('move', () => {
+      saveBounds();
+    });
+
+    this.mainWindow.on('maximize', () => {
+      saveBounds();
+    });
+
+    this.mainWindow.on('unmaximize', () => {
+      saveBounds();
     });
 
     this.mainWindow.webContents.on('did-finish-load', () => {

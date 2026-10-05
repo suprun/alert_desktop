@@ -31,7 +31,14 @@ class ConfigManager extends EventEmitter {
       wsUrl: process.env.ALERTS_WS_URL || DEFAULT_WS_URL,
       apiKey: process.env.ALERTS_API_KEY || '',
       pollingInterval: Number(process.env.ALERTS_POLL_INTERVAL) || 15000,
-      isFirstLaunch: true
+      isFirstLaunch: true,
+      windowBounds: {
+        width: 1060,
+        height: 760,
+        x: undefined,
+        y: undefined,
+        isMaximized: false
+      }
     };
     this.config = this.loadConfig();
   }

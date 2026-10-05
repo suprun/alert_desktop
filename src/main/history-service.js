@@ -399,10 +399,12 @@ class HistoryService {
   _buildFallbackResponse(regionUid, oblastUid) {
     const uidStr = String(regionUid).trim();
     const oblastUidStr = oblastUid ? String(oblastUid).trim() : null;
+    const isOblastSelected = uidStr === oblastUidStr;
 
     // 1. Статистика за сьогодні
-    let stat = this._fallbackStats.find((d) => String(d.luid) === uidStr);
-    if (!stat && oblastUidStr) {
+    const directStat = this._fallbackStats.find((d) => String(d.luid) === uidStr);
+    let stat = directStat;
+    if (!stat && oblastUidStr && isOblastSelected) {
       stat = this._fallbackStats.find((d) => String(d.luid) === oblastUidStr);
     }
 
@@ -413,7 +415,6 @@ class HistoryService {
     };
 
     // 2. Список недавніх тривог
-    const isOblastSelected = uidStr === oblastUidStr;
     const childHromadas = hromadasByRaionUid.get(uidStr) || null;
     const selectedLoc = locationByUid.get(uidStr);
     const parentRaionUid = selectedLoc && selectedLoc.raionUid && String(selectedLoc.raionUid) !== uidStr
@@ -544,6 +545,9 @@ class HistoryService {
 
       matched.push({
         id: item.i || item.u || `${item.luid}_${sRaw}`,
+        luid: item.luid || item.location_uid || null,
+        locType: item.t || item.location_type || null,
+        loi: item.loi || item.oblast_uid || null,
         startedAt,
         finishedAt,
         startedText: this._formatTime(startedAt),
@@ -558,13 +562,15 @@ class HistoryService {
       });
     }
 
-    matched.sort((a, b) => (b.startedAt || 0) - (a.startedAt || 0));
+    // Інтелектуальна консолідація тривог та загроз («тривога —> загроза»)
+    const consolidated = this._consolidateAlerts(matched);
+    const hadConsolidation = matched.length > consolidated.length;
 
-    // 3. Уточнення статистики за сьогодні за фактичними тривогами
+    // 3. Уточнення статистики за сьогодні за фактичними консолідованими тривогами
     const nowSec = Math.floor(Date.now() / 1000);
     const startOfTodaySec = Math.floor(new Date(new Date().setHours(0, 0, 0, 0)).getTime() / 1000);
 
-    const todayAlerts = matched.filter(a => {
+    const todayAlerts = consolidated.filter(a => {
       if (a.startedAt && a.startedAt >= startOfTodaySec) return true;
       if (a.finishedAt && a.finishedAt >= startOfTodaySec) return true;
       if (a.isActive) return true;
@@ -574,8 +580,10 @@ class HistoryService {
     let alertCount = todayStats.alertCount;
     let totalDurationMin = todayStats.totalDurationMin;
 
-    // Якщо в todayStats немає даних або alertCount 0, розраховуємо з фактичних тривог
-    if (alertCount === 0 && todayAlerts.length > 0) {
+    // Якщо для локації немає прямої статистики (наприклад, обрано окремий район/громаду),
+    // або якщо в todayStats 0 при наявних сьогоднішніх тривогах,
+    // або якщо відбулося об'єднання дублікатів («тривога —> загроза»):
+    if ((!directStat || alertCount === 0 || hadConsolidation) && todayAlerts.length > 0) {
       alertCount = todayAlerts.length;
       let computedDurationMin = 0;
       for (const a of todayAlerts) {
@@ -603,8 +611,113 @@ class HistoryService {
       regionUid: uidStr,
       oblastUid: oblastUidStr,
       todayStats: finalTodayStats,
-      recentAlerts: matched.slice(0, 20)
+      recentAlerts: consolidated.slice(0, 20)
     };
+  }
+
+  /**
+   * Консолідує паралельні/перекривні записи тривог та конкретизованих загроз
+   * («одна і та ж тривога —> загроза»).
+   * Об'єднує події з близьким часом початку або спільним активним вікном,
+   * віддаючи пріоритет точнішому типу загрози (дрони, артобстріл, ракети тощо).
+   * @param {Array<object>} rawAlerts
+   * @returns {Array<object>}
+   */
+  _consolidateAlerts(rawAlerts) {
+    if (!Array.isArray(rawAlerts) || rawAlerts.length <= 1) {
+      return rawAlerts ? [...rawAlerts] : [];
+    }
+
+    // Сортуємо від старіших до новіших для послідовного об'єднання
+    const sorted = [...rawAlerts].sort((a, b) => (a.startedAt || 0) - (b.startedAt || 0));
+    const merged = [];
+    const nowSec = Math.floor(Date.now() / 1000);
+
+    for (const item of sorted) {
+      const start = item.startedAt || 0;
+      const end = item.finishedAt || (item.isActive ? nowSec : start);
+
+      let foundIndex = -1;
+      for (let i = 0; i < merged.length; i++) {
+        const prev = merged[i];
+        const prevStart = prev.startedAt || 0;
+        const prevEnd = prev.finishedAt || (prev.isActive ? nowSec : prevStart);
+
+        const bothActive = Boolean(item.isActive && prev.isActive);
+        const closeStart = Math.abs(start - prevStart) <= 300; // Початок у межах 5 хв
+        const overlap = Math.min(end, prevEnd) - Math.max(start, prevStart);
+        const significantOverlap = overlap >= 60; // Перетин щонайменше 1 хвилину
+
+        const timeMatches = bothActive || (closeStart && (item.isActive === prev.isActive || significantOverlap)) || significantOverlap;
+        if (!timeMatches) continue;
+
+        // Перевіряємо смислову спорідненість:
+        // 1. Одинакові локації (luid) або відсутність явного luid (наприклад, результат Gateway для регіону)
+        const sameLocation = (item.luid && prev.luid && String(item.luid) === String(prev.luid)) || (!item.luid || !prev.luid);
+        // 2. Один запис є загальною тривогою (1), а інший - конкретизованою загрозою (дрони, ракети тощо)
+        const threatConsolidation = (item.threatType === 1 && prev.threatType > 1) || (item.threatType > 1 && prev.threatType === 1);
+        // 3. Ієрархічний зв'язок (один запис - загальнообласний 's', інший - районний або громади)
+        const isOneOblast = item.locType === 's' || prev.locType === 's';
+
+        // Не об'єднувати, якщо це дві окремі дочірні громади/райони з однаковим типом загрози
+        const areDifferentSiblings = item.luid && prev.luid && String(item.luid) !== String(prev.luid) && !isOneOblast && !threatConsolidation;
+
+        if (!areDifferentSiblings && (sameLocation || threatConsolidation || isOneOblast)) {
+          foundIndex = i;
+          break;
+        }
+      }
+
+      if (foundIndex === -1) {
+        merged.push({ ...item });
+      } else {
+        const target = merged[foundIndex];
+
+        // 1. Час початку: беремо найраніший
+        const mergedStart = Math.min(target.startedAt || start, start || target.startedAt);
+        target.startedAt = mergedStart;
+        target.startedText = this._formatTime(mergedStart);
+        if (item.luid && !target.luid) target.luid = item.luid;
+        if (item.locType && !target.locType) target.locType = item.locType;
+        if (item.loi && !target.loi) target.loi = item.loi;
+
+        // 2. Стан активності та час завершення
+        if (target.isActive || item.isActive) {
+          target.isActive = true;
+          target.finishedAt = null;
+          target.finishedText = 'Триває';
+        } else {
+          const mergedEnd = Math.max(target.finishedAt || 0, item.finishedAt || 0);
+          target.finishedAt = mergedEnd > 0 ? mergedEnd : null;
+          target.finishedText = target.finishedAt ? this._formatTime(target.finishedAt) : '';
+        }
+
+        // 3. Пріоритет загрози: конкретизована загроза має вищий пріоритет над загальною тривогою (1)
+        const isCurrentSpecific = item.threatType && item.threatType > 1;
+        const isTargetSpecific = target.threatType && target.threatType > 1;
+
+        if (isCurrentSpecific && (!isTargetSpecific || item.threatType === 4 || item.threatType === 2 || item.threatType === 3)) {
+          target.threatType = item.threatType;
+          target.threatLabel = item.threatLabel;
+        }
+
+        // 4. Повідомлення
+        if (item.message && !target.message) {
+          target.message = item.message;
+        } else if (item.message && target.message && !target.message.includes(item.message)) {
+          target.message = `${target.message}; ${item.message}`;
+        }
+
+        // 5. Перерахунок тривалості
+        const effEnd = target.finishedAt || (target.isActive ? nowSec : target.startedAt);
+        const durMin = Math.max(1, Math.round((effEnd - target.startedAt) / 60));
+        target.durationMin = durMin;
+        target.durationText = this._formatDuration(durMin, target.startedAt, target.finishedAt);
+      }
+    }
+
+    // Сортуємо від найновіших до старіших для виводу в інтерфейсі
+    return merged.sort((a, b) => (b.startedAt || 0) - (a.startedAt || 0));
   }
 
   /**
@@ -629,17 +742,71 @@ class HistoryService {
     try {
       const data = await this._fetchJson(gatewayUrl, 5000);
       if (data && data.success) {
-        // Доповнюємо відформатованим людиночитаним текстом часу (тільки якщо були тривоги)
-        if (data.today_stats && typeof data.today_stats.total_duration_min === 'number') {
-          const alertCount = data.today_stats.alert_count ?? data.today_stats.alertCount ?? 0;
-          data.today_stats.duration_formatted = alertCount > 0 ? this._formatDuration(data.today_stats.total_duration_min) : '';
-        }
         if (Array.isArray(data.recent_alerts)) {
-          data.recent_alerts.forEach((alert) => {
-            alert.started_text = this._formatTime(alert.started_at);
-            alert.finished_text = alert.is_active ? 'Триває' : this._formatTime(alert.finished_at);
-            alert.duration_text = this._formatDuration(alert.duration_min, alert.started_at, alert.finished_at);
+          // Нормалізуємо та консолідуємо записи з Gateway для усунення паралельних дублікатів
+          const normalized = data.recent_alerts.map(alert => {
+            const startedAt = alert.started_at ?? alert.startedAt;
+            const finishedAt = alert.finished_at ?? alert.finishedAt ?? null;
+            const isActive = Boolean(alert.is_active ?? alert.isActive ?? !finishedAt);
+            const durMin = alert.duration_min ?? alert.durationMin ?? ((startedAt && (finishedAt || isActive)) ? Math.max(1, Math.round(((finishedAt || Math.floor(Date.now() / 1000)) - startedAt) / 60)) : null);
+            const durText = alert.duration_text || alert.durationText || this._formatDuration(durMin, startedAt, finishedAt);
+            return {
+              id: alert.id || alert._id,
+              startedAt,
+              finishedAt,
+              startedText: alert.started_text || alert.startedText || this._formatTime(startedAt),
+              finishedText: alert.finished_text || alert.finishedText || (isActive ? 'Триває' : this._formatTime(finishedAt)),
+              durationMin: durMin,
+              durationText: durText,
+              isActive,
+              threatType: alert.threat_type || alert.threatType || 1,
+              threatLabel: alert.threat_label || alert.threatLabel || 'Повітряна тривога',
+              message: alert.message || null
+            };
           });
+
+          const consolidated = this._consolidateAlerts(normalized);
+
+          data.recent_alerts = consolidated.map(a => ({
+            id: a.id,
+            started_at: a.startedAt,
+            finished_at: a.finishedAt,
+            is_active: a.isActive,
+            threat_type: a.threatType,
+            threat_label: a.threatLabel,
+            message: a.message,
+            started_text: a.startedText || this._formatTime(a.startedAt),
+            finished_text: a.finishedText || (a.isActive ? 'Триває' : this._formatTime(a.finishedAt)),
+            duration_min: a.durationMin,
+            duration_text: a.durationText
+          }));
+
+          // Уточнюємо статистику за сьогодні за консолідованими тривогами, якщо відбулося об'єднання дублікатів
+          const hadConsolidation = normalized.length > consolidated.length;
+          const nowSec = Math.floor(Date.now() / 1000);
+          const startOfTodaySec = Math.floor(new Date(new Date().setHours(0, 0, 0, 0)).getTime() / 1000);
+          const todayConsolidated = consolidated.filter(a => (a.startedAt && a.startedAt >= startOfTodaySec) || a.isActive);
+
+          if (hadConsolidation && todayConsolidated.length > 0) {
+            let totalDur = 0;
+            for (const a of todayConsolidated) {
+              const aStart = Math.max(a.startedAt || startOfTodaySec, startOfTodaySec);
+              const aEnd = a.finishedAt ? a.finishedAt : nowSec;
+              if (aEnd > aStart) totalDur += Math.round((aEnd - aStart) / 60);
+            }
+            if (data.today_stats) {
+              data.today_stats.alert_count = todayConsolidated.length;
+              data.today_stats.total_duration_min = totalDur;
+              data.today_stats.duration_formatted = this._formatDuration(totalDur);
+            }
+          }
+        }
+
+        if (data.today_stats && typeof data.today_stats.total_duration_min === 'number') {
+          if (!data.today_stats.duration_formatted) {
+            const alertCount = data.today_stats.alert_count ?? data.today_stats.alertCount ?? 0;
+            data.today_stats.duration_formatted = alertCount > 0 ? this._formatDuration(data.today_stats.total_duration_min) : '';
+          }
         }
         return data;
       }

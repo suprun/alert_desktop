@@ -142,9 +142,9 @@ async function runTests() {
 
   // Тест 7: Ізоляція обраного району від сусідніх районів тієї ж області (захист від хибного loi-збігу)
   historyService._fallbackAlerts = [
-    { i: 201, luid: 120, s: 151200000, t: 'r', loi: 2 }, // Жмеринський район (наш)
-    { i: 202, luid: 121, s: 151200050, t: 'r', loi: 2 }, // Могилів-Подільський район (чужий)
-    { i: 203, luid: 2,   s: 151200100, t: 's', loi: 2 }  // Загальнообласна тривога Вінницької обл (має включитися)
+    { i: 201, luid: 120, s: 151200000, f: 151201000, t: 'r', loi: 2 }, // Жмеринський район (наш)
+    { i: 202, luid: 121, s: 151200050, f: 151201000, t: 'r', loi: 2 }, // Могилів-Подільський район (чужий)
+    { i: 203, luid: 2,   s: 151250000, f: 151251000, t: 's', loi: 2 }  // Загальнообласна тривога Вінницької обл (має включитися)
   ];
   historyService._fallbackEvents = [];
 
@@ -189,8 +189,8 @@ async function runTests() {
     historyService._recordAlert({
       i: 1000 + i,
       luid: 73,
-      s: 151000000 + i,
-      f: 151000000 + i + 10,
+      s: 151000000 + i * 3600,
+      f: 151000000 + i * 3600 + 600,
       at: 1
     });
   }
@@ -199,6 +199,25 @@ async function runTests() {
   assert.strictEqual(bufferSliceRes.recentAlerts.length, 20, 'recentAlerts має повертати до 20 останніх тривог');
   assert.strictEqual(bufferSliceRes.recentAlerts[0].id, 1550, 'Першою має бути найновіша тривога');
   console.log("✔ Тест 10 пройдено (буфер тривог обмежений 500 елементами, recentAlerts повертає 20 найновіших тривог)");
+
+  // Тест 11: Консолідація одночасних записів («тривога —> загроза») без подвоєння у статистиці
+  historyService._observedAlerts.clear();
+  historyService._fallbackStats = [{ luid: 400, ac: 2, d: 3240000, a: true }]; // Сирий статус міг містити подвійний запис
+  const sCommon = Math.floor(Date.now() / 1000) - 1640000000 - 1620; // 27 хвилин тому
+  historyService._fallbackAlerts = [
+    { i: 881, luid: 400, s: sCommon, at: 4, loi: 10 }, // Район: Дронова загроза (at: 4)
+    { i: 882, luid: 10, s: sCommon, at: 1, loi: 10, t: 's' } // Область: Повітряна тривога (at: 1)
+  ];
+  historyService._fallbackEvents = [];
+
+  const consolidatedRes = historyService._buildFallbackResponse('400', '10');
+  assert.strictEqual(consolidatedRes.recentAlerts.length, 1, 'Повинна бути рівно одна об\'єднана картка тривоги');
+  assert.strictEqual(consolidatedRes.recentAlerts[0].threatType, 4, 'Пріоритет загрози має бути за конкретною загрозою (Дрони = 4)');
+  assert.strictEqual(consolidatedRes.recentAlerts[0].threatLabel, 'Дронова загроза');
+  assert.strictEqual(consolidatedRes.recentAlerts[0].isActive, true);
+  assert.strictEqual(consolidatedRes.todayStats.alertCount, 1, 'Кількість тривог сьогодні має бути 1, а не 2');
+  assert.strictEqual(consolidatedRes.todayStats.totalDurationMin, 27, 'Тривалість має бути 27 хв, а не подвоєні 54 хв');
+  console.log("✔ Тест 11 пройдено (інтелектуальне об'єднання «тривога —> загроза» без дублювання карток і подвоєння часу)");
 
   console.log("🎉 Усі тести сервісу історії успішно пройдено!\n");
 }

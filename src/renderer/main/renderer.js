@@ -306,7 +306,17 @@ function refreshOpenHistoryDrawer(isBackground = true) {
     window.alertAPI.getRegionHistory({ regionUid: uid, oblastUid })
       .then((data) => {
         if (regionHistoryDrawer && regionHistoryDrawer.classList.contains('open') && activeDrawerDistrictUid === uid) {
-          renderRegionHistory(data, { uid, title, oblastTitle, isAlert, alertType, alertLevel, startedAt });
+          const loadingEl = historyDrawerBody ? historyDrawerBody.querySelector('.drawer-loading') : null;
+          if (loadingEl) {
+            loadingEl.classList.add('fade-out');
+            setTimeout(() => {
+              if (activeDrawerDistrictUid === uid) {
+                renderRegionHistory(data, { uid, title, oblastTitle, isAlert, alertType, alertLevel, startedAt });
+              }
+            }, 120);
+          } else {
+            renderRegionHistory(data, { uid, title, oblastTitle, isAlert, alertType, alertLevel, startedAt });
+          }
         }
       })
       .catch((err) => {
@@ -379,7 +389,17 @@ function onDistrictClick(e) {
     window.alertAPI.getRegionHistory({ regionUid: uid, oblastUid })
       .then((data) => {
         if (regionHistoryDrawer && regionHistoryDrawer.classList.contains('open') && activeDrawerDistrictUid === uid) {
-          renderRegionHistory(data, { uid, title, oblastTitle, isAlert, alertType, alertLevel, startedAt });
+          const loadingEl = historyDrawerBody ? historyDrawerBody.querySelector('.drawer-loading') : null;
+          if (loadingEl) {
+            loadingEl.classList.add('fade-out');
+            setTimeout(() => {
+              if (activeDrawerDistrictUid === uid) {
+                renderRegionHistory(data, { uid, title, oblastTitle, isAlert, alertType, alertLevel, startedAt });
+              }
+            }, 120);
+          } else {
+            renderRegionHistory(data, { uid, title, oblastTitle, isAlert, alertType, alertLevel, startedAt });
+          }
         }
       })
       .catch((err) => {
@@ -417,17 +437,29 @@ function renderRegionHistory(data, meta) {
   let statusCardClass = 'safe';
   let statusTitle = 'Немає тривоги';
   let statusSubtitle = 'Наразі загрози не зафіксовано';
+  let statusIconSvg = icons.safe;
 
   if (isAlert) {
     if (alertType === 'artillery_shelling') {
       statusCardClass = 'artillery';
       statusTitle = 'Загроза артобстрілу';
-    } else if (alertLevel === 'yellow') {
+      statusIconSvg = threatIcons.artillery;
+    } else if (alertLevel === 'yellow' || alertType === 'drone') {
       statusCardClass = 'yellow';
       statusTitle = 'Дронова загроза';
+      statusIconSvg = threatIcons.drone;
+    } else if (alertType === 'missile') {
+      statusCardClass = 'alert';
+      statusTitle = 'Ракетна загроза';
+      statusIconSvg = threatIcons.missile;
+    } else if (alertType === 'aviation') {
+      statusCardClass = 'alert';
+      statusTitle = 'Загроза тактичної авіації';
+      statusIconSvg = threatIcons.aviation;
     } else {
       statusCardClass = 'alert';
       statusTitle = 'Повітряна тривога';
+      statusIconSvg = icons.alert;
     }
     if (startedAt) {
       const timeStr = new Date(startedAt).toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit' });
@@ -438,8 +470,8 @@ function renderRegionHistory(data, meta) {
   }
 
   const statusCardHtml = `
-    <div class="history-status-card ${statusCardClass}">
-      <span class="status-icon">${icons[statusCardClass] || icons.safe}</span>
+    <div class="history-status-card ${statusCardClass} drawer-animate-in">
+      <span class="status-icon">${statusIconSvg}</span>
       <div class="history-status-info">
         <span class="history-status-title">${statusTitle}</span>
         <span class="history-status-subtitle">${statusSubtitle}</span>
@@ -615,19 +647,35 @@ function renderRegionHistory(data, meta) {
     statsValueHtml = durationText ? `${countText} · ${durationText}` : countText;
   }
 
+  // Якщо є дублікат підрахунку в статистиці через паралельний запис
+  if (isAlert && count > 1 && alertsList.length <= 1) {
+    count = 1;
+    totalMin = currentElapsedMin > 0 ? currentElapsedMin : totalMin;
+    const countText = '1 тривога';
+    const durStr = formatDurationMinutes(totalMin);
+    statsValueHtml = durStr ? `${countText} · ${durStr}` : countText;
+  }
+
   const statsCardHtml = `
-    <div class="history-stats-card">
+    <div class="history-stats-card drawer-animate-in">
       <span class="history-stats-heading">Сьогодні</span>
       <span class="history-stats-values">${statsValueHtml}</span>
     </div>
   `;
 
   // 3. Недавні тривоги
-  let alertsList = (data && (data.recentAlerts || data.recent_alerts)) ? [...(data.recentAlerts || data.recent_alerts)] : [];
+  let alertsListClean = (data && (data.recentAlerts || data.recent_alerts)) ? [...(data.recentAlerts || data.recent_alerts)] : [];
 
-  // Якщо тривога активна прямо зараз, синхронізуємо або додаємо її до списку
+  // Якщо тривога активна прямо зараз, синхронізуємо або додаємо її до списку без дублювання
   if (isAlert) {
-    const activeItem = alertsList.find(a => a.isActive || !a.finishedAt);
+    // Знаходимо всі активні записи
+    const activeIndices = [];
+    alertsListClean.forEach((a, idx) => {
+      if (a.isActive || a.is_active || !a.finishedAt || !a.finished_at) {
+        activeIndices.push(idx);
+      }
+    });
+
     let currentThreatType = 1;
     let currentThreatLabel = 'Повітряна тривога';
 
@@ -645,14 +693,31 @@ function renderRegionHistory(data, meta) {
       currentThreatLabel = 'Загроза тактичної авіації';
     }
 
-    if (activeItem) {
+    if (activeIndices.length > 0) {
+      const primaryIdx = activeIndices[0];
+      const activeItem = alertsListClean[primaryIdx];
       activeItem.threatType = currentThreatType;
       activeItem.threatLabel = currentThreatLabel;
-      if (currentElapsedMin > 0 && (!activeItem.durationText || activeItem.durationText.includes('год') || !activeItem.duration_text)) {
-        activeItem.durationText = formatDurationMinutes(currentElapsedMin, startedAt, Date.now());
+      activeItem.threat_type = currentThreatType;
+      activeItem.threat_label = currentThreatLabel;
+      activeItem.isActive = true;
+      activeItem.is_active = true;
+      activeItem.finishedAt = null;
+      activeItem.finished_at = null;
+      activeItem.finishedText = 'Триває';
+      activeItem.finished_text = 'Триває';
+      if (currentElapsedMin > 0) {
+        const formatted = formatDurationMinutes(currentElapsedMin, startedAt, Date.now());
+        activeItem.durationText = formatted;
+        activeItem.duration_text = formatted;
+      }
+      // Видаляємо надлишкові паралельні активні записи (якщо прийшли окремо з області та району)
+      if (activeIndices.length > 1) {
+        const removeSet = new Set(activeIndices.slice(1));
+        alertsListClean = alertsListClean.filter((_, idx) => !removeSet.has(idx));
       }
     } else {
-      alertsList.unshift({
+      alertsListClean.unshift({
         id: `active_${Date.now()}`,
         startedAt: startedAt ? Math.floor(new Date(startedAt).getTime() / 1000) : Math.floor(Date.now() / 1000),
         finishedAt: null,
@@ -665,10 +730,11 @@ function renderRegionHistory(data, meta) {
       });
     }
   }
+
   let timelineItemsHtml = '';
 
-  if (alertsList.length > 0) {
-    timelineItemsHtml = alertsList.map(a => {
+  if (alertsListClean.length > 0) {
+    timelineItemsHtml = alertsListClean.map(a => {
       const threatLabel = a.threatLabel || a.threat_label || 'Повітряна тривога';
       let threatClass = 'alert';
       let icon = icons.alert;
@@ -722,7 +788,7 @@ function renderRegionHistory(data, meta) {
   }
 
   const timelineSectionHtml = `
-    <div class="history-timeline-section">
+    <div class="history-timeline-section drawer-animate-in">
       <h4 class="history-section-title">Останні тривоги</h4>
       <div class="history-timeline-list">
         ${timelineItemsHtml}
