@@ -128,4 +128,77 @@ const notifier = new NotifierService();
   console.log('✔ Тест 4 пройдено (структура відбою: статус + тривалість у тілі повідомлення)');
 }
 
+// Тест 5: Зміна стану активної тривоги в межах 1 хвилини (< 60 сек)
+{
+  const testNotifier = new NotifierService();
+  let audioPlayed = false;
+  testNotifier.setAudioCallback(() => { audioPlayed = true; });
+
+  // Початок тривоги 30 секунд тому
+  const alertStartTime = new Date(Date.now() - 30 * 1000);
+  testNotifier.resetAlertTracking(alertStartTime);
+
+  testNotifier.notifyStatusChange({
+    isAlert: true,
+    previousIsAlert: true,
+    alertType: 'air_raid',
+    alertLevel: 'red',
+    locationTitle: 'м. Київ',
+    threatInfo: { notificationText: 'Ракетна небезпека' },
+    startedAt: alertStartTime.toISOString()
+  });
+
+  assert.strictEqual(audioPlayed, false, 'Аудіосигнал не повинен викликатися при зміні стану під час активної тривоги');
+  assert.strictEqual(testNotifier.lastNotification.isSoundAllowed, false);
+  assert.strictEqual(testNotifier.lastNotification.shouldShowToast, false, 'Тост не повинен з\'являтися якщо тривога триває менше 1 хвилини');
+  console.log('✔ Тест 5 пройдено (зміна стану активної тривоги < 1 хв: без звуку та без тосту)');
+}
+
+// Тест 6: Зміна стану активної тривоги довше 1 хвилини (>= 60 сек)
+{
+  const testNotifier = new NotifierService();
+  let audioPlayed = false;
+  testNotifier.setAudioCallback(() => { audioPlayed = true; });
+
+  // Початок тривоги 2 хвилини тому
+  const alertStartTime = new Date(Date.now() - 120 * 1000);
+  testNotifier.resetAlertTracking(alertStartTime);
+
+  testNotifier.notifyStatusChange({
+    isAlert: true,
+    previousIsAlert: true,
+    alertType: 'air_raid',
+    alertLevel: 'red',
+    locationTitle: 'м. Київ',
+    threatInfo: { notificationText: 'Ракетна небезпека' },
+    startedAt: alertStartTime.toISOString()
+  });
+
+  assert.strictEqual(audioPlayed, false, 'Аудіосигнал не повинен викликатися при зміні стану під час активної тривоги');
+  assert.strictEqual(testNotifier.lastNotification.isSoundAllowed, false);
+  assert.strictEqual(testNotifier.lastNotification.shouldShowToast, true, 'Тост повинен з\'являтися якщо тривога триває довше 1 хвилини');
+  console.log('✔ Тест 6 пройдено (зміна стану активної тривоги > 1 хв: тост показується, але без звуку)');
+}
+
+// Тест 7: Нове оголошення тривоги (!previousIsAlert && isAlert)
+{
+  const testNotifier = new NotifierService();
+  let capturedAudio = null;
+  testNotifier.setAudioCallback((type, id, vol) => { capturedAudio = { type, id, vol }; });
+
+  testNotifier.notifyStatusChange({
+    isAlert: true,
+    previousIsAlert: false,
+    alertType: 'air_raid',
+    alertLevel: 'red',
+    locationTitle: 'м. Київ',
+    threatInfo: { notificationText: 'Повітряна тривога' }
+  });
+
+  assert.notStrictEqual(capturedAudio, null, 'При новому оголошенні тривоги аудіо повинно грати');
+  assert.strictEqual(testNotifier.lastNotification.isSoundAllowed, true);
+  assert.strictEqual(testNotifier.lastNotification.shouldShowToast, true, 'При новому оголошенні тривоги тост повинен з\'являтися');
+  console.log('✔ Тест 7 пройдено (нове оголошення тривоги: тост і аудіо активні)');
+}
+
 console.log('All NotifierService tests passed successfully!');

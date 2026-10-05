@@ -139,7 +139,8 @@ class NotifierService {
     }
   }
 
-  notifyStatusChange({ isAlert, alertType, alertLevel, locationTitle, alertScope, threatInfo, startedAt }) {
+  notifyStatusChange({ isAlert, alertType, alertLevel, locationTitle, alertScope, threatInfo, startedAt, previousIsAlert }) {
+    const isStatusUpdateDuringAlert = Boolean(isAlert && previousIsAlert);
     const volume = config.get('volume') !== undefined ? config.get('volume') : 80;
     const soundAlertEnabled = config.get('soundAlertEnabled') !== undefined 
       ? config.get('soundAlertEnabled') 
@@ -197,7 +198,9 @@ class NotifierService {
       'icons',
       iconName
     );
-    const notificationIcon = nativeImage.createFromPath(iconPath);
+    const notificationIcon = (nativeImage && typeof nativeImage.createFromPath === 'function')
+      ? nativeImage.createFromPath(iconPath)
+      : null;
 
     let title = '';
     let body = '';
@@ -211,10 +214,16 @@ class NotifierService {
       const typeText = isYellow ? 'Жовтий рівень' : this.getAlertTypeText(alertType);
       title = `${typeText} — ${locationTitle}${scopeNote}`;
 
-      // Фіксуємо час початку тривоги
-      const alertStartTime = startedAt ? new Date(startedAt) : new Date();
-      this.activeAlertStartedAt = alertStartTime;
-      const timeStr = this.formatTime(alertStartTime);
+      // Фіксуємо час початку тривоги (якщо ще не встановлено)
+      let alertStartTime = this.activeAlertStartedAt;
+      if (!alertStartTime && startedAt) {
+        const parsed = new Date(startedAt);
+        if (!isNaN(parsed.getTime())) alertStartTime = parsed;
+      }
+      if (!alertStartTime) alertStartTime = new Date();
+      if (!this.activeAlertStartedAt) {
+        this.activeAlertStartedAt = alertStartTime;
+      }
 
       let desc = 'Негайно пройдіть в найближче укриття!';
       if (threatInfo && threatInfo.notificationText) {
@@ -228,7 +237,8 @@ class NotifierService {
 
       soundType = 'alert';
       soundId = alertSound;
-      isSoundAllowed = soundAlertEnabled;
+      // Якщо це зміна стану вже активної тривоги — аудіосигнал суворо заборонено
+      isSoundAllowed = !isStatusUpdateDuringAlert && soundAlertEnabled;
     } else {
       title = `Відбій тривоги — ${locationTitle}`;
 
@@ -249,8 +259,29 @@ class NotifierService {
       isSoundAllowed = soundAllClearEnabled;
     }
 
+    // Системне сповіщення Windows:
+    // - Нова тривога або відбій: показуємо завжди.
+    // - Зміна стану під час активної тривоги: показуємо ТІЛЬКИ якщо тривога триває >= 1 хвилини.
+    let shouldShowToast = true;
+    if (isStatusUpdateDuringAlert) {
+      const alertStartTime = (this.activeAlertStartedAt && !isNaN(this.activeAlertStartedAt.getTime()))
+        ? this.activeAlertStartedAt
+        : (startedAt && !isNaN(new Date(startedAt).getTime()) ? new Date(startedAt) : new Date());
+      const durationMs = Math.max(0, Date.now() - alertStartTime.getTime());
+      shouldShowToast = durationMs >= 60 * 1000;
+    }
+
+    this.lastNotification = {
+      title,
+      body,
+      shouldShowToast,
+      isSoundAllowed,
+      soundType,
+      soundId
+    };
+
     // Системне спливаюче сповіщення Windows
-    if (Notification.isSupported()) {
+    if (shouldShowToast && Notification && typeof Notification.isSupported === 'function' && Notification.isSupported()) {
       const notification = new Notification({
         title,
         body,
