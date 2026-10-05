@@ -24,7 +24,8 @@ const uids = new Set(mapData.MAP_REGIONS.map(r => String(r.uid)));
 assert.ok(uids.has('31'), 'м. Київ (31) має бути на карті');
 assert.ok(uids.has('29'), 'АР Крим (29) має бути на карті');
 assert.ok(uids.has('30'), 'м. Севастополь (30) має бути на карті');
-console.log('✔ Тест 3 пройдено (Київ, Крим та Севастополь присутні на карті)');
+assert.ok(uids.has('16'), 'Луганська область (16) має бути на карті');
+console.log('✔ Тест 3 пройдено (Київ, Крим, Севастополь та Луганська область присутні на карті)');
 
 // 4. Перевірка повної відсутності емодзі у файлах інтерфейсу
 const indexHtml = fs.readFileSync(path.join(__dirname, '..', 'src', 'renderer', 'main', 'index.html'), 'utf8');
