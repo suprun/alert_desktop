@@ -87,13 +87,16 @@ assert.ok(settingsHtml.includes('neptun.in.ua'), 'settings.html має міст�
 assert.ok(!emojiRegex.test(settingsHtml), 'В settings.html не повинно бути емодзі');
 console.log('✔ Тест 11 пройдено (посилання на політики сервісів мап присутні в налаштуваннях без емодзі)');
 
-// 12. Перевірка плаваючої пігулки та приховування меню/реклами UkraineAlarm у preload-map.js
+// 12. Перевірка плаваючої пігулки, адаптації її теми та приховування меню/реклами UkraineAlarm у preload-map.js
 const preloadMapJs = fs.readFileSync(path.join(__dirname, '..', 'src', 'preload', 'preload-map.js'), 'utf8');
 assert.ok(preloadMapJs.includes('app-map-external-pill'), 'preload-map.js має містити віджет app-map-external-pill');
 assert.ok(preloadMapJs.includes('.bottom-banner'), 'preload-map.js має приховувати .bottom-banner');
 assert.ok(preloadMapJs.includes('.header, .header-wrapper'), 'preload-map.js має приховувати .header UkraineAlarm');
+assert.ok(preloadMapJs.includes('pill-light') && preloadMapJs.includes('pill-dark'), 'preload-map.js має підтримувати стилі світлої та темної тем для пігулки');
+assert.ok(preloadMapJs.includes('app-map-pill-icon'), 'preload-map.js має містити захищену векторну іконку app-map-pill-icon');
+assert.ok(preloadMapJs.includes('updatePillTheme'), 'preload-map.js має містити функцію updatePillTheme');
 assert.ok(!emojiRegex.test(preloadMapJs), 'В preload-map.js не повинно бути емодзі');
-console.log('✔ Тест 12 пройдено (плаваюча пігулка та приховування меню/реклами UkraineAlarm валідні)');
+console.log('✔ Тест 12 пройдено (плаваюча пігулка, адаптація її теми до світлої/темної та векторна іконка UkraineAlarm валідні)');
 
 // 13. Перевірка підписів назв областей на векторній карті
 assert.ok(Array.isArray(mapData.MAP_OBLAST_LABELS), 'MAP_OBLAST_LABELS має бути масивом');

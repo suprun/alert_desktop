@@ -72,6 +72,100 @@ try {
             \`;
           }
 
+          // Стилі для плаваючої пігулки переходу на зовнішній сайт
+          css += \`
+            #app-map-external-pill {
+              box-sizing: border-box !important;
+              position: fixed !important;
+              top: 8px !important;
+              left: 50% !important;
+              transform: translateX(-50%) !important;
+              z-index: 2147483647 !important;
+              display: inline-flex !important;
+              align-items: center !important;
+              gap: 6px !important;
+              padding: 4px 12px !important;
+              border-radius: 999px !important;
+              font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+              font-size: 11.5px !important;
+              font-weight: 500 !important;
+              line-height: 1 !important;
+              text-decoration: none !important;
+              cursor: pointer !important;
+              user-select: none !important;
+              transition: all 0.18s ease !important;
+              backdrop-filter: blur(8px) !important;
+              -webkit-backdrop-filter: blur(8px) !important;
+            }
+
+            #app-map-external-pill span.app-map-pill-host {
+              font-family: inherit !important;
+              font-size: inherit !important;
+              font-weight: inherit !important;
+              line-height: inherit !important;
+              color: inherit !important;
+              white-space: nowrap !important;
+              pointer-events: none !important;
+            }
+
+            /* Векторна іконка через CSS-маску (захищена від конфліктів із скриптами карти, зокрема mapCore.js на UkraineAlarm) */
+            #app-map-external-pill .app-map-pill-icon {
+              display: inline-block !important;
+              width: 13px !important;
+              height: 13px !important;
+              min-width: 13px !important;
+              min-height: 13px !important;
+              max-width: 13px !important;
+              max-height: 13px !important;
+              vertical-align: middle !important;
+              flex-shrink: 0 !important;
+              background-color: currentColor !important;
+              -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6'/%3E%3Cpolyline points='15 3 21 3 21 9'/%3E%3Cline x1='10' y1='14' x2='21' y2='3'/%3E%3C/svg%3E") no-repeat center / contain !important;
+              mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6'/%3E%3Cpolyline points='15 3 21 3 21 9'/%3E%3Cline x1='10' y1='14' x2='21' y2='3'/%3E%3C/svg%3E") no-repeat center / contain !important;
+              pointer-events: none !important;
+            }
+
+            /* Світла тема оформлення пігулки */
+            #app-map-external-pill.pill-light,
+            html.light #app-map-external-pill,
+            body.light #app-map-external-pill,
+            [data-theme="light"] #app-map-external-pill {
+              background-color: rgba(255, 255, 255, 0.88) !important;
+              border: 1px solid rgba(0, 0, 0, 0.15) !important;
+              color: #334155 !important;
+              box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.05) !important;
+            }
+
+            #app-map-external-pill.pill-light:hover,
+            html.light #app-map-external-pill:hover,
+            body.light #app-map-external-pill:hover,
+            [data-theme="light"] #app-map-external-pill:hover {
+              background-color: rgba(255, 255, 255, 0.98) !important;
+              border-color: rgba(0, 0, 0, 0.3) !important;
+              color: #0f172a !important;
+              box-shadow: 0 6px 18px rgba(0, 0, 0, 0.14) !important;
+              transform: translateX(-50%) translateY(-1px) !important;
+            }
+
+            /* Темна тема оформлення пігулки (за замовчуванням) */
+            #app-map-external-pill.pill-dark,
+            #app-map-external-pill {
+              background-color: rgba(24, 26, 31, 0.78) !important;
+              border: 1px solid rgba(255, 255, 255, 0.18) !important;
+              color: #cbd5e1 !important;
+              box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35) !important;
+            }
+
+            #app-map-external-pill.pill-dark:hover,
+            #app-map-external-pill:hover {
+              background-color: rgba(35, 38, 45, 0.94) !important;
+              border-color: rgba(255, 255, 255, 0.35) !important;
+              color: #ffffff !important;
+              box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45) !important;
+              transform: translateX(-50%) translateY(-1px) !important;
+            }
+          \`;
+
           style.textContent = css;
           (document.head || document.documentElement).appendChild(style);
         } catch (e) {}
@@ -93,56 +187,19 @@ try {
           pill.title = 'Відкрити ' + host + ' у системному браузері';
           pill.setAttribute('aria-label', 'Відкрити ' + host + ' у браузері');
 
-          // Векторна SVG-іконка зовнішнього переходу (без емодзі)
+          // Векторна іконка через span із захищеною CSS-маскою (без емодзі та без конфліктів з mapCore.js на UkraineAlarm)
           pill.innerHTML = \`
-            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;">
-              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
-              <polyline points="15 3 21 3 21 9"/>
-              <line x1="10" y1="14" x2="21" y2="3"/>
-            </svg>
-            <span>\${host}</span>
+            <span class="app-map-pill-icon" aria-hidden="true"></span>
+            <span class="app-map-pill-host">\${host}</span>
           \`;
 
-          Object.assign(pill.style, {
-            position: 'fixed',
-            top: '8px',
-            left: '50%',
-            transform: 'translateX(-50%)',
-            zIndex: '2147483647',
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '6px',
-            padding: '4px 12px',
-            backgroundColor: 'rgba(24, 26, 31, 0.76)',
-            backdropFilter: 'blur(8px)',
-            webkitBackdropFilter: 'blur(8px)',
-            border: '1px solid rgba(255, 255, 255, 0.16)',
-            borderRadius: '999px',
-            color: '#cbd5e1',
-            fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-            fontSize: '11.5px',
-            fontWeight: '500',
-            lineHeight: '1',
-            textDecoration: 'none',
-            boxShadow: '0 4px 14px rgba(0, 0, 0, 0.28)',
-            cursor: 'pointer',
-            userSelect: 'none',
-            transition: 'all 0.18s ease'
-          });
-
-          pill.addEventListener('mouseenter', () => {
-            pill.style.backgroundColor = 'rgba(35, 38, 45, 0.94)';
-            pill.style.borderColor = 'rgba(255, 255, 255, 0.35)';
-            pill.style.color = '#ffffff';
-            pill.style.transform = 'translateX(-50%) translateY(-1px)';
-          });
-
-          pill.addEventListener('mouseleave', () => {
-            pill.style.backgroundColor = 'rgba(24, 26, 31, 0.76)';
-            pill.style.borderColor = 'rgba(255, 255, 255, 0.16)';
-            pill.style.color = '#cbd5e1';
-            pill.style.transform = 'translateX(-50%)';
-          });
+          // Початкове визначення теми оформлення для пігулки
+          const isLight = (document.documentElement && document.documentElement.classList.contains('light')) ||
+                          (document.body && document.body.classList.contains('light')) ||
+                          (window.localStorage && (window.localStorage.getItem('alarm-theme') === 'light' || window.localStorage.getItem('darkMode') === 'false'));
+          pill.classList.toggle('pill-light', Boolean(isLight));
+          pill.classList.toggle('pill-dark', !isLight);
+          pill.setAttribute('data-theme', isLight ? 'light' : 'dark');
 
           pill.addEventListener('click', (e) => {
             e.preventDefault();
@@ -153,6 +210,19 @@ try {
           (document.body || document.documentElement).appendChild(pill);
         } catch (e) {}
       };
+
+      // Слухач синхронізації теми для плаваючої пігулки у world 0
+      window.addEventListener('app-set-pill-theme', (e) => {
+        try {
+          const isDark = Boolean(e && e.detail && e.detail.isDark);
+          const pill = document.getElementById('app-map-external-pill');
+          if (pill) {
+            pill.classList.toggle('pill-dark', isDark);
+            pill.classList.toggle('pill-light', !isDark);
+            pill.setAttribute('data-theme', isDark ? 'dark' : 'light');
+          }
+        } catch (err) {}
+      });
 
       // 6. Перехоплення localStorage.setItem та removeItem для відстеження тем
       try {
@@ -251,8 +321,21 @@ function detectTheme() {
   return true; // За замовчуванням темна тема
 }
 
+function updatePillTheme(isDark) {
+  try {
+    const pill = document.getElementById('app-map-external-pill');
+    if (pill) {
+      pill.classList.toggle('pill-dark', Boolean(isDark));
+      pill.classList.toggle('pill-light', !isDark);
+      pill.setAttribute('data-theme', isDark ? 'dark' : 'light');
+    }
+    window.dispatchEvent(new CustomEvent('app-set-pill-theme', { detail: { isDark: Boolean(isDark) } }));
+  } catch (e) {}
+}
+
 function checkAndEmitTheme() {
   const isDark = detectTheme();
+  updatePillTheme(isDark);
   if (lastKnownIsDark !== isDark) {
     lastKnownIsDark = isDark;
     try {
@@ -268,6 +351,7 @@ ipcRenderer.on('set-view-theme', (_event, { isDark }) => {
   try {
     const targetIsDark = Boolean(isDark);
     lastKnownIsDark = targetIsDark;
+    updatePillTheme(targetIsDark);
     const host = window.location ? (window.location.hostname || '') : '';
 
     // 1. Для Alerts.in.ua: викликаємо штатні механізми сайту через кнопку .modes-button
