@@ -57,6 +57,24 @@ try {
         hidePipElements();
       }
       window.addEventListener('load', hidePipElements);
+
+      // 5. Перехоплення localStorage.setItem та removeItem для миттєвої реакції на зміну теми
+      try {
+        const origSetItem = Storage.prototype.setItem;
+        const origRemoveItem = Storage.prototype.removeItem;
+        Storage.prototype.setItem = function(key, val) {
+          origSetItem.apply(this, arguments);
+          if (key === 'darkMode' || key === 'alarm-theme' || key === 'dark_mode') {
+            window.dispatchEvent(new CustomEvent('app-storage-theme-change', { detail: { key, val } }));
+          }
+        };
+        Storage.prototype.removeItem = function(key) {
+          origRemoveItem.apply(this, arguments);
+          if (key === 'darkMode' || key === 'alarm-theme' || key === 'dark_mode') {
+            window.dispatchEvent(new CustomEvent('app-storage-theme-change', { detail: { key } }));
+          }
+        };
+      } catch (e) {}
     })();
   `);
 } catch (err) {
@@ -167,9 +185,12 @@ try {
 
 // Відстеження зміни ключів у localStorage
 window.addEventListener('storage', (e) => {
-  if (e.key === 'darkMode' || e.key === 'alarm-theme') {
+  if (e.key === 'darkMode' || e.key === 'alarm-theme' || e.key === 'dark_mode') {
     checkAndEmitTheme();
   }
+});
+window.addEventListener('app-storage-theme-change', () => {
+  checkAndEmitTheme();
 });
 
 // Перехоплення кліків на перемикачі теми сторінки

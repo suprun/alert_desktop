@@ -54,6 +54,12 @@ class AlertProxyService:
         self._total_aiu_polls: int = 0
         self._webhook_registered: bool = False
 
+        # Кеш історії адмінодиниць (TTL ~60 сек)
+        self._history_cache_time: float = 0.0
+        self._history_stats_cache: List[Dict[str, Any]] = []
+        self._history_alerts_cache: List[Dict[str, Any]] = []
+        self._history_events_cache: List[Dict[str, Any]] = []
+
         # HTTP клієнти
         self._client: Optional[httpx.AsyncClient] = None
         self._alerts_in_ua_client: Optional[httpx.AsyncClient] = None
@@ -633,5 +639,133 @@ class AlertProxyService:
             "regions_indexed": len(self._regions_map)
         }
 
+    async def _fetch_history_data(self):
+        """Отримує свіжі дані статистики та недавніх тривог з alerts.in.ua для кешу."""
+        if not self._alerts_in_ua_client:
+            return
+
+        base_url = "https://api.alerts.in.ua"
+        try:
+            # 1. Статистика тривог за сьогодні
+            r_stats = await self._alerts_in_ua_client.get(f"{base_url}/v3/stats/duration/today.json", timeout=8.0)
+            if r_stats.status_code == 200:
+                data = r_stats.json()
+                self._history_stats_cache = data.get("data", [])
+
+            # 2. Недавні тривоги
+            r_alerts = await self._alerts_in_ua_client.get(f"{base_url}/v3/alerts/recent.json", timeout=8.0)
+            if r_alerts.status_code == 200:
+                data = r_alerts.json()
+                self._history_alerts_cache = data.get("alerts", [])
+
+            # 3. Події тривог (динамічні повідомлення, вибухи)
+            r_events = await self._alerts_in_ua_client.get(f"{base_url}/v3/alert_events/recent.json", timeout=8.0)
+            if r_events.status_code == 200:
+                data = r_events.json()
+                self._history_events_cache = data.get("alert_events", [])
+
+            self._history_cache_time = time.time()
+            logger.info("Кеш історії тривог успішно оновлено з api.alerts.in.ua")
+        except Exception as exc:
+            logger.warning("Помилка завантаження історії тривог з api.alerts.in.ua: %s", exc)
+
+    async def get_region_history(self, uid: str, oblast_uid: Optional[str] = None) -> Dict[str, Any]:
+        """Повертає історію тривог та статистику для вказаної адмінодиниці."""
+        now = time.time()
+        # Оновлюємо кеш якщо минуло > 60 сек або кеш порожній
+        if (now - self._history_cache_time) > 60.0 or not self._history_alerts_cache:
+            await self._fetch_history_data()
+
+        uid_str = str(uid).strip()
+        oblast_uid_str = str(oblast_uid).strip() if oblast_uid else None
+
+        # 1. Статистика за сьогодні
+        stat = next(
+            (d for d in self._history_stats_cache if str(d.get("luid")) == uid_str),
+            None
+        )
+        if not stat and oblast_uid_str:
+            stat = next(
+                (d for d in self._history_stats_cache if str(d.get("luid")) == oblast_uid_str),
+                None
+            )
+
+        today_stats = {
+            "alert_count": stat.get("ac", 0) if stat else 0,
+            "total_duration_min": round(stat.get("d", 0) / 60000) if stat else 0,
+            "is_active": bool(stat.get("a", False)) if stat else False
+        }
+
+        # 2. Недавні тривоги
+        raw_alerts = []
+        for a in self._history_alerts_cache:
+            a_luid = str(a.get("luid", ""))
+            a_loi = str(a.get("loi", ""))
+            if a_luid == uid_str or (oblast_uid_str and (a_luid == oblast_uid_str or a_loi == oblast_uid_str)):
+                raw_alerts.append(a)
+
+        for e in self._history_events_cache:
+            e_luid = str(e.get("luid", ""))
+            e_loi = str(e.get("loi", ""))
+            if e_luid == uid_str or (oblast_uid_str and (e_luid == oblast_uid_str or e_loi == oblast_uid_str)):
+                raw_alerts.append(e)
+
+        threat_labels = {
+            1: "Повітряна тривога",
+            2: "Загроза артобстрілу",
+            3: "Ракетна загроза",
+            4: "Дронова загроза",
+            5: "Загроза тактичної авіації",
+            6: "Загроза пусків КАБ",
+            7: "Хімічна загроза",
+            8: "Радіаційна загроза"
+        }
+
+        formatted_alerts = []
+        seen_ids = set()
+        BASE_EPOCH = 1640000000
+
+        for a in raw_alerts:
+            aid = a.get("i") or a.get("u")
+            if aid in seen_ids:
+                continue
+            seen_ids.add(aid)
+
+            s_raw = a.get("s")
+            f_raw = a.get("f")
+            started_at = (BASE_EPOCH + s_raw) if s_raw else None
+            finished_at = (BASE_EPOCH + f_raw) if f_raw else None
+            duration_min = round((f_raw - s_raw) / 60) if (s_raw and f_raw and f_raw >= s_raw) else None
+
+            at_val = a.get("at", 1)
+            threat_name = threat_labels.get(at_val, "Повітряна тривога")
+            if a.get("m"):
+                threat_name = a.get("m")
+
+            formatted_alerts.append({
+                "id": aid,
+                "started_at": started_at,
+                "finished_at": finished_at,
+                "duration_min": duration_min,
+                "is_active": not bool(finished_at),
+                "threat_type": at_val,
+                "threat_label": threat_name,
+                "message": a.get("m") or a.get("nt"),
+                "source": a.get("nt") or a.get("su")
+            })
+
+        formatted_alerts.sort(key=lambda x: x.get("started_at") or 0, reverse=True)
+
+        return {
+            "success": True,
+            "source": "gateway",
+            "region_uid": uid_str,
+            "oblast_uid": oblast_uid_str,
+            "today_stats": today_stats,
+            "recent_alerts": formatted_alerts[:15],
+            "cached_at": datetime.now(timezone.utc).isoformat()
+        }
+
 
 proxy_service = AlertProxyService()
+

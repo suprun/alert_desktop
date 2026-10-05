@@ -10,7 +10,7 @@
 import asyncio
 import logging
 from contextlib import asynccontextmanager
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -145,6 +145,23 @@ async def get_active_alerts():
             "X-Proxy-Source": "hybrid_gateway"
         }
     )
+
+
+@app.get("/v1/history/region", summary="Історія тривог та статистика для адмінодиниці")
+@app.get("/api/v1/history/region", include_in_schema=False)
+async def get_region_history(uid: str, oblast_uid: Optional[str] = None):
+    """
+    Повертає історію тривог та статистику за сьогодні для вказаного району/міста або області.
+    """
+    try:
+        data = await proxy_service.get_region_history(uid=uid, oblast_uid=oblast_uid)
+        return JSONResponse(
+            content=data,
+            headers={"Cache-Control": "public, max-age=30"}
+        )
+    except Exception as exc:
+        logger.error("Помилка отримання історії для регіону %s: %s", uid, exc)
+        return JSONResponse(status_code=500, content={"success": False, "error": str(exc)})
 
 
 @app.get("/health", summary="Перевірка стану здоров'я шлюзу")

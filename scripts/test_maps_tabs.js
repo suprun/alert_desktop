@@ -55,4 +55,21 @@ assert.strictEqual(res.success, true);
 assert.strictEqual(windowManager.getActiveMapTab(), 'internal');
 console.log('✔ Тест 6 пройдено (методи WindowManager перемикання вкладок та тем працюють)');
 
-console.log('🎉 Усі тести панелі вкладок та векторної карти успішно виконано!');
+// 7. Перевірка наявності верхньої кнопки теми та повної відсутності обертання при наведенні
+const styleCss = fs.readFileSync(path.join(__dirname, '..', 'src', 'renderer', 'main', 'style.css'), 'utf8');
+assert.ok(indexHtml.includes('id="btnThemeToggle"'), 'Кнопка btnThemeToggle має бути в index.html');
+assert.ok(!styleCss.includes('rotate(15deg)'), 'У style.css не повинно бути анімації обертання rotate(15deg)');
+assert.ok(!/:hover[^{]*\{[^}]*rotate/i.test(styleCss), 'У style.css не повинно бути жодної анімації обертання кнопки при наведенні (:hover)');
+console.log('✔ Тест 7 пройдено (btnThemeToggle присутній у шапці, обертання при hover відсутнє)');
+
+// 8. Перевірка об'єднаної панелі статусу та легенди
+assert.ok(indexHtml.includes('internal-map-status-bar'), 'Смуга internal-map-status-bar має бути в index.html');
+assert.ok(indexHtml.includes('internal-map-legend'), 'Легенда має бути в index.html');
+console.log('✔ Тест 8 пройдено (об\'єднана смуга internal-map-status-bar з легендою валідна)');
+
+// 9. Перевірка висувної панелі історії адмінодиниці
+assert.ok(indexHtml.includes('id="regionHistoryDrawer"'), 'Панель regionHistoryDrawer має бути в index.html');
+assert.ok(indexHtml.includes('id="btnHistoryClose"'), 'Кнопка btnHistoryClose має бути в index.html');
+console.log('✔ Тест 9 пройдено (висувна панель деталей та історії regionHistoryDrawer присутня)');
+
+console.log('🎉 Усі тести панелі вкладок, тем та векторної карти успішно виконано!');

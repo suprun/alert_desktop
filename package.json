@@ -1,6 +1,6 @@
 {
   "name": "alert-desktop",
-  "version": "1.0.64",
+  "version": "1.0.65",
   "description": "Десктопний клієнт для моніторингу повітряних тривог на базі Electron",
   "main": "src/main/main.js",
   "repository": {
@@ -9,7 +9,7 @@
   },
   "scripts": {
     "start": "electron .",
-    "test": "node --check src/main/main.js && node --check src/main/config.js && node --check src/main/autostart.js && node --check src/main/threat-utils.js && node --check src/main/api.js && node --check src/main/net-check.js && node --check src/main/tray.js && node --check src/main/window.js && node --check src/main/settings-window.js && node --check src/main/notifier.js && node --check src/main/updater.js && node --check src/preload/preload-main.js && node --check src/preload/preload-settings.js && node --check src/preload/preload-map.js && node --check src/renderer/main/map-data.js && node --check src/renderer/main/renderer.js && node --check src/renderer/settings/settings.js && node --check scripts/reset_config.js && node --check scripts/build_installer.js && node --check scripts/release_tag.js && node --check scripts/test_updater.js && node --check scripts/test_autostart_sync.js && node --check scripts/test_ubilling_adapter.js && node --check scripts/test_neptun_adapter.js && node --check scripts/test_jaam_adapter.js && node --check scripts/test_net_check.js && node --check scripts/test_fallback_resilience.js && node --check scripts/test_maps_tabs.js && node scripts/test_threat_utils.js && node scripts/test_notifier.js && node scripts/test_oblast_aggregation.js && node scripts/test_updater.js && node scripts/test_autostart_sync.js && node scripts/test_ubilling_adapter.js && node scripts/test_neptun_adapter.js && node scripts/test_jaam_adapter.js && node scripts/test_net_check.js && node scripts/test_fallback_resilience.js && node scripts/test_maps_tabs.js && electron --no-sandbox scripts/smoke_test.js",
+    "test": "node --check src/main/main.js && node --check src/main/config.js && node --check src/main/autostart.js && node --check src/main/threat-utils.js && node --check src/main/history-service.js && node --check src/main/api.js && node --check src/main/net-check.js && node --check src/main/tray.js && node --check src/main/window.js && node --check src/main/settings-window.js && node --check src/main/notifier.js && node --check src/main/updater.js && node --check src/preload/preload-main.js && node --check src/preload/preload-settings.js && node --check src/preload/preload-map.js && node --check src/renderer/main/map-data.js && node --check src/renderer/main/renderer.js && node --check src/renderer/settings/settings.js && node --check scripts/reset_config.js && node --check scripts/build_installer.js && node --check scripts/release_tag.js && node --check scripts/test_updater.js && node --check scripts/test_autostart_sync.js && node --check scripts/test_ubilling_adapter.js && node --check scripts/test_neptun_adapter.js && node --check scripts/test_jaam_adapter.js && node --check scripts/test_net_check.js && node --check scripts/test_fallback_resilience.js && node --check scripts/test_history_service.js && node --check scripts/test_maps_tabs.js && node scripts/test_threat_utils.js && node scripts/test_notifier.js && node scripts/test_oblast_aggregation.js && node scripts/test_updater.js && node scripts/test_autostart_sync.js && node scripts/test_ubilling_adapter.js && node scripts/test_neptun_adapter.js && node scripts/test_jaam_adapter.js && node scripts/test_net_check.js && node scripts/test_fallback_resilience.js && node scripts/test_history_service.js && node scripts/test_maps_tabs.js && electron --no-sandbox scripts/smoke_test.js",
     "build:ico": "electron scripts/generate_ico.js",
     "build:appx": "electron scripts/generate_appx_assets.js",
     "build:installer": "node scripts/build_installer.js --win",
@@ -34,6 +34,7 @@
     "dist:flatpak:arm64": "node scripts/build_installer.js --flatpak-arm64",
     "dist:mac": "node scripts/build_installer.js --mac",
     "dist:all": "node scripts/build_installer.js --all",
+    "deploy:server": "python scripts/deploy_remote.py",
     "reset:config": "node scripts/reset_config.js",
     "release:tag": "node scripts/release_tag.js"
   },

@@ -17,7 +17,7 @@ const audioPlayer = document.getElementById('audioPlayer');
 // Елементи вбудованої векторної карти
 const internalMapContainer = document.getElementById('internalMapContainer');
 const internalAlertsSummary = document.getElementById('internalAlertsSummary');
-const btnMapThemeToggle = document.getElementById('btnMapThemeToggle');
+const btnThemeToggle = document.getElementById('btnThemeToggle');
 const ukraineMapWrapper = document.getElementById('ukraineMapWrapper');
 const ukraineVectorSvg = document.getElementById('ukraineVectorSvg');
 const svgDefs = document.getElementById('svgDefs');
@@ -31,6 +31,13 @@ const tooltipStatusIcon = document.getElementById('tooltipStatusIcon');
 const tooltipStatusText = document.getElementById('tooltipStatusText');
 const tooltipHromadasList = document.getElementById('tooltipHromadasList');
 const tooltipTimeStarted = document.getElementById('tooltipTimeStarted');
+
+// Елементи висувної панелі деталей та історії адмінодиниці
+const regionHistoryDrawer = document.getElementById('regionHistoryDrawer');
+const historyRegionTitle = document.getElementById('historyRegionTitle');
+const historyOblastTitle = document.getElementById('historyOblastTitle');
+const btnHistoryClose = document.getElementById('btnHistoryClose');
+const historyDrawerBody = document.getElementById('historyDrawerBody');
 
 // Елементи панелі вкладок
 const tabButtons = document.querySelectorAll('.tab-btn');
@@ -241,12 +248,188 @@ function onDistrictMouseLeave() {
 }
 
 function onDistrictClick(e) {
+  e.stopPropagation();
   const el = e.currentTarget;
+  if (!el) return;
+
   const uid = el.getAttribute('data-uid');
-  const title = el.getAttribute('data-title');
-  if (window.alertAPI && window.alertAPI.openSettings) {
-    window.alertAPI.openSettings();
+  const title = el.getAttribute('data-title') || 'Адмінодиниця';
+  const oblastUid = el.getAttribute('data-oblast-uid') || '';
+  const oblastTitle = el.getAttribute('data-oblast-title') || '';
+  const alertType = el.getAttribute('data-alert-type') || '';
+  const alertLevel = el.getAttribute('data-alert-level') || '';
+  const startedAt = el.getAttribute('data-started-at') || '';
+  const isAlert = el.classList.contains('alert') || el.classList.contains('yellow') || el.classList.contains('artillery');
+
+  // Виділення району на карті
+  if (districtsLayer) {
+    districtsLayer.querySelectorAll('.map-district.selected').forEach(p => p.classList.remove('selected'));
   }
+  el.classList.add('selected');
+
+  // Приховуємо спливаючий тултіп, щоб не перекривав
+  if (mapRegionTooltip) {
+    mapRegionTooltip.style.display = 'none';
+  }
+
+  // Відкриття панелі історії
+  if (regionHistoryDrawer) {
+    regionHistoryDrawer.classList.add('open');
+    regionHistoryDrawer.setAttribute('aria-hidden', 'false');
+  }
+  if (historyRegionTitle) historyRegionTitle.textContent = title;
+  if (historyOblastTitle) historyOblastTitle.textContent = oblastTitle ? `${oblastTitle}` : '';
+
+  if (historyDrawerBody) {
+    historyDrawerBody.innerHTML = `
+      <div class="drawer-loading">
+        <div class="drawer-spinner"></div>
+        <span>Завантаження історії...</span>
+      </div>
+    `;
+  }
+
+  // Запит історії через IPC (Gateway -> Fallback)
+  if (window.alertAPI && window.alertAPI.getRegionHistory) {
+    window.alertAPI.getRegionHistory({ regionUid: uid, oblastUid })
+      .then((data) => {
+        renderRegionHistory(data, { uid, title, oblastTitle, isAlert, alertType, alertLevel, startedAt });
+      })
+      .catch((err) => {
+        if (historyDrawerBody) {
+          historyDrawerBody.innerHTML = `<div class="drawer-loading"><span>Помилка завантаження історії (${escapeHtml(err.message)})</span></div>`;
+        }
+      });
+  }
+}
+
+function closeHistoryDrawer() {
+  if (regionHistoryDrawer) {
+    regionHistoryDrawer.classList.remove('open');
+    regionHistoryDrawer.setAttribute('aria-hidden', 'true');
+  }
+  if (districtsLayer) {
+    districtsLayer.querySelectorAll('.map-district.selected').forEach(p => p.classList.remove('selected'));
+  }
+}
+
+function renderRegionHistory(data, meta) {
+  if (!historyDrawerBody) return;
+
+  const { isAlert, alertType, alertLevel, startedAt } = meta;
+
+  // 1. Поточний статус безпеки
+  let statusCardClass = 'safe';
+  let statusTitle = 'Немає тривоги';
+  let statusSubtitle = 'Наразі загрози не зафіксовано';
+
+  if (isAlert) {
+    if (alertType === 'artillery_shelling') {
+      statusCardClass = 'artillery';
+      statusTitle = 'Загроза артобстрілу';
+    } else if (alertLevel === 'yellow') {
+      statusCardClass = 'yellow';
+      statusTitle = 'Дронова загроза';
+    } else {
+      statusCardClass = 'alert';
+      statusTitle = 'Повітряна тривога';
+    }
+    if (startedAt) {
+      const timeStr = new Date(startedAt).toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit' });
+      statusSubtitle = `Триває з ${timeStr}`;
+    } else {
+      statusSubtitle = 'Активна тривога';
+    }
+  }
+
+  const statusCardHtml = `
+    <div class="history-status-card ${statusCardClass}">
+      <span class="status-icon">${icons[statusCardClass] || icons.safe}</span>
+      <div class="history-status-info">
+        <span class="history-status-title">${statusTitle}</span>
+        <span class="history-status-subtitle">${statusSubtitle}</span>
+      </div>
+    </div>
+  `;
+
+  // 2. Статистика за сьогодні
+  const todayStats = data && (data.todayStats || data.today_stats);
+  const count = todayStats ? (todayStats.alertCount ?? todayStats.alert_count ?? 0) : 0;
+  const durationText = todayStats ? (todayStats.durationFormatted || todayStats.duration_formatted || `${todayStats.totalDurationMin || todayStats.total_duration_min || 0} хв`) : '0 хв';
+
+  const statsCardHtml = `
+    <div class="history-stats-card">
+      <span class="history-stats-heading">Сьогодні</span>
+      <span class="history-stats-values">${count} ${count === 1 ? 'тривога' : (count >= 2 && count <= 4 ? 'тривоги' : 'тривог')} · ${durationText}</span>
+    </div>
+  `;
+
+  // 3. Недавні тривоги
+  const alertsList = (data && (data.recentAlerts || data.recent_alerts)) || [];
+  let timelineItemsHtml = '';
+
+  if (alertsList.length > 0) {
+    timelineItemsHtml = alertsList.map(a => {
+      const threatLabel = a.threatLabel || a.threat_label || 'Повітряна тривога';
+      let threatClass = 'alert';
+      let icon = icons.alert;
+
+      const tType = a.threatType || a.threat_type;
+      if (tType === 2 || String(tType).includes('artillery')) {
+        threatClass = 'artillery';
+        icon = threatIcons.artillery;
+      } else if (tType === 4 || String(tType).includes('drone')) {
+        threatClass = 'yellow';
+        icon = threatIcons.drone;
+      } else if (tType === 3 || String(tType).includes('missile')) {
+        icon = threatIcons.missile;
+      } else if (tType === 5 || String(tType).includes('aviation')) {
+        icon = threatIcons.aviation;
+      }
+
+      const startedStr = a.startedText || a.started_text || (a.startedAt ? new Date(a.startedAt * 1000).toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit' }) : '');
+      const finishedStr = a.finishedText || a.finished_text || (a.finishedAt ? new Date(a.finishedAt * 1000).toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit' }) : (a.isActive ? 'Триває' : ''));
+      const timeRange = finishedStr ? `${startedStr} — ${finishedStr}` : startedStr;
+      const durationStr = a.durationText || a.duration_text || (a.durationMin ? `${a.durationMin} хв` : '');
+      const msgHtml = a.message ? `<div class="history-item-msg">${escapeHtml(a.message)}</div>` : '';
+
+      return `
+        <div class="history-item">
+          <div class="history-item-header">
+            <span class="history-item-threat ${threatClass}">
+              ${icon}
+              <span>${escapeHtml(threatLabel)}</span>
+            </span>
+            ${durationStr ? `<span class="history-item-duration">${durationStr}</span>` : ''}
+          </div>
+          <div class="history-item-times">${timeRange}</div>
+          ${msgHtml}
+        </div>
+      `;
+    }).join('');
+  } else {
+    timelineItemsHtml = `<div class="drawer-loading"><span>Немає зафіксованих недавніх тривог</span></div>`;
+  }
+
+  const timelineSectionHtml = `
+    <div class="history-timeline-section">
+      <h4 class="history-section-title">Останні тривоги</h4>
+      <div class="history-timeline-list">
+        ${timelineItemsHtml}
+      </div>
+    </div>
+  `;
+
+  historyDrawerBody.innerHTML = statusCardHtml + statsCardHtml + timelineSectionHtml;
+}
+
+function escapeHtml(text) {
+  if (!text) return '';
+  return String(text)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
 }
 
 function showDistrictTooltip(targetEl, e) {
@@ -685,15 +868,42 @@ if (btnRetryMap) {
   });
 }
 
-// Векторний перемикач теми інтерфейсу на вбудованій карті (без емодзі)
-if (btnMapThemeToggle) {
-  btnMapThemeToggle.addEventListener('click', () => {
+// Векторний перемикач теми інтерфейсу у верхній шапці вікна (без емодзі та без обертання)
+if (btnThemeToggle) {
+  btnThemeToggle.addEventListener('click', () => {
     const nextDark = !currentThemeIsDark;
     applyTheme(nextDark);
     if (window.alertAPI && window.alertAPI.toggleTheme) {
       window.alertAPI.toggleTheme(nextDark);
     }
   });
+}
+
+// Закриття висувної панелі історії адмінодиниці
+if (btnHistoryClose) {
+  btnHistoryClose.addEventListener('click', () => {
+    closeHistoryDrawer();
+  });
+}
+
+// Клік на порожнє поле карти знімає виділення та ховає панель історії
+if (ukraineVectorSvg) {
+  ukraineVectorSvg.addEventListener('click', (e) => {
+    if (!e.target.closest('.map-district')) {
+      closeHistoryDrawer();
+    }
+  });
+}
+
+function applyTheme(isDark) {
+  currentThemeIsDark = Boolean(isDark);
+  if (currentThemeIsDark) {
+    document.documentElement.classList.add('theme-dark');
+    document.documentElement.classList.remove('theme-light');
+  } else {
+    document.documentElement.classList.add('theme-light');
+    document.documentElement.classList.remove('theme-dark');
+  }
 }
 
 // Перемикання вкладок нижньої панелі

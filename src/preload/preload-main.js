@@ -33,5 +33,6 @@ contextBridge.exposeInMainWorld('alertAPI', {
     const handler = (_event, data) => callback(data);
     ipcRenderer.on('all-alerts-update', handler);
     return () => ipcRenderer.removeListener('all-alerts-update', handler);
-  }
+  },
+  getRegionHistory: (params) => ipcRenderer.invoke('get-region-history', params)
 });

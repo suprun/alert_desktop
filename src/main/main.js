@@ -15,6 +15,7 @@ const windowManager = require('./window');
 const settingsWindowManager = require('./settings-window');
 const notifier = require('./notifier');
 const updater = require('./updater');
+const historyService = require('./history-service');
 
 // Запобігання повторному запуску (Single Instance Lock)
 const gotTheLock = app.requestSingleInstanceLock();
@@ -125,6 +126,11 @@ if (!gotTheLock) {
 
   ipcMain.handle('get-all-alerts', () => {
     return api.getAllAlerts();
+  });
+
+  ipcMain.handle('get-region-history', async (_event, params) => {
+    const { regionUid, oblastUid } = params || {};
+    return historyService.getRegionHistory(regionUid, oblastUid);
   });
 
   app.whenReady().then(() => {

@@ -57,6 +57,28 @@
         </div>
       </div>
 
+      <!-- Кнопка швидкого перемикання теми інтерфейсу (Сонце / Місяць без емодзі) -->
+      <button type="button" id="btnThemeToggle" class="btn-icon" title="Перемкнути тему оформлення (Світла / Темна)" aria-label="Перемкнути тему">
+        <span id="themeSunIcon" class="theme-icon sun-icon">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="5"/>
+            <line x1="12" y1="1" x2="12" y2="3"/>
+            <line x1="12" y1="21" x2="12" y2="23"/>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+            <line x1="1" y1="12" x2="3" y2="12"/>
+            <line x1="21" y1="12" x2="23" y2="12"/>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+          </svg>
+        </span>
+        <span id="themeMoonIcon" class="theme-icon moon-icon">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+          </svg>
+        </span>
+      </button>
+
       <button id="btnSettings" class="btn-icon" title="Налаштування" aria-label="Налаштування">
         <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/>
@@ -74,35 +96,30 @@
     
     <!-- 1. ВБУДОВАНА ВЕКТОРНА КАРТА ТРИВОГ (ОБЛАСТІ, РАЙОНИ, ГРОМАДИ) -->
     <div id="internalMapContainer" class="internal-map-container">
-      <!-- Верхній тулбар вбудованої карти -->
-      <div class="internal-map-toolbar">
+      <!-- Об'єднана смуга: статус кількості тривог + умовні позначення (легенда) -->
+      <div class="internal-map-status-bar">
         <div class="map-stats-pill">
           <span class="stats-pulse-dot" aria-hidden="true"></span>
           <span id="internalAlertsSummary" class="stats-label">Україна: перевірка тривог...</span>
         </div>
 
-        <div class="toolbar-controls">
-          <!-- Векторний перемикач теми інтерфейсу (Сонце / Місяць без емодзі) -->
-          <button type="button" id="btnMapThemeToggle" class="btn-map-theme" title="Перемкнути тему інтерфейсу (Світла / Темна)" aria-label="Перемкнути тему">
-            <span id="themeSunIcon" class="theme-icon sun-icon">
-              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="12" cy="12" r="5"/>
-                <line x1="12" y1="1" x2="12" y2="3"/>
-                <line x1="12" y1="21" x2="12" y2="23"/>
-                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
-                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
-                <line x1="1" y1="12" x2="3" y2="12"/>
-                <line x1="21" y1="12" x2="23" y2="12"/>
-                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
-                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
-              </svg>
-            </span>
-            <span id="themeMoonIcon" class="theme-icon moon-icon">
-              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
-              </svg>
-            </span>
-          </button>
+        <div class="internal-map-legend">
+          <div class="legend-item">
+            <span class="legend-dot safe"></span>
+            <span class="legend-text">Немає тривоги</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-dot alert"></span>
+            <span class="legend-text">Повітряна</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-dot yellow"></span>
+            <span class="legend-text">Дрони</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-dot artillery"></span>
+            <span class="legend-text">Обстріл</span>
+          </div>
         </div>
       </div>
 
@@ -118,25 +135,29 @@
         </svg>
       </div>
 
-      <!-- Легенда векторної карти з геометричними маркерами -->
-      <div class="internal-map-legend">
-        <div class="legend-item">
-          <span class="legend-dot safe"></span>
-          <span class="legend-text">Немає тривоги</span>
+      <!-- Висувна бічна/нижня панель деталей та історії адмінодиниці (як в Alerts.in.ua) -->
+      <aside id="regionHistoryDrawer" class="region-history-drawer" aria-hidden="true">
+        <div class="drawer-header">
+          <div class="drawer-titles">
+            <h3 id="historyRegionTitle" class="drawer-title">Назва адмінодиниці</h3>
+            <span id="historyOblastTitle" class="drawer-subtitle">Область</span>
+          </div>
+          <button type="button" id="btnHistoryClose" class="btn-icon drawer-close-btn" title="Закрити панель" aria-label="Закрити">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"/>
+              <line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
         </div>
-        <div class="legend-item">
-          <span class="legend-dot alert"></span>
-          <span class="legend-text">Повітряна тривога</span>
+
+        <div id="historyDrawerBody" class="drawer-body">
+          <!-- Динамічний зміст (поточний статус, сьогоднішня статистика, хронологія) -->
+          <div class="drawer-loading">
+            <div class="drawer-spinner"></div>
+            <span>Завантаження історії...</span>
+          </div>
         </div>
-        <div class="legend-item">
-          <span class="legend-dot yellow"></span>
-          <span class="legend-text">Дронова загроза</span>
-        </div>
-        <div class="legend-item">
-          <span class="legend-dot artillery"></span>
-          <span class="legend-text">Загроза обстрілу</span>
-        </div>
-      </div>
+      </aside>
 
       <!-- Інтерактивний тултіп району/громади -->
       <div id="mapRegionTooltip" class="map-region-tooltip" style="display: none;">

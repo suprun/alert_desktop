@@ -108,14 +108,15 @@ alert_desktop/
 │   ├── test_jaam_adapter.js              # Unit-тести адаптера JAAM API (нормалізація версій v3/v2, часові мітки, ієрархія тривог)
 │   ├── test_net_check.js                 # Unit-тести модуля перевірки зв'язку через Anycast IP Google та Cloudflare
 │   ├── test_fallback_resilience.js       # Unit-тести стійкості Fallback API, пріоритетів джерел, суворого режиму та відновлення
-│   └── test_maps_tabs.js                 # Unit-тести панелі вкладок, геоданих векторної карти, повної відсутності емодзі та перемикання карт
+│   ├── test_maps_tabs.js                 # Unit-тести панелі вкладок, геоданих векторної карти, повної відсутності емодзі та перемикання карт
+│   └── test_history_service.js           # Unit-тести клієнтського сервісу історії тривог, форматування тривалості, перевірка gateway та fallback
 │
-├── server/                               # Гібридний шлюз тривог на Python для Ubuntu (Webhook, WebSocket & Threats Enricher)
+├── server/                               # Гібридний шлюз тривог на Python для Ubuntu (Webhook, WebSocket & Threats Enricher & History Proxy)
 │   ├── .env.example                      # Шаблон конфігурації шлюзу (UkraineAlarm та alerts.in.ua токени, webhook URL, порт)
 │   ├── requirements.txt                  # Залежності Python (FastAPI, Uvicorn, HTTPX)
 │   ├── config.py                         # Парсер та валідатор конфігурації обох API
-│   ├── proxy_service.py                  # Гібридний шлюз: прийом Webhook від UkraineAlarm + фонове збагачення threats від alerts.in.ua
-│   ├── main.py                           # Точка входу FastAPI: Webhook (/api/v3/webhook), WebSocket (/ws), REST fallback
+│   ├── proxy_service.py                  # Гібридний шлюз: прийом Webhook UkraineAlarm + збагачення threats alerts.in.ua + кешована історія регіонів
+│   ├── main.py                           # Точка входу FastAPI: Webhook, WebSocket (/ws), REST fallback та проксі історії (/v1/history/region)
 │   ├── README.md                         # Інструкція з налаштування, запуску та тестування на Ubuntu
 │   ├── deploy/
 │   │   └── install.sh                    # Скрипт автоматичного розгортання на сервері Ubuntu
@@ -124,13 +125,14 @@ alert_desktop/
 │
 └── src/                                  # Вихідний код застосунку
     ├── main/                             # Головний процес (Node.js / Electron Main)
-    │   ├── main.js                       # Точка входу: single instance lock, життєвий цикл, IPC маршрутизація вкладок і тривог
+    │   ├── main.js                       # Точка входу: single instance lock, життєвий цикл, IPC маршрутизація вкладок, тривог та історії
     │   ├── window.js                     # Менеджер головного вікна, пул переглядів веб-карт, розрахунок footerHeight (44px) та синхронізація тем
     │   ├── settings-window.js            # Менеджер діалогового вікна налаштувань
     │   ├── tray.js                       # Керування системним треєм (іконка, tooltip, меню, пункт оновлення)
     │   ├── updater.js                    # Сервіс перевірки та встановлення автооновлень (electron-updater / GitHub Releases)
     │   ├── threat-utils.js               # Нормалізація типів загроз (дрони, ракети тощо), усунення тавтології та генерація текстів
     │   ├── api.js                        # WebSocket зв'язок (0s) + HTTP fallback + багаторівневе резервування + список усіх активних тривог allAlerts
+    │   ├── history-service.js            # Дворівневий сервіс історії тривог адмінодиниць (шлюз /v1/history/region + прямий fallback alerts.in.ua v3)
     │   ├── net-check.js                  # Швидка перевірка зв'язку з інтернетом через Anycast IP Google та Cloudflare (порти 53/443)
     │   ├── autostart.js                  # Менеджер автозапуску Windows (Electron API + HKCU Run)
     │   ├── config.js                     # Робота з config.json (збереження activeMapTab), .env та автозапуском ОС
@@ -138,16 +140,16 @@ alert_desktop/
     │   └── locations.json                # Повний довідник 1622 локацій України (UID, назви, типи)
     │
     ├── preload/                          # Безпечний ізольований Preload-шар (contextBridge)
-    │   ├── preload-main.js               # API для головного вікна (статус, вибір вкладок, векторна тема, масив усіх тривог)
+    │   ├── preload-main.js               # API для головного вікна (статус, вибір вкладок, векторна тема, масив тривог, історія регіонів)
     │   ├── preload-settings.js           # API для вікна налаштувань (конфігурація, локації, тема)
-    │   └── preload-map.js                # Блокування PiP та двостороння синхронізація тем для alerts.in.ua, map.ukrainealarm.com і neptun.in.ua
+    │   └── preload-map.js                # Блокування PiP та миттєва двостороння синхронізація тем (alerts.in.ua, map.ukrainealarm.com, neptun.in.ua)
     │
     └── renderer/                         # Інтерфейс користувача (Renderer Process)
         ├── main/                         # Головне вікно застосунку
         │   ├── map-data.js               # Векторні геодані карти України: 148 районів/спецміст та 25 меж областей у точній сітці viewBox
-        │   ├── index.html                # Розмітка: шапка, вбудована векторна карта, векторний перемикач теми та нижня панель вкладок без емодзі
-        │   ├── style.css                 # Стилізація світлої/темної тем, векторних контурів районів, рівнів загроз, тултіпів та вкладок
-        │   └── renderer.js               # Рендеринг векторної карти, багаторівневе забарвлення тривог (область/район/громада), перемикання вкладок
+        │   ├── index.html                # Розмітка: шапка з кнопкою теми, об'єднана статус-панель карти, висувна панель історії адмінодиниць
+        │   ├── style.css                 # Стилізація темної/світлої тем, статус-панелі, висувної панелі історії, підсвітки вибору районів
+        │   └── renderer.js               # Рендеринг карти, багаторівневе забарвлення тривог, інтерактивний вибір району з завантаженням історії
         └── settings/                     # Діалогове вікно налаштувань
             ├── settings.html             # Форма налаштувань (регіон, звук, автозапуск, API)
             ├── settings.css              # Стилізація Windows Fluent у світлій та темній темах
