@@ -80,6 +80,8 @@ html.theme-dark {
   --map-artillery-fill: #ea580c;
   --map-artillery-stroke: #fbbf24;
   --map-oblast-stroke: rgba(255, 255, 255, 0.42);
+  --map-label-fill: rgba(255, 255, 255, 0.82);
+  --map-label-stroke: rgba(15, 23, 42, 0.92);
   --map-tooltip-bg: rgba(24, 26, 31, 0.94);
   --map-tooltip-border: rgba(255, 255, 255, 0.16);
   --tab-active-bg: rgba(255, 255, 255, 0.1);
@@ -143,6 +145,8 @@ html.theme-light {
   --map-artillery-fill: #f97316;
   --map-artillery-stroke: #c2410c;
   --map-oblast-stroke: #475569;
+  --map-label-fill: rgba(30, 41, 59, 0.85);
+  --map-label-stroke: rgba(255, 255, 255, 0.95);
   --map-tooltip-bg: rgba(255, 255, 255, 0.96);
   --map-tooltip-border: #cbd5e1;
   --tab-active-bg: rgba(0, 0, 0, 0.08);
@@ -744,6 +748,28 @@ html.theme-light #themeMoonIcon {
   stroke-width: 0.75px;
   stroke-linejoin: round;
   stroke-linecap: round;
+}
+
+/* Підписи назв областей на карті */
+.oblast-labels-layer {
+  pointer-events: none;
+  user-select: none;
+}
+
+.map-oblast-label {
+  font-family: inherit;
+  font-size: 2.85px;
+  font-weight: 600;
+  text-anchor: middle;
+  dominant-baseline: central;
+  pointer-events: none;
+  user-select: none;
+  fill: var(--map-label-fill, rgba(255, 255, 255, 0.82));
+  stroke: var(--map-label-stroke, rgba(15, 23, 42, 0.92));
+  stroke-width: 0.65px;
+  stroke-linejoin: round;
+  paint-order: stroke fill;
+  letter-spacing: 0.05px;
 }
 
 /* Виділений район на карті при кліку */

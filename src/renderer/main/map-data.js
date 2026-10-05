@@ -1348,6 +1348,36 @@ const MAP_OBLAST_BORDERS = [
   }
 ];
 
+const MAP_OBLAST_LABELS = [
+  { uid: '8', name: 'Волинська', fullName: 'Волинська область', x: 40, y: 30 },
+  { uid: '5', name: 'Рівненська', fullName: 'Рівненська область', x: 60, y: 33 },
+  { uid: '10', name: 'Житомирська', fullName: 'Житомирська область', x: 92, y: 42 },
+  { uid: '31', name: 'м. Київ', fullName: 'м. Київ', x: 122, y: 44, fontSize: 2.3 },
+  { uid: '14', name: 'Київська', fullName: 'Київська область', x: 122, y: 53 },
+  { uid: '25', name: 'Чернігівська', fullName: 'Чернігівська область', x: 142, y: 23 },
+  { uid: '20', name: 'Сумська', fullName: 'Сумська область', x: 172, y: 26 },
+  { uid: '27', name: 'Львівська', fullName: 'Львівська область', x: 29, y: 64 },
+  { uid: '11', name: 'Закарпатська', fullName: 'Закарпатська область', x: 20, y: 89 },
+  { uid: '13', name: 'Івано-Франківська', fullName: 'Івано-Франківська область', x: 37, y: 84, fontSize: 2.5 },
+  { uid: '21', name: 'Тернопільська', fullName: 'Тернопільська область', x: 53, y: 70 },
+  { uid: '3', name: 'Хмельницька', fullName: 'Хмельницька область', x: 70, y: 66 },
+  { uid: '4', name: 'Вінницька', fullName: 'Вінницька область', x: 95, y: 78 },
+  { uid: '26', name: 'Чернівецька', fullName: 'Чернівецька область', x: 58, y: 93 },
+  { uid: '24', name: 'Черкаська', fullName: 'Черкаська область', x: 132, y: 72 },
+  { uid: '19', name: 'Полтавська', fullName: 'Полтавська область', x: 166, y: 61 },
+  { uid: '15', name: 'Кіровоградська', fullName: 'Кіровоградська область', x: 140, y: 88 },
+  { uid: '9', name: 'Дніпропетровська', fullName: 'Дніпропетровська область', x: 184, y: 89, fontSize: 2.6 },
+  { uid: '22', name: 'Харківська', fullName: 'Харківська область', x: 203, y: 67 },
+  { uid: '16', name: 'Луганська', fullName: 'Луганська область', x: 241, y: 78 },
+  { uid: '28', name: 'Донецька', fullName: 'Донецька область', x: 222, y: 98 },
+  { uid: '12', name: 'Запорізька', fullName: 'Запорізька область', x: 195, y: 114 },
+  { uid: '17', name: 'Миколаївська', fullName: 'Миколаївська область', x: 138, y: 110 },
+  { uid: '18', name: 'Одеська', fullName: 'Одеська область', x: 109, y: 122 },
+  { uid: '23', name: 'Херсонська', fullName: 'Херсонська область', x: 161, y: 124 },
+  { uid: '29', name: 'АР Крим', fullName: 'Автономна Республіка Крим', x: 176, y: 156 }
+];
+
 if (typeof module !== 'undefined') {
-  module.exports = { MAP_VIEWBOX, MAP_MASK_KHARKIV, MAP_REGIONS, MAP_OBLAST_BORDERS };
+  module.exports = { MAP_VIEWBOX, MAP_MASK_KHARKIV, MAP_REGIONS, MAP_OBLAST_BORDERS, MAP_OBLAST_LABELS };
 }
+

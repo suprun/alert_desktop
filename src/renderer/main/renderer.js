@@ -23,6 +23,7 @@ const ukraineVectorSvg = document.getElementById('ukraineVectorSvg');
 const svgDefs = document.getElementById('svgDefs');
 const districtsLayer = document.getElementById('districtsLayer');
 const oblastBordersLayer = document.getElementById('oblastBordersLayer');
+const oblastLabelsLayer = document.getElementById('oblastLabelsLayer');
 const mapRegionTooltip = document.getElementById('mapRegionTooltip');
 const tooltipRegionTitle = document.getElementById('tooltipRegionTitle');
 const tooltipOblastTitle = document.getElementById('tooltipOblastTitle');
@@ -190,6 +191,7 @@ function initVectorMap() {
   // Очищення шарів
   districtsLayer.innerHTML = '';
   if (oblastBordersLayer) oblastBordersLayer.innerHTML = '';
+  if (oblastLabelsLayer) oblastLabelsLayer.innerHTML = '';
 
   // Створення елементів районів
   const fragment = document.createDocumentFragment();
@@ -229,6 +231,25 @@ function initVectorMap() {
       obFragment.appendChild(p);
     }
     oblastBordersLayer.appendChild(obFragment);
+  }
+
+  // Створення текстових підписів назв областей (Overlay)
+  const labelsLayer = oblastLabelsLayer || document.getElementById('oblastLabelsLayer');
+  if (labelsLayer && typeof MAP_OBLAST_LABELS !== 'undefined') {
+    const labelFragment = document.createDocumentFragment();
+    for (const ob of MAP_OBLAST_LABELS) {
+      const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      text.setAttribute('class', 'map-oblast-label');
+      text.setAttribute('x', ob.x);
+      text.setAttribute('y', ob.y);
+      text.setAttribute('data-uid', ob.uid || '');
+      if (ob.fontSize) {
+        text.style.fontSize = `${ob.fontSize}px`;
+      }
+      text.textContent = ob.name;
+      labelFragment.appendChild(text);
+    }
+    labelsLayer.appendChild(labelFragment);
   }
 }
 

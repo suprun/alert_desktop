@@ -95,4 +95,23 @@ assert.ok(preloadMapJs.includes('.header, .header-wrapper'), 'preload-map.js м�
 assert.ok(!emojiRegex.test(preloadMapJs), 'В preload-map.js не повинно бути емодзі');
 console.log('✔ Тест 12 пройдено (плаваюча пігулка та приховування меню/реклами UkraineAlarm валідні)');
 
+// 13. Перевірка підписів назв областей на векторній карті
+assert.ok(Array.isArray(mapData.MAP_OBLAST_LABELS), 'MAP_OBLAST_LABELS має бути масивом');
+assert.ok(mapData.MAP_OBLAST_LABELS.length >= 25, `Очікується мінімум 25 підписів областей, отримано: ${mapData.MAP_OBLAST_LABELS.length}`);
+for (const label of mapData.MAP_OBLAST_LABELS) {
+  assert.ok(label.name && typeof label.name === 'string', 'Підпис області повинен мати назву');
+  assert.ok(typeof label.x === 'number' && typeof label.y === 'number', 'Підпис області повинен мати координати x та y');
+}
+const labelNames = new Set(mapData.MAP_OBLAST_LABELS.map(l => l.name));
+assert.ok(labelNames.has('Київська'), 'Підпис Київська область має бути присутнім');
+assert.ok(labelNames.has('Львівська'), 'Підпис Львівська область має бути присутнім');
+assert.ok(labelNames.has('Харківська'), 'Підпис Харківська область має бути присутнім');
+assert.ok(labelNames.has('Одеська'), 'Підпис Одеська область має бути присутнім');
+assert.ok(labelNames.has('АР Крим'), 'Підпис АР Крим має бути присутнім');
+assert.ok(indexHtml.includes('id="oblastLabelsLayer"'), 'index.html має містити шар oblastLabelsLayer');
+assert.ok(rendererJs.includes('map-oblast-label'), 'renderer.js має рендерити класи map-oblast-label');
+assert.ok(styleCss.includes('.map-oblast-label'), 'style.css має містити стилі для .map-oblast-label');
+console.log(`✔ Тест 13 пройдено (підписи назв областей валідні: ${mapData.MAP_OBLAST_LABELS.length} підписів, наявні шари та стилі)`);
+
 console.log('🎉 Усі тести панелі вкладок, тем та векторної карти успішно виконано!');
+
