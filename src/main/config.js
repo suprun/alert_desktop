@@ -151,6 +151,9 @@ class ConfigManager extends EventEmitter {
   }
 
   getWsUrl() {
+    if (this.config.apiProvider === 'ubilling') {
+      return null;
+    }
     if (this.config.devMode) {
       if (this.config.wsUrl && this.config.wsUrl !== DEFAULT_WS_URL) {
         return this.config.wsUrl;

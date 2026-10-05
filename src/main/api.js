@@ -112,13 +112,17 @@ class AlertApiService extends EventEmitter {
   connectWebSocket() {
     this.disconnectWebSocket();
 
+    const wsUrl = config.getWsUrl();
+    this.currentWsUrl = wsUrl;
+
+    if (!wsUrl) {
+      return;
+    }
+
     if (!WebSocketClient) {
       console.warn('[WebSocket] Бібліотека WebSocket недоступна в поточному середовищі.');
       return;
     }
-
-    const wsUrl = config.getWsUrl();
-    this.currentWsUrl = wsUrl;
 
     try {
       console.log(`[WebSocket] Підключення до шлюзу тривог: ${wsUrl}...`);
@@ -495,12 +499,13 @@ class AlertApiService extends EventEmitter {
 
     try {
       const devMode = config.get('devMode') === true;
+      const apiProvider = config.get('apiProvider') || (devMode ? 'ukrainealarm' : 'gateway');
       const defaultProxyUrl = process.env.ALERTS_API_URL || 'https://api.applink.pp.ua/v1/alerts/active.json';
       let requestUrl = devMode ? (config.get('serverUrl') || defaultProxyUrl) : defaultProxyUrl;
       const apiKey = devMode ? (config.get('apiKey') || '') : '';
 
-      // Якщо вказано API ключ (у режимі розробника), додаємо його до запиту
-      if (apiKey) {
+      // Якщо вказано API ключ (у режимі розробника) і провайдер не Ubilling, додаємо його до запиту
+      if (apiKey && apiProvider !== 'ubilling') {
         if (!requestUrl.includes('token=')) {
           const sep = requestUrl.includes('?') ? '&' : '?';
           requestUrl = `${requestUrl}${sep}token=${encodeURIComponent(apiKey)}`;
@@ -512,7 +517,7 @@ class AlertApiService extends EventEmitter {
         'User-Agent': 'alert_desktop/2.0'
       };
 
-      if (apiKey) {
+      if (apiKey && apiProvider !== 'ubilling') {
         headers['X-API-Key'] = apiKey;
         headers['Authorization'] = `Bearer ${apiKey}`;
       }
@@ -532,7 +537,13 @@ class AlertApiService extends EventEmitter {
       }
 
       const data = await response.json();
-      const alerts = Array.isArray(data) ? data : (data.alerts || []);
+      let alerts = [];
+
+      if (apiProvider === 'ubilling' || (data && typeof data === 'object' && data.states)) {
+        alerts = this.normalizeUbillingPayload(data);
+      } else {
+        alerts = Array.isArray(data) ? data : (data.alerts || []);
+      }
 
       this._processAlertsPayload(alerts, options);
 
@@ -549,6 +560,53 @@ class AlertApiService extends EventEmitter {
     } finally {
       this.isChecking = false;
     }
+  }
+
+  _parseUbillingDate(str) {
+    if (!str || typeof str !== 'string' || str.startsWith('1970')) {
+      return new Date().toISOString();
+    }
+    const normalized = str.replace(' ', 'T') + '+03:00';
+    const d = new Date(normalized);
+    return isNaN(d.getTime()) ? new Date().toISOString() : d.toISOString();
+  }
+
+  normalizeUbillingPayload(data) {
+    if (!data || typeof data !== 'object' || !data.states) {
+      return [];
+    }
+
+    const alerts = [];
+    for (const [stateName, stateInfo] of Object.entries(data.states)) {
+      if (!stateInfo || !stateInfo.alertnow) {
+        continue;
+      }
+
+      let canonicalTitle = stateName.trim();
+      if (canonicalTitle.toLowerCase() === 'севастополь') {
+        canonicalTitle = 'м. Севастополь';
+      } else if (canonicalTitle.toLowerCase() === 'крим') {
+        canonicalTitle = 'Автономна Республіка Крим';
+      }
+
+      const loc = locationByTitle.get(canonicalTitle.toLowerCase());
+      const uid = loc ? String(loc.uid) : '';
+      const title = loc ? loc.title : canonicalTitle;
+      const oblast = loc ? (loc.oblastTitle || loc.title) : canonicalTitle;
+
+      alerts.push({
+        location_uid: uid,
+        location_title: title,
+        location_type: 'state',
+        location_oblast: oblast,
+        alert_type: 'air_raid',
+        alert_level: 'red',
+        threats: [],
+        started_at: this._parseUbillingDate(stateInfo.changed)
+      });
+    }
+
+    return alerts;
   }
 
   getCurrentState() {
