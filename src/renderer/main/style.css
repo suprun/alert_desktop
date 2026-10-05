@@ -1298,9 +1298,6 @@ html.theme-light #themeMoonIcon {
   align-items: center;
   justify-content: center;
   gap: 5px;
-  width: 120px;
-  min-width: 120px;
-  max-width: 120px;
   height: 32px;
   padding: 0 8px;
   box-sizing: border-box;
@@ -1314,6 +1311,31 @@ html.theme-light #themeMoonIcon {
   cursor: pointer;
   transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
   user-select: none;
+}
+
+/* Індивідуальна фіксована ширина для кожної вкладки відповідно до її вмісту в активному стані */
+.tab-btn[data-tab="internal"] {
+  width: 116px;
+  min-width: 116px;
+  max-width: 116px;
+}
+
+.tab-btn[data-tab="alertsinua"] {
+  width: 112px;
+  min-width: 112px;
+  max-width: 112px;
+}
+
+.tab-btn[data-tab="ukrainealarm"] {
+  width: 126px;
+  min-width: 126px;
+  max-width: 126px;
+}
+
+.tab-btn[data-tab="neptun"] {
+  width: 86px;
+  min-width: 86px;
+  max-width: 86px;
 }
 
 .tab-btn:hover {

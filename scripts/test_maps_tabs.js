@@ -149,12 +149,18 @@ assert.ok(rendererJs.includes('onMapTabChanged'), 'renderer.js має слуха
 assert.ok(indexHtml.includes('id="internalMapContainer" class="internal-map-container" style="display: none;"'), 'index.html повинен мати initial display:none для internalMapContainer');
 console.log('✔ Тест 14 пройдено (синхронізація активної вкладки при старті та захист від показу вбудованої карти валідні)');
 
-// Тест 15: Оптимальний фіксований розмір кнопок вкладок та мікровирівнювання
-assert.ok(styleCss.includes('width: 120px;'), 'style.css повинен задавати оптимальну фіксовану ширину 120px для .tab-btn');
-assert.ok(styleCss.includes('min-width: 120px;'), 'style.css повинен задавати min-width 120px для .tab-btn');
+// Тест 15: Індивідуальний фіксований розмір кнопок вкладок та мікровирівнювання
+assert.ok(styleCss.includes('.tab-btn[data-tab="internal"]'), 'style.css повинен задавати стиль для вкладки internal');
+assert.ok(styleCss.includes('.tab-btn[data-tab="alertsinua"]'), 'style.css повинен задавати стиль для вкладки alertsinua');
+assert.ok(styleCss.includes('.tab-btn[data-tab="ukrainealarm"]'), 'style.css повинен задавати стиль для вкладки ukrainealarm');
+assert.ok(styleCss.includes('.tab-btn[data-tab="neptun"]'), 'style.css повинен задавати стиль для вкладки neptun');
+assert.ok(styleCss.includes('width: 116px;'), 'style.css повинен задавати фіксовану ширину 116px для internal');
+assert.ok(styleCss.includes('width: 112px;'), 'style.css повинен задавати фіксовану ширину 112px для alertsinua');
+assert.ok(styleCss.includes('width: 126px;'), 'style.css повинен задавати фіксовану ширину 126px для ukrainealarm');
+assert.ok(styleCss.includes('width: 86px;'), 'style.css повинен задавати фіксовану ширину 86px для neptun');
 assert.ok(styleCss.includes('gap: 5px;'), 'style.css повинен задавати зменшений відступ gap: 5px між іконкою і лейблом');
-assert.ok(styleCss.includes('transform: translateY(-1px);'), 'style.css повинен піднімати іконку translateY(-1px) для ідеального оптичного центрування');
-console.log('✔ Тест 15 пройдено (кнопки вкладок мають оптимальний фіксований розмір 120px, gap 5px та підняту іконку)');
+assert.ok(styleCss.includes('transform: translateY(-1px);'), 'style.css повинен піднімати іконку translateY(-1px) для оптичного центрування');
+console.log('✔ Тест 15 пройдено (кожна вкладка має індивідуальну фіксовану ширину відповідно до контенту: 116/112/126/86px)');
 
 // Тест 16: Окремий шар підсвічування обраного району
 assert.ok(indexHtml.includes('id="selectedHighlightLayer"'), 'index.html повинен містити окремий шар selectedHighlightLayer');
