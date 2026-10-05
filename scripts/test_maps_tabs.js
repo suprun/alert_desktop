@@ -45,13 +45,22 @@ for (const tab of requiredTabs) {
 }
 // Векторизований маячок Alerts.in.ua (промені, купол, основа)
 assert.ok(indexHtml.includes('rect x="5" y="17" width="14" height="4"'), 'Вкладка alertsinua має містити векторизований маячок Alerts.in.ua');
-// Векторизований силует карти України UkraineAlarm у колі
+// Детальний векторизований силует карти України UkraineAlarm у колі
 assert.ok(indexHtml.includes('circle cx="12" cy="12" r="9.5"'), 'Вкладка ukrainealarm має містити коло-бейдж');
-assert.ok(indexHtml.includes('M5.2 12l1.6-2.6'), 'Вкладка ukrainealarm має містити векторизований силует карти України');
-// Векторизований радар Neptun з надзвуковим літаком-ціллю
-assert.ok(indexHtml.includes('circle cx="6.7" cy="17.3" r="1.3"'), 'Вкладка neptun має містити маркер на концентричному колі радара');
-assert.ok(indexHtml.includes('M21.5 2.5 L19.2 8.5'), 'Вкладка neptun має містити силует літака-цілі');
-console.log('✔ Тест 5 пройдено (усі 4 вкладки present з векторизованими favicons сайтів)');
+assert.ok(indexHtml.includes('M19.97 10.85L19.86 10.24'), 'Вкладка ukrainealarm має містити детальний векторизований силует карти України');
+// Векторизований щит Neptun із тризубом
+assert.ok(indexHtml.includes('M12 3.2C16.8 3.2'), 'Вкладка neptun має містити векторизований щит');
+assert.ok(indexHtml.includes('M12 6.2L13.2 8.5'), 'Вкладка neptun має містити векторизований тризуб');
+
+// Перевірка наявності файлів іконок вкладок у assets/icons/tabs/
+const tabsAssetDir = path.join(__dirname, '..', 'assets', 'icons', 'tabs');
+for (const tab of requiredTabs) {
+  const filePath = path.join(tabsAssetDir, `tab-${tab}.svg`);
+  assert.ok(fs.existsSync(filePath), `Файл ${filePath} має існувати в assets/icons/tabs/`);
+  const content = fs.readFileSync(filePath, 'utf8');
+  assert.ok(content.length > 50, `Файл ${filePath} не повинен бути порожнім`);
+}
+console.log('✔ Тест 5 пройдено (усі 4 вкладки present з векторизованими favicons сайтів та файлами в assets/icons/tabs)');
 
 // 6. Перевірка методів WindowManager
 const windowManager = require('../src/main/window');
