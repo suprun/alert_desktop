@@ -40,6 +40,18 @@ const notifier = new NotifierService();
   const end4 = new Date(2026, 8, 30, 6, 0, 0);
   assert.strictEqual(notifier.formatDuration(start, end4), '2 год');
 
+  // 1 день
+  const end5 = new Date(2026, 9, 1, 4, 0, 0);
+  assert.strictEqual(notifier.formatDuration(start, end5), '1 день');
+
+  // 2 дні 2 години
+  const end6 = new Date(2026, 9, 2, 6, 0, 0);
+  assert.strictEqual(notifier.formatDuration(start, end6), '2 дні 2 години');
+
+  // 1 місяць
+  const end7 = new Date(2026, 9, 30, 4, 0, 0);
+  assert.strictEqual(notifier.formatDuration(start, end7), '1 місяць');
+
   // Невалідні дати
   assert.strictEqual(notifier.formatDuration(null, null), '');
   console.log('✔ Тест 2 пройдено (formatDuration)');

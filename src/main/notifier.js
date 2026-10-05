@@ -32,6 +32,16 @@ class NotifierService {
     }
   }
 
+  _pluralizeUa(n, one, few, many) {
+    const abs = Math.abs(Math.round(n));
+    const mod10 = abs % 10;
+    const mod100 = abs % 100;
+    if (mod100 >= 11 && mod100 <= 19) return `${n} ${many}`;
+    if (mod10 === 1) return `${n} ${one}`;
+    if (mod10 >= 2 && mod10 <= 4) return `${n} ${few}`;
+    return `${n} ${many}`;
+  }
+
   formatDuration(startDate, endDate) {
     try {
       if (!startDate || !endDate) return '';
@@ -45,9 +55,85 @@ class NotifierService {
       if (diffMin < 1) return '< 1 хв';
       if (diffMin < 60) return `${diffMin} хв`;
 
-      const hours = Math.floor(diffMin / 60);
-      const minutes = diffMin % 60;
-      return minutes > 0 ? `${hours} год ${minutes} хв` : `${hours} год`;
+      // До 24 годин: звичний формат "X год" або "X год Y хв"
+      if (diffMin < 1440) {
+        const hours = Math.floor(diffMin / 60);
+        const minutes = diffMin % 60;
+        return minutes > 0 ? `${hours} год ${minutes} хв` : `${hours} год`;
+      }
+
+      // Від 24 годин: дні, місяці, роки з українськими відмінками
+      let s = start;
+      let e = end;
+      if (s > e) {
+        const tmp = s;
+        s = e;
+        e = tmp;
+      }
+
+      let years = e.getFullYear() - s.getFullYear();
+      let months = e.getMonth() - s.getMonth();
+      let days = e.getDate() - s.getDate();
+      let hours = e.getHours() - s.getHours();
+      let minutes = e.getMinutes() - s.getMinutes();
+
+      if (minutes < 0) {
+        hours -= 1;
+        minutes += 60;
+      }
+      if (hours < 0) {
+        days -= 1;
+        hours += 24;
+      }
+      if (days < 0) {
+        months -= 1;
+        const prevMonth = new Date(e.getFullYear(), e.getMonth(), 0);
+        days += prevMonth.getDate();
+      }
+      if (months < 0) {
+        years -= 1;
+        months += 12;
+      }
+
+      if (years === 0 && months === 0 && days === 0) {
+        const totalDays = Math.floor(diffMin / 1440);
+        hours = Math.floor((diffMin % 1440) / 60);
+        minutes = Math.round(diffMin % 60);
+
+        years = Math.floor(totalDays / 365);
+        const remDays = totalDays % 365;
+        months = Math.floor(remDays / 30);
+        days = remDays % 30;
+      }
+
+      const parts = [];
+      if (years > 0) {
+        parts.push(this._pluralizeUa(years, 'рік', 'роки', 'років'));
+        if (months > 0) {
+          parts.push(this._pluralizeUa(months, 'місяць', 'місяці', 'місяців'));
+        }
+        if (days > 0) {
+          parts.push(this._pluralizeUa(days, 'день', 'дні', 'днів'));
+        }
+      } else if (months > 0) {
+        parts.push(this._pluralizeUa(months, 'місяць', 'місяці', 'місяців'));
+        if (days > 0) {
+          parts.push(this._pluralizeUa(days, 'день', 'дні', 'днів'));
+        }
+        if (days === 0 && hours > 0) {
+          parts.push(this._pluralizeUa(hours, 'година', 'години', 'годин'));
+        }
+      } else {
+        parts.push(this._pluralizeUa(days, 'день', 'дні', 'днів'));
+        if (hours > 0) {
+          parts.push(this._pluralizeUa(hours, 'година', 'години', 'годин'));
+        }
+        if (days < 2 && hours === 0 && minutes > 0) {
+          parts.push(this._pluralizeUa(minutes, 'хвилина', 'хвилини', 'хвилин'));
+        }
+      }
+
+      return parts.join(' ');
     } catch {
       return '';
     }

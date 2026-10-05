@@ -116,19 +116,130 @@ class HistoryService {
   }
 
   /**
-   * Форматує тривалість у людиночитаний вигляд українською.
-   * @param {number|null} min
+   * Схиляє іменник з числівником відповідно до правил української мови.
+   * @param {number} n
+   * @param {string} one (напр. 'рік', 'місяць', 'день', 'година', 'хвилина')
+   * @param {string} few (напр. 'роки', 'місяці', 'дні', 'години', 'хвилини')
+   * @param {string} many (напр. 'років', 'місяців', 'днів', 'годин', 'хвилин')
    * @returns {string}
    */
-  _formatDuration(min) {
+  _pluralizeUa(n, one, few, many) {
+    const abs = Math.abs(Math.round(n));
+    const mod10 = abs % 10;
+    const mod100 = abs % 100;
+    if (mod100 >= 11 && mod100 <= 19) return `${n} ${many}`;
+    if (mod10 === 1) return `${n} ${one}`;
+    if (mod10 >= 2 && mod10 <= 4) return `${n} ${few}`;
+    return `${n} ${many}`;
+  }
+
+  /**
+   * Форматує тривалість у людиночитаний вигляд українською.
+   * Конвертує тривалість понад добу в дні, місяці та роки з правильними відмінками.
+   * @param {number|null} min
+   * @param {Date|number|string|null} startDate
+   * @param {Date|number|string|null} endDate
+   * @returns {string}
+   */
+  _formatDuration(min, startDate, endDate) {
     if (min === null || min === undefined || isNaN(min)) return '';
     if (min <= 0) return '0 хв';
     if (min < 1) return '< 1 хв';
-    const hours = Math.floor(min / 60);
-    const remainderMin = min % 60;
-    if (hours === 0) return `${remainderMin} хв`;
-    if (remainderMin === 0) return `${hours} год`;
-    return `${hours} год ${remainderMin} хв`;
+    if (min < 60) return `${Math.round(min)} хв`;
+
+    // До 24 годин: лаконічний формат "X год" або "X год Y хв"
+    if (min < 1440) {
+      const hours = Math.floor(min / 60);
+      const remainderMin = Math.round(min % 60);
+      if (remainderMin === 0) return `${hours} год`;
+      return `${hours} год ${remainderMin} хв`;
+    }
+
+    // 1 доба або більше: конвертація в дні, місяці, роки з українськими відмінками
+    let years = 0;
+    let months = 0;
+    let days = 0;
+    let hours = 0;
+    let minutes = 0;
+
+    if (startDate && endDate) {
+      let start = startDate instanceof Date ? startDate : new Date(typeof startDate === 'number' && startDate < 1e11 ? startDate * 1000 : startDate);
+      let end = endDate instanceof Date ? endDate : new Date(typeof endDate === 'number' && endDate < 1e11 ? endDate * 1000 : endDate);
+
+      if (!isNaN(start.getTime()) && !isNaN(end.getTime())) {
+        if (start > end) {
+          const tmp = start;
+          start = end;
+          end = tmp;
+        }
+
+        years = end.getFullYear() - start.getFullYear();
+        months = end.getMonth() - start.getMonth();
+        days = end.getDate() - start.getDate();
+        hours = end.getHours() - start.getHours();
+        minutes = end.getMinutes() - start.getMinutes();
+
+        if (minutes < 0) {
+          hours -= 1;
+          minutes += 60;
+        }
+        if (hours < 0) {
+          days -= 1;
+          hours += 24;
+        }
+        if (days < 0) {
+          months -= 1;
+          const prevMonth = new Date(end.getFullYear(), end.getMonth(), 0);
+          days += prevMonth.getDate();
+        }
+        if (months < 0) {
+          years -= 1;
+          months += 12;
+        }
+      }
+    }
+
+    // Якщо точні дати не передані або різниця не порахована
+    if (years === 0 && months === 0 && days === 0) {
+      const totalDays = Math.floor(min / 1440);
+      hours = Math.floor((min % 1440) / 60);
+      minutes = Math.round(min % 60);
+
+      years = Math.floor(totalDays / 365);
+      const remDays = totalDays % 365;
+      months = Math.floor(remDays / 30);
+      days = remDays % 30;
+    }
+
+    const parts = [];
+    if (years > 0) {
+      parts.push(this._pluralizeUa(years, 'рік', 'роки', 'років'));
+      if (months > 0) {
+        parts.push(this._pluralizeUa(months, 'місяць', 'місяці', 'місяців'));
+      }
+      if (days > 0) {
+        parts.push(this._pluralizeUa(days, 'день', 'дні', 'днів'));
+      }
+    } else if (months > 0) {
+      parts.push(this._pluralizeUa(months, 'місяць', 'місяці', 'місяців'));
+      if (days > 0) {
+        parts.push(this._pluralizeUa(days, 'день', 'дні', 'днів'));
+      }
+      if (days === 0 && hours > 0) {
+        parts.push(this._pluralizeUa(hours, 'година', 'години', 'годин'));
+      }
+    } else {
+      // Тільки дні (менше місяця)
+      parts.push(this._pluralizeUa(days, 'день', 'дні', 'днів'));
+      if (hours > 0) {
+        parts.push(this._pluralizeUa(hours, 'година', 'години', 'годин'));
+      }
+      if (days < 2 && hours === 0 && minutes > 0) {
+        parts.push(this._pluralizeUa(minutes, 'хвилина', 'хвилини', 'хвилин'));
+      }
+    }
+
+    return parts.join(' ');
   }
 
   /**
@@ -156,6 +267,9 @@ class HistoryService {
 
     const day = String(date.getDate()).padStart(2, '0');
     const month = String(date.getMonth() + 1).padStart(2, '0');
+    if (date.getFullYear() !== now.getFullYear()) {
+      return `${day}.${month}.${date.getFullYear()}, ${timeStr}`;
+    }
     return `${day}.${month}, ${timeStr}`;
   }
 
@@ -252,6 +366,18 @@ class HistoryService {
       const finishedAt = fRaw ? (BASE_EPOCH_ALERTS_IN_UA + fRaw) : null;
       const durationMin = (fRaw && fRaw >= sRaw) ? Math.round((fRaw - sRaw) / 60) : null;
 
+      const isItemActive = !Boolean(finishedAt);
+      const nowSec = Math.floor(Date.now() / 1000);
+      let effectiveDurMin = durationMin;
+      let effectiveDurText = '';
+
+      if (durationMin !== null) {
+        effectiveDurText = this._formatDuration(durationMin, startedAt, finishedAt);
+      } else if (isItemActive && startedAt && nowSec >= startedAt) {
+        effectiveDurMin = Math.max(1, Math.round((nowSec - startedAt) / 60));
+        effectiveDurText = this._formatDuration(effectiveDurMin, startedAt, nowSec);
+      }
+
       const threatVal = item.at || 1;
       let threatName = threatLabels[threatVal] || 'Повітряна тривога';
       if (item.m) threatName = item.m;
@@ -261,10 +387,10 @@ class HistoryService {
         startedAt,
         finishedAt,
         startedText: this._formatTime(startedAt),
-        finishedText: this._formatTime(finishedAt),
-        durationMin,
-        durationText: this._formatDuration(durationMin),
-        isActive: !Boolean(finishedAt),
+        finishedText: isItemActive ? 'Триває' : this._formatTime(finishedAt),
+        durationMin: effectiveDurMin,
+        durationText: effectiveDurText,
+        isActive: isItemActive,
         threatType: threatVal,
         threatLabel: threatName,
         message: item.m || item.nt || null,
@@ -350,8 +476,8 @@ class HistoryService {
         if (Array.isArray(data.recent_alerts)) {
           data.recent_alerts.forEach((alert) => {
             alert.started_text = this._formatTime(alert.started_at);
-            alert.finished_text = this._formatTime(alert.finished_at);
-            alert.duration_text = this._formatDuration(alert.duration_min);
+            alert.finished_text = alert.is_active ? 'Триває' : this._formatTime(alert.finished_at);
+            alert.duration_text = this._formatDuration(alert.duration_min, alert.started_at, alert.finished_at);
           });
         }
         return data;

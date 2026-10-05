@@ -20,7 +20,21 @@ async function runTests() {
   assert.strictEqual(historyService._formatDuration(60), '1 год');
   assert.strictEqual(historyService._formatDuration(75), '1 год 15 хв');
   assert.strictEqual(historyService._formatDuration(130), '2 год 10 хв');
-  console.log("✔ Тест 1 пройдено (форматування тривалості українською)");
+
+  // Тривалість понад добу з відмінками (дні, місяці, роки)
+  assert.strictEqual(historyService._formatDuration(1440), '1 день');
+  assert.strictEqual(historyService._formatDuration(1500), '1 день 1 година');
+  assert.strictEqual(historyService._formatDuration(2880), '2 дні');
+  assert.strictEqual(historyService._formatDuration(1440 * 5), '5 днів');
+  assert.strictEqual(historyService._formatDuration(1440 * 21), '21 день');
+  assert.strictEqual(historyService._formatDuration(1440 * 22), '22 дні');
+  assert.strictEqual(historyService._formatDuration(1440 * 30), '1 місяць');
+  assert.strictEqual(historyService._formatDuration(1440 * 45), '1 місяць 15 днів');
+  assert.strictEqual(historyService._formatDuration(1440 * 62), '2 місяці 2 дні');
+  assert.strictEqual(historyService._formatDuration(1440 * 365), '1 рік');
+  assert.strictEqual(historyService._formatDuration(1440 * 365 * 2 + 1440 * 30 * 3 + 1440 * 4), '2 роки 3 місяці 4 дні');
+  assert.strictEqual(historyService._formatDuration(39479 * 60 + 25), '4 роки 6 місяців 4 дні');
+  console.log("✔ Тест 1 пройдено (форматування тривалості українською: хвилини, години, дні, місяці та роки з відмінками)");
 
   // Тест 2: Форматування дати та часу
   const nowSec = Math.floor(Date.now() / 1000);

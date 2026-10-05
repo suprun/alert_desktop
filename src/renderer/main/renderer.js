@@ -374,14 +374,136 @@ function renderRegionHistory(data, meta) {
   `;
 
   // 2. Статистика за сьогодні
-  function formatDurationMinutes(min) {
-    if (min === null || min === undefined || isNaN(min) || min <= 0) return '0 хв';
+  function pluralizeUa(n, one, few, many) {
+    const abs = Math.abs(Math.round(n));
+    const mod10 = abs % 10;
+    const mod100 = abs % 100;
+    if (mod100 >= 11 && mod100 <= 19) return `${n} ${many}`;
+    if (mod10 === 1) return `${n} ${one}`;
+    if (mod10 >= 2 && mod10 <= 4) return `${n} ${few}`;
+    return `${n} ${many}`;
+  }
+
+  function formatDurationMinutes(min, startDate, endDate) {
+    if (min === null || min === undefined || isNaN(min)) return '';
+    if (min <= 0) return '0 хв';
     if (min < 1) return '< 1 хв';
-    const hours = Math.floor(min / 60);
-    const remainderMin = min % 60;
-    if (hours === 0) return `${remainderMin} хв`;
-    if (remainderMin === 0) return `${hours} год`;
-    return `${hours} год ${remainderMin} хв`;
+    if (min < 60) return `${Math.round(min)} хв`;
+
+    // До 24 годин: лаконічний формат "X год" або "X год Y хв"
+    if (min < 1440) {
+      const hours = Math.floor(min / 60);
+      const remainderMin = Math.round(min % 60);
+      if (remainderMin === 0) return `${hours} год`;
+      return `${hours} год ${remainderMin} хв`;
+    }
+
+    // 1 доба або більше: конвертація в дні, місяці, роки з українськими відмінками
+    let years = 0;
+    let months = 0;
+    let days = 0;
+    let hours = 0;
+    let minutes = 0;
+
+    if (startDate && endDate) {
+      let start = startDate instanceof Date ? startDate : new Date(typeof startDate === 'number' && startDate < 1e11 ? startDate * 1000 : startDate);
+      let end = endDate instanceof Date ? endDate : new Date(typeof endDate === 'number' && endDate < 1e11 ? endDate * 1000 : endDate);
+
+      if (!isNaN(start.getTime()) && !isNaN(end.getTime())) {
+        if (start > end) {
+          const tmp = start;
+          start = end;
+          end = tmp;
+        }
+
+        years = end.getFullYear() - start.getFullYear();
+        months = end.getMonth() - start.getMonth();
+        days = end.getDate() - start.getDate();
+        hours = end.getHours() - start.getHours();
+        minutes = end.getMinutes() - start.getMinutes();
+
+        if (minutes < 0) {
+          hours -= 1;
+          minutes += 60;
+        }
+        if (hours < 0) {
+          days -= 1;
+          hours += 24;
+        }
+        if (days < 0) {
+          months -= 1;
+          const prevMonth = new Date(end.getFullYear(), end.getMonth(), 0);
+          days += prevMonth.getDate();
+        }
+        if (months < 0) {
+          years -= 1;
+          months += 12;
+        }
+      }
+    }
+
+    if (years === 0 && months === 0 && days === 0) {
+      const totalDays = Math.floor(min / 1440);
+      hours = Math.floor((min % 1440) / 60);
+      minutes = Math.round(min % 60);
+
+      years = Math.floor(totalDays / 365);
+      const remDays = totalDays % 365;
+      months = Math.floor(remDays / 30);
+      days = remDays % 30;
+    }
+
+    const parts = [];
+    if (years > 0) {
+      parts.push(pluralizeUa(years, 'рік', 'роки', 'років'));
+      if (months > 0) {
+        parts.push(pluralizeUa(months, 'місяць', 'місяці', 'місяців'));
+      }
+      if (days > 0) {
+        parts.push(pluralizeUa(days, 'день', 'дні', 'днів'));
+      }
+    } else if (months > 0) {
+      parts.push(pluralizeUa(months, 'місяць', 'місяці', 'місяців'));
+      if (days > 0) {
+        parts.push(pluralizeUa(days, 'день', 'дні', 'днів'));
+      }
+      if (days === 0 && hours > 0) {
+        parts.push(pluralizeUa(hours, 'година', 'години', 'годин'));
+      }
+    } else {
+      // Тільки дні (менше місяця)
+      parts.push(pluralizeUa(days, 'день', 'дні', 'днів'));
+      if (hours > 0) {
+        parts.push(pluralizeUa(hours, 'година', 'години', 'годин'));
+      }
+      if (days < 2 && hours === 0 && minutes > 0) {
+        parts.push(pluralizeUa(minutes, 'хвилина', 'хвилини', 'хвилин'));
+      }
+    }
+
+    return parts.join(' ');
+  }
+
+  function formatDateTime(dateInput) {
+    if (!dateInput) return '';
+    const date = dateInput instanceof Date ? dateInput : new Date(typeof dateInput === 'number' && dateInput < 1e11 ? dateInput * 1000 : dateInput);
+    if (isNaN(date.getTime())) return '';
+    const now = new Date();
+    const timeStr = date.toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit' });
+    if (date.toDateString() === now.toDateString()) {
+      return `Сьогодні, ${timeStr}`;
+    }
+    const yesterday = new Date(now);
+    yesterday.setDate(yesterday.getDate() - 1);
+    if (date.toDateString() === yesterday.toDateString()) {
+      return `Вчора, ${timeStr}`;
+    }
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    if (date.getFullYear() !== now.getFullYear()) {
+      return `${day}.${month}.${date.getFullYear()}, ${timeStr}`;
+    }
+    return `${day}.${month}, ${timeStr}`;
   }
 
   const todayStats = data && (data.todayStats || data.today_stats);
@@ -444,8 +566,8 @@ function renderRegionHistory(data, meta) {
     if (activeItem) {
       activeItem.threatType = currentThreatType;
       activeItem.threatLabel = currentThreatLabel;
-      if (currentElapsedMin > 0 && !activeItem.durationText && !activeItem.duration_text) {
-        activeItem.durationText = formatDurationMinutes(currentElapsedMin);
+      if (currentElapsedMin > 0 && (!activeItem.durationText || activeItem.durationText.includes('год') || !activeItem.duration_text)) {
+        activeItem.durationText = formatDurationMinutes(currentElapsedMin, startedAt, Date.now());
       }
     } else {
       alertsList.unshift({
@@ -455,9 +577,9 @@ function renderRegionHistory(data, meta) {
         isActive: true,
         threatType: currentThreatType,
         threatLabel: currentThreatLabel,
-        startedText: startedAt ? `Сьогодні, ${new Date(startedAt).toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit' })}` : 'Сьогодні, щойно',
+        startedText: startedAt ? formatDateTime(startedAt) : 'Сьогодні, щойно',
         finishedText: 'Триває',
-        durationText: currentElapsedMin > 0 ? formatDurationMinutes(currentElapsedMin) : ''
+        durationText: currentElapsedMin > 0 ? formatDurationMinutes(currentElapsedMin, startedAt, Date.now()) : ''
       });
     }
   }
@@ -482,10 +604,15 @@ function renderRegionHistory(data, meta) {
         icon = threatIcons.aviation;
       }
 
-      const startedStr = a.startedText || a.started_text || (a.startedAt ? new Date(a.startedAt * 1000).toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit' }) : '');
-      const finishedStr = a.finishedText || a.finished_text || (a.finishedAt ? new Date(a.finishedAt * 1000).toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit' }) : (a.isActive ? 'Триває' : ''));
+      const startedStr = a.startedText || a.started_text || (a.startedAt ? formatDateTime(a.startedAt) : '');
+      const finishedStr = a.finishedText || a.finished_text || (a.finishedAt ? formatDateTime(a.finishedAt) : (a.isActive ? 'Триває' : ''));
       const timeRange = finishedStr ? `${startedStr} — ${finishedStr}` : startedStr;
-      const durationStr = a.durationText || a.duration_text || (a.durationMin ? `${a.durationMin} хв` : '');
+      let durationStr = a.durationText || a.duration_text || '';
+      if (!durationStr && a.durationMin) {
+        durationStr = formatDurationMinutes(a.durationMin, a.startedAt, a.finishedAt);
+      } else if (durationStr && durationStr.includes('год') && a.durationMin && a.durationMin >= 1440) {
+        durationStr = formatDurationMinutes(a.durationMin, a.startedAt, a.finishedAt);
+      }
       const msgHtml = a.message ? `<div class="history-item-msg">${escapeHtml(a.message)}</div>` : '';
 
       return `
