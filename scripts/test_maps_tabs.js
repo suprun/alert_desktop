@@ -113,5 +113,21 @@ assert.ok(rendererJs.includes('map-oblast-label'), 'renderer.js має ренд�
 assert.ok(styleCss.includes('.map-oblast-label'), 'style.css має містити стилі для .map-oblast-label');
 console.log(`✔ Тест 13 пройдено (підписи назв областей валідні: ${mapData.MAP_OBLAST_LABELS.length} підписів, наявні шари та стилі)`);
 
+// 14. Перевірка синхронізації початкового стану вкладок при завантаженні та відсутності спалаху вбудованої карти
+const preloadMainJs = fs.readFileSync(path.join(__dirname, '..', 'src', 'preload', 'preload-main.js'), 'utf8');
+const mainJs = fs.readFileSync(path.join(__dirname, '..', 'src', 'main', 'main.js'), 'utf8');
+const windowJs = fs.readFileSync(path.join(__dirname, '..', 'src', 'main', 'window.js'), 'utf8');
+
+assert.ok(preloadMainJs.includes("getActiveMapTabSync: () => ipcRenderer.sendSync('get-active-map-tab-sync')"), 'preload-main.js має надавати getActiveMapTabSync');
+assert.ok(preloadMainJs.includes("getActiveMapTab: () => ipcRenderer.invoke('get-active-map-tab')"), 'preload-main.js має надавати getActiveMapTab');
+assert.ok(preloadMainJs.includes('onMapTabChanged: (callback) =>'), 'preload-main.js має надавати onMapTabChanged');
+assert.ok(mainJs.includes('get-active-map-tab-sync'), 'main.js має обробляти get-active-map-tab-sync');
+assert.ok(windowJs.includes('initialTab: this.activeTab'), 'window.js має передавати initialTab у параметрах loadFile');
+assert.ok(rendererJs.includes('getActiveMapTabSync'), 'renderer.js має використовувати getActiveMapTabSync для миттєвої ініціалізації');
+assert.ok(rendererJs.includes('onMapTabChanged'), 'renderer.js має слухати onMapTabChanged');
+assert.ok(indexHtml.includes('id="internalMapContainer" class="internal-map-container" style="display: none;"'), 'index.html повинен мати initial display:none для internalMapContainer');
+console.log('✔ Тест 14 пройдено (синхронізація активної вкладки при старті та захист від показу вбудованої карти валідні)');
+
 console.log('🎉 Усі тести панелі вкладок, тем та векторної карти успішно виконано!');
+
 

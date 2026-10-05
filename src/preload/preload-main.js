@@ -26,13 +26,14 @@ contextBridge.exposeInMainWorld('alertAPI', {
   },
   reloadMap: () => ipcRenderer.send('reload-map'),
   selectMapTab: (tabId) => ipcRenderer.invoke('select-map-tab', tabId),
-  toggleTheme: (isDark) => ipcRenderer.send('toggle-app-theme', { isDark }),
-  getTheme: () => ipcRenderer.invoke('get-theme'),
-  onThemeUpdated: (callback) => {
+  getActiveMapTab: () => ipcRenderer.invoke('get-active-map-tab'),
+  getActiveMapTabSync: () => ipcRenderer.sendSync('get-active-map-tab-sync'),
+  onMapTabChanged: (callback) => {
     const handler = (_event, data) => callback(data);
-    ipcRenderer.on('theme-updated', handler);
-    return () => ipcRenderer.removeListener('theme-updated', handler);
+    ipcRenderer.on('map-tab-changed', handler);
+    return () => ipcRenderer.removeListener('map-tab-changed', handler);
   },
+  toggleTheme: (isDark) => ipcRenderer.send('toggle-app-theme', { isDark }),
   getAllAlerts: () => ipcRenderer.invoke('get-all-alerts'),
   onAllAlertsUpdate: (callback) => {
     const handler = (_event, data) => callback(data);

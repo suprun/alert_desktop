@@ -927,6 +927,15 @@ function applyTheme(isDark) {
   }
 }
 
+// Визначаємо початкову активну вкладку негайно (синхронно / URL query), щоб усунути спалах вбудованої карти
+const urlParams = new URLSearchParams(window.location.search);
+const queryTab = urlParams.get('initialTab');
+const syncTab = (window.alertAPI && typeof window.alertAPI.getActiveMapTabSync === 'function')
+  ? window.alertAPI.getActiveMapTabSync()
+  : null;
+const initialTab = syncTab || queryTab || 'internal';
+setActiveTabUI(initialTab);
+
 // Перемикання вкладок нижньої панелі
 tabButtons.forEach(btn => {
   btn.addEventListener('click', () => {
@@ -980,7 +989,16 @@ if (window.alertAPI) {
     }).catch(() => {});
   }
 
-  // Завантаження активної вкладки
+  // Синхронізація зміни вкладки з боку головного процесу
+  if (window.alertAPI.onMapTabChanged) {
+    window.alertAPI.onMapTabChanged(({ activeTab }) => {
+      if (activeTab) {
+        setActiveTabUI(activeTab);
+      }
+    });
+  }
+
+  // Завантаження активної вкладки (проміс як фолбек)
   if (window.alertAPI.getActiveMapTab) {
     window.alertAPI.getActiveMapTab().then((tabId) => {
       if (tabId) {

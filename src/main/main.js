@@ -119,6 +119,10 @@ if (!gotTheLock) {
     return windowManager.getActiveMapTab();
   });
 
+  ipcMain.on('get-active-map-tab-sync', (event) => {
+    event.returnValue = windowManager.getActiveMapTab();
+  });
+
   ipcMain.on('toggle-app-theme', (_event, { isDark }) => {
     windowManager.setTheme(isDark, false);
     settingsWindowManager.setTheme(isDark, false);

@@ -107,8 +107,13 @@ class WindowManager {
     this.mainWindow.removeMenu();
     this.mainWindow.setMenuBarVisibility(false);
 
+    // Якщо остання обрана карта зовнішня — негайно ініціалізуємо перегляд, щоб не показувати вбудовану
+    if (this.activeTab !== 'internal') {
+      this.getOrCreateWebView(this.activeTab);
+    }
+
     const mainHtmlPath = path.join(__dirname, '..', 'renderer', 'main', 'index.html');
-    this.mainWindow.loadFile(mainHtmlPath);
+    this.mainWindow.loadFile(mainHtmlPath, { query: { initialTab: this.activeTab } });
 
     this.mainWindow.on('close', (event) => {
       if (!this.isQuitting) {
@@ -138,10 +143,7 @@ class WindowManager {
   }
 
   applyInitialTab() {
-    if (this.activeTab !== 'internal') {
-      this.getOrCreateWebView(this.activeTab);
-    }
-    this.updateViewBounds();
+    this.switchMapTab(this.activeTab);
   }
 
   getOrCreateWebView(tabId) {
