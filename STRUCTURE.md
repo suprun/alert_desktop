@@ -133,7 +133,7 @@ alert_desktop/
     │   ├── updater.js                    # Сервіс перевірки та встановлення автооновлень (electron-updater / GitHub Releases)
     │   ├── threat-utils.js               # Нормалізація типів загроз (дрони, ракети тощо), усунення тавтології та генерація текстів
     │   ├── api.js                        # WebSocket зв'язок (0s) + HTTP fallback + багаторівневе резервування + список усіх активних тривог allAlerts
-    │   ├── history-service.js            # Дворівневий сервіс історії тривог адмінодиниць (шлюз /v1/history/region + прямий fallback alerts.in.ua v3)
+    │   ├── history-service.js            # Дворівневий сервіс історії тривог адмінодиниць (шлюз /v1/history/region + fallback alerts.in.ua v3 з ієрархічним збігом громад районів та буфером 500 тривог)
     │   ├── net-check.js                  # Швидка перевірка зв'язку з інтернетом через Anycast IP Google та Cloudflare (порти 53/443)
     │   ├── autostart.js                  # Менеджер автозапуску Windows (Electron API + HKCU Run)
     │   ├── config.js                     # Робота з config.json (збереження activeMapTab), .env та автозапуском ОС

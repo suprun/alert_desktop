@@ -155,6 +155,51 @@ async function runTests() {
   assert(!isolateRes.recentAlerts.some(a => a.id === 202), 'Не має бути чужого району 202');
   console.log("✔ Тест 7 пройдено (ізоляція обраного району від сусідніх районів області)");
 
+  // Тест 8: Включення тривог громад обраного району (ієрархічний збіг hromadasByRaionUid)
+  historyService._fallbackAlerts = [
+    { i: 301, luid: 711, s: 151210000, t: 'c', loi: 14 }, // Білоцерківська громада (входить до Білоцерківського р-ну 73)
+    { i: 302, luid: 712, s: 151210100, t: 'c', loi: 14 }, // Володарська громада (входить до Білоцерківського р-ну 73)
+    { i: 303, luid: 724, s: 151210200, t: 'c', loi: 14 }  // Громада іншого району Київської обл (чужа)
+  ];
+  historyService._fallbackEvents = [];
+  historyService._observedAlerts.clear();
+
+  const raionRes = historyService._buildFallbackResponse('73', '14');
+  assert.strictEqual(raionRes.recentAlerts.length, 2, 'Має включити тривоги 2 громад, що належать до Білоцерківського р-ну');
+  assert(raionRes.recentAlerts.some(a => a.id === 301), 'Має бути громада 711');
+  assert(raionRes.recentAlerts.some(a => a.id === 302), 'Має бути громада 712');
+  assert(!raionRes.recentAlerts.some(a => a.id === 303), 'Не має бути громади чужого району 724');
+  console.log("✔ Тест 8 пройдено (ієрархічне включення тривог дочірніх громад обраного району)");
+
+  // Тест 9: Перевірка коректного порожнього durationFormatted при 0 тривог (без безглуздого '0 хв')
+  historyService._fallbackAlerts = [];
+  historyService._fallbackEvents = [];
+  historyService._fallbackStats = [{ luid: 73, ac: 0, d: 0, a: false }];
+  historyService._observedAlerts.clear();
+
+  const zeroStatsRes = historyService._buildFallbackResponse('73', '14');
+  assert.strictEqual(zeroStatsRes.todayStats.alertCount, 0);
+  assert.strictEqual(zeroStatsRes.todayStats.durationFormatted, '', 'durationFormatted має бути порожнім рядком коли 0 тривог');
+  assert.strictEqual(zeroStatsRes.recentAlerts.length, 0);
+  console.log("✔ Тест 9 пройдено (при 0 тривог durationFormatted порожній, що дозволяє показати «Сьогодні тривог не зафіксовано»)");
+
+  // Тест 10: Накопичувальний буфер спостережуваних тривог (ліміт: 500) та видача до 20 тривог
+  historyService._observedAlerts.clear();
+  for (let i = 1; i <= 550; i++) {
+    historyService._recordAlert({
+      i: 1000 + i,
+      luid: 73,
+      s: 151000000 + i,
+      f: 151000000 + i + 10,
+      at: 1
+    });
+  }
+  assert.strictEqual(historyService._observedAlerts.size, 500, 'Розмір буфера має бути обмежений рівно 500 записами');
+  const bufferSliceRes = historyService._buildFallbackResponse('73', '14');
+  assert.strictEqual(bufferSliceRes.recentAlerts.length, 20, 'recentAlerts має повертати до 20 останніх тривог');
+  assert.strictEqual(bufferSliceRes.recentAlerts[0].id, 1550, 'Першою має бути найновіша тривога');
+  console.log("✔ Тест 10 пройдено (буфер тривог обмежений 500 елементами, recentAlerts повертає 20 найновіших тривог)");
+
   console.log("🎉 Усі тести сервісу історії успішно пройдено!\n");
 }
 

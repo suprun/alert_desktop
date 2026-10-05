@@ -302,18 +302,29 @@ body {
 .selected-badge {
   position: relative;
   display: flex;
-  align-items: center;
-  gap: 8px;
+  flex-direction: column;
+  gap: 5px;
   padding: 8px 12px 8px 14px;
-  min-height: 38px;
   background-color: rgba(255, 255, 255, 0.035);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 6px;
-  overflow: hidden;
-  font-size: 13px;
   color: var(--text-primary);
   cursor: default;
   transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.selected-badge-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  gap: 8px;
+}
+
+.selected-badge-label-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .selected-badge::before {
@@ -351,14 +362,12 @@ html.theme-light .selected-badge,
 }
 
 .selected-badge-text {
+  font-size: 13.5px;
   font-weight: 600;
   color: var(--text-primary);
-  flex: 1;
-  min-width: 0;
-  white-space: normal;
+  line-height: 1.4;
   word-break: normal;
-  overflow-wrap: break-word;
-  line-height: 1.35;
+  overflow-wrap: normal;
 }
 
 .selected-badge-type {
@@ -751,9 +760,9 @@ html.theme-light .selected-badge,
 }
 
 .about-desc {
-  font-size: 12px;
+  font-size: 13px;
   color: var(--text-secondary);
-  line-height: 1.4;
+  line-height: 1.5;
   margin: 0;
 }
 
@@ -801,33 +810,37 @@ html.theme-light .selected-badge,
 }
 
 .about-policies-box {
-  margin-top: 6px;
+  margin-top: 8px;
   margin-bottom: 2px;
   padding: 8px 0;
   border-top: 1px solid var(--border-color);
 }
 
 .about-policies-title {
-  font-size: 11.5px;
+  font-size: 12.5px;
   font-weight: 600;
   color: var(--text-primary);
   display: block;
-  margin-bottom: 4px;
+  margin-bottom: 5px;
 }
 
 .about-policies-list {
   margin: 0;
   padding-left: 18px;
-  font-size: 11.5px;
+  font-size: 12.5px;
   color: var(--text-secondary);
-  line-height: 1.6;
+  line-height: 1.65;
+}
+
+.about-policies-list li {
+  margin-bottom: 4px;
 }
 
 .about-legal-box {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  margin-top: 2px;
+  gap: 7px;
+  margin-top: 4px;
   padding-top: 8px;
   border-top: 1px dashed var(--border-color);
 }
@@ -835,24 +848,35 @@ html.theme-light .selected-badge,
 .about-legal-item {
   display: flex;
   align-items: flex-start;
-  gap: 6px;
-  font-size: 11px;
+  gap: 7px;
+  font-size: 12px;
   color: var(--text-secondary);
-  line-height: 1.35;
+  line-height: 1.45;
 }
 
 .about-legal-icon {
   flex-shrink: 0;
-  font-size: 11px;
-  line-height: 1.35;
+  font-size: 12px;
+  line-height: 1.45;
 }
 
 .about-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   color: #0078d4;
   text-decoration: none;
 }
 
 .about-link:hover {
   text-decoration: underline;
+}
+
+.about-link .external-link-icon {
+  opacity: 0.7;
+}
+
+.about-link:hover .external-link-icon {
+  opacity: 1;
 }
 

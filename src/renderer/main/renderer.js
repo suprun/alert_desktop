@@ -535,18 +535,26 @@ function renderRegionHistory(data, meta) {
     }
   }
 
-  let durationText = '0 хв';
+  let durationText = '';
   if (totalMin > 0) {
     durationText = formatDurationMinutes(totalMin);
   } else if (todayStats && (todayStats.durationFormatted || todayStats.duration_formatted) && count > 0) {
     const rawFmt = todayStats.durationFormatted || todayStats.duration_formatted;
-    durationText = (rawFmt === '< 1 хв' && totalMin === 0) ? '0 хв' : rawFmt;
+    durationText = (rawFmt === '< 1 хв' && totalMin === 0) ? '' : rawFmt;
+  }
+
+  let statsValueHtml = '';
+  if (count === 0) {
+    statsValueHtml = 'Сьогодні тривог не зафіксовано';
+  } else {
+    const countText = `${count} ${count === 1 ? 'тривога' : (count >= 2 && count <= 4 ? 'тривоги' : 'тривог')}`;
+    statsValueHtml = durationText ? `${countText} · ${durationText}` : countText;
   }
 
   const statsCardHtml = `
     <div class="history-stats-card">
       <span class="history-stats-heading">Сьогодні</span>
-      <span class="history-stats-values">${count} ${count === 1 ? 'тривога' : (count >= 2 && count <= 4 ? 'тривоги' : 'тривог')} · ${durationText}</span>
+      <span class="history-stats-values">${statsValueHtml}</span>
     </div>
   `;
 
@@ -640,7 +648,13 @@ function renderRegionHistory(data, meta) {
       `;
     }).join('');
   } else {
-    timelineItemsHtml = `<div class="drawer-loading"><span>Немає зафіксованих недавніх тривог</span></div>`;
+    timelineItemsHtml = `
+      <div class="history-empty-state">
+        <span class="empty-history-icon">${icons.safe}</span>
+        <span class="empty-history-title">Спокійна обстановка</span>
+        <span class="empty-history-desc">За останній період тривог не надходило.</span>
+      </div>
+    `;
   }
 
   const timelineSectionHtml = `

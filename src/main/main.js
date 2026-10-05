@@ -41,7 +41,11 @@ if (!gotTheLock) {
   api.on('status-updated', (status) => {
     tray.updateStatus(status);
     windowManager.sendStatusUpdate(status);
-    windowManager.sendAllAlertsUpdate(api.getAllAlerts());
+    const allAlerts = api.getAllAlerts();
+    windowManager.sendAllAlertsUpdate(allAlerts);
+    if (Array.isArray(allAlerts) && allAlerts.length > 0) {
+      historyService.recordActiveAlerts(allAlerts);
+    }
   });
 
   api.on('status-changed', (status) => {

@@ -8,6 +8,27 @@
 const https = require('https');
 const http = require('http');
 const config = require('./config');
+const locationsData = require('./locations.json');
+
+// Індексація локацій: raionUid -> Set громад району, а також швидкий пошук за UID
+const hromadasByRaionUid = new Map();
+const locationByUid = new Map();
+
+for (const loc of locationsData) {
+  if (loc.uid) {
+    locationByUid.set(String(loc.uid), loc);
+  }
+  if (loc.raionUid && loc.uid) {
+    const rUid = String(loc.raionUid);
+    const uid = String(loc.uid);
+    if (rUid !== uid) {
+      if (!hromadasByRaionUid.has(rUid)) {
+        hromadasByRaionUid.set(rUid, new Set());
+      }
+      hromadasByRaionUid.get(rUid).add(uid);
+    }
+  }
+}
 
 const BASE_EPOCH_ALERTS_IN_UA = 1640000000;
 
@@ -19,6 +40,96 @@ class HistoryService {
     this._fallbackAlerts = [];
     this._fallbackEvents = [];
     this._cacheTtlMs = 60000;
+    // Накопичувальний буфер спостережуваних тривог (ліміт: 500 записів)
+    this._observedAlerts = new Map();
+    this._maxObservedAlerts = 500;
+  }
+
+  /**
+   * Записує тривогу до внутрішнього буфера спостережень.
+   * @param {object} a
+   */
+  _recordAlert(a) {
+    if (!a) return;
+    const luid = a.luid || a.location_uid;
+    const sRaw = a.s;
+    if (!luid || !sRaw) return;
+    const key = `${luid}_${sRaw}`;
+    if (!this._observedAlerts.has(key)) {
+      this._observedAlerts.set(key, { ...a });
+    } else {
+      const existing = this._observedAlerts.get(key);
+      if (a.f && !existing.f) existing.f = a.f;
+      if (a.at && !existing.at) existing.at = a.at;
+      if (a.m && !existing.m) existing.m = a.m;
+    }
+    this._pruneObservedAlerts();
+  }
+
+  /**
+   * Записує подію тривоги (початок або відбій) до внутрішнього буфера.
+   * @param {object} e
+   */
+  _recordEvent(e) {
+    if (!e) return;
+    const eLuid = String(e.luid || e.location_uid || '');
+    const sRaw = e.s;
+    if (sRaw) {
+      const key = `${eLuid}_${sRaw}`;
+      if (!this._observedAlerts.has(key)) {
+        this._observedAlerts.set(key, { ...e });
+      } else if (e.f && !this._observedAlerts.get(key).f) {
+        this._observedAlerts.get(key).f = e.f;
+      }
+    } else if (e.f) {
+      for (const [key, alertItem] of this._observedAlerts.entries()) {
+        const itemLuid = String(alertItem.luid || alertItem.location_uid || '');
+        if (itemLuid === eLuid && !alertItem.f && (alertItem.s || 0) <= e.f) {
+          alertItem.f = e.f;
+          break;
+        }
+      }
+    }
+    this._pruneObservedAlerts();
+  }
+
+  /**
+   * Обмежує розмір буфера спостережуваних тривог заданим лімітом (500).
+   */
+  _pruneObservedAlerts() {
+    if (this._observedAlerts.size <= this._maxObservedAlerts) return;
+    const entries = Array.from(this._observedAlerts.entries());
+    entries.sort((a, b) => (b[1].s || 0) - (a[1].s || 0));
+    this._observedAlerts = new Map(entries.slice(0, this._maxObservedAlerts));
+  }
+
+  /**
+   * Публічний метод запису списку активних тривог (може викликатися сервісом API).
+   * @param {Array<object>} alerts
+   */
+  recordActiveAlerts(alerts) {
+    if (!Array.isArray(alerts)) return;
+    for (const a of alerts) {
+      let s = a.s;
+      if (!s && a.started_at) {
+        const startedSec = Math.floor(new Date(a.started_at).getTime() / 1000);
+        if (startedSec > BASE_EPOCH_ALERTS_IN_UA) {
+          s = startedSec - BASE_EPOCH_ALERTS_IN_UA;
+        }
+      }
+      this._recordAlert({
+        i: a.id || a.i,
+        u: a.u,
+        s,
+        f: a.finished_at ? (Math.floor(new Date(a.finished_at).getTime() / 1000) - BASE_EPOCH_ALERTS_IN_UA) : (a.f || null),
+        at: a.threat_type || a.at || 1,
+        luid: a.location_uid || a.luid,
+        loi: a.oblast_uid || a.loi,
+        t: a.location_type || a.t,
+        m: a.message || a.m || null,
+        nt: a.notes || a.nt || null
+      });
+    }
   }
 
   /**
@@ -104,9 +215,15 @@ class HistoryService {
       }
       if (alertsRes.status === 'fulfilled' && alertsRes.value && Array.isArray(alertsRes.value.alerts)) {
         this._fallbackAlerts = alertsRes.value.alerts;
+        for (const a of this._fallbackAlerts) {
+          this._recordAlert(a);
+        }
       }
       if (eventsRes.status === 'fulfilled' && eventsRes.value && Array.isArray(eventsRes.value.alert_events)) {
         this._fallbackEvents = eventsRes.value.alert_events;
+        for (const e of this._fallbackEvents) {
+          this._recordEvent(e);
+        }
       }
 
       this._fallbackCacheTime = now;
@@ -297,16 +414,43 @@ class HistoryService {
 
     // 2. Список недавніх тривог
     const isOblastSelected = uidStr === oblastUidStr;
+    const childHromadas = hromadasByRaionUid.get(uidStr) || null;
+    const selectedLoc = locationByUid.get(uidStr);
+    const parentRaionUid = selectedLoc && selectedLoc.raionUid && String(selectedLoc.raionUid) !== uidStr
+      ? String(selectedLoc.raionUid)
+      : null;
 
     const isMatchingLocation = (item) => {
-      const iLuid = String(item.luid || '');
-      const iLoi = String(item.loi || '');
-      const iType = String(item.t || '');
+      const iLuid = String(item.luid || item.location_uid || '');
+      const iLoi = String(item.loi || item.oblast_uid || '');
+      const iType = String(item.t || item.location_type || '');
+
+      // 1. Якщо обрано область цілком
       if (isOblastSelected) {
         return iLuid === uidStr || iLoi === uidStr;
       }
-      // Обрано конкретний район або місто спеціального статусу
-      return iLuid === uidStr || (Boolean(oblastUidStr) && iType === 's' && iLuid === oblastUidStr);
+
+      // 2. Прямий збіг за UID локації
+      if (iLuid === uidStr) {
+        return true;
+      }
+
+      // 3. Якщо обрано район, а тривога оголошена в одній з його громад
+      if (childHromadas && childHromadas.has(iLuid)) {
+        return true;
+      }
+
+      // 4. Якщо обрано громаду, а тривога оголошена на весь її район
+      if (parentRaionUid && iLuid === parentRaionUid) {
+        return true;
+      }
+
+      // 5. Загальнообласна тривога
+      if (oblastUidStr && (iType === 's' || iType === 'oblast') && (iLuid === oblastUidStr || iLoi === oblastUidStr)) {
+        return true;
+      }
+
+      return false;
     };
 
     const alertsByKey = new Map();
@@ -316,15 +460,30 @@ class HistoryService {
       if (!isMatchingLocation(a)) continue;
       const sRaw = a.s;
       if (!sRaw) continue; // Ігноруємо без мітки початку
-      const aLuid = String(a.luid || '');
+      const aLuid = String(a.luid || a.location_uid || '');
       const key = `${aLuid}_${sRaw}`;
       alertsByKey.set(key, { ...a });
     }
 
-    // 2. Додаємо/оновлюємо з alert_events
+    // 2. Додаємо накопичені спостереження з буфера
+    for (const a of this._observedAlerts.values()) {
+      if (!isMatchingLocation(a)) continue;
+      const sRaw = a.s;
+      if (!sRaw) continue;
+      const aLuid = String(a.luid || a.location_uid || '');
+      const key = `${aLuid}_${sRaw}`;
+      if (!alertsByKey.has(key)) {
+        alertsByKey.set(key, { ...a });
+      } else {
+        const existing = alertsByKey.get(key);
+        if (a.f && !existing.f) existing.f = a.f;
+      }
+    }
+
+    // 3. Додаємо/оновлюємо з alert_events
     for (const e of this._fallbackEvents) {
       if (!isMatchingLocation(e)) continue;
-      const eLuid = String(e.luid || '');
+      const eLuid = String(e.luid || e.location_uid || '');
       const sRaw = e.s;
       if (sRaw) {
         const key = `${eLuid}_${sRaw}`;
@@ -336,7 +495,8 @@ class HistoryService {
       } else if (e.f) {
         // Подія відбою без часу початку: оновлюємо відкриту тривогу для цієї локації
         for (const [key, alertItem] of alertsByKey.entries()) {
-          if (String(alertItem.luid || '') === eLuid && !alertItem.f && (alertItem.s || 0) <= e.f) {
+          const itemLuid = String(alertItem.luid || alertItem.location_uid || '');
+          if (itemLuid === eLuid && !alertItem.f && (alertItem.s || 0) <= e.f) {
             alertItem.f = e.f;
             break;
           }
@@ -434,7 +594,7 @@ class HistoryService {
       alertCount,
       totalDurationMin,
       isActive,
-      durationFormatted: this._formatDuration(totalDurationMin)
+      durationFormatted: alertCount > 0 ? this._formatDuration(totalDurationMin) : ''
     };
 
     return {
@@ -443,7 +603,7 @@ class HistoryService {
       regionUid: uidStr,
       oblastUid: oblastUidStr,
       todayStats: finalTodayStats,
-      recentAlerts: matched.slice(0, 15)
+      recentAlerts: matched.slice(0, 20)
     };
   }
 
@@ -469,9 +629,10 @@ class HistoryService {
     try {
       const data = await this._fetchJson(gatewayUrl, 5000);
       if (data && data.success) {
-        // Доповнюємо відформатованим людиночитаним текстом часу
+        // Доповнюємо відформатованим людиночитаним текстом часу (тільки якщо були тривоги)
         if (data.today_stats && typeof data.today_stats.total_duration_min === 'number') {
-          data.today_stats.duration_formatted = this._formatDuration(data.today_stats.total_duration_min);
+          const alertCount = data.today_stats.alert_count ?? data.today_stats.alertCount ?? 0;
+          data.today_stats.duration_formatted = alertCount > 0 ? this._formatDuration(data.today_stats.total_duration_min) : '';
         }
         if (Array.isArray(data.recent_alerts)) {
           data.recent_alerts.forEach((alert) => {

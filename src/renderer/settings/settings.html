@@ -21,15 +21,19 @@
         <label for="selectOblast" class="group-label">Місцевість для моніторингу</label>
         <!-- Блок відображення поточної обраної локації -->
         <div id="selectedLocationBadge" class="selected-badge" style="display: none;">
-          <span class="selected-badge-pin" aria-hidden="true">
-            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
-              <circle cx="12" cy="10" r="3"/>
-            </svg>
-          </span>
-          <span class="selected-badge-label">Обрано:</span>
-          <span id="selectedBadgeText" class="selected-badge-text"></span>
-          <span id="selectedBadgeType" class="location-item-type selected-badge-type"></span>
+          <div class="selected-badge-header">
+            <div class="selected-badge-label-group">
+              <span class="selected-badge-pin" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                  <circle cx="12" cy="10" r="3"/>
+                </svg>
+              </span>
+              <span class="selected-badge-label">Поточна місцевість:</span>
+            </div>
+            <span id="selectedBadgeType" class="location-item-type selected-badge-type"></span>
+          </div>
+          <div id="selectedBadgeText" class="selected-badge-text"></div>
         </div>
 
         <!-- Ієрархічний вибір: Область → Район → Громада -->
@@ -192,13 +196,37 @@
             <span class="about-policies-title">Політика конфіденційності та умови сервісів мап:</span>
             <ul class="about-policies-list">
               <li>
-                <strong>Alerts.in.ua:</strong> <a href="https://alerts.in.ua/privacy-policy" target="_blank" class="about-link">Політика конфіденційності alerts.in.ua</a>
+                <strong>Alerts.in.ua:</strong>
+                <a href="https://alerts.in.ua/privacy-policy" target="_blank" class="about-link" title="Політика конфіденційності alerts.in.ua">
+                  <span>Політика конфіденційності alerts.in.ua</span>
+                  <svg class="external-link-icon" viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+                    <polyline points="15 3 21 3 21 9"/>
+                    <line x1="10" y1="14" x2="21" y2="3"/>
+                  </svg>
+                </a>
               </li>
               <li>
-                <strong>UkraineAlarm:</strong> <a href="https://map.ukrainealarm.com/confidentiality" target="_blank" class="about-link">Політика конфіденційності map.ukrainealarm.com</a>
+                <strong>UkraineAlarm:</strong>
+                <a href="https://map.ukrainealarm.com/confidentiality" target="_blank" class="about-link" title="Політика конфіденційності map.ukrainealarm.com">
+                  <span>Політика конфіденційності map.ukrainealarm.com</span>
+                  <svg class="external-link-icon" viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+                    <polyline points="15 3 21 3 21 9"/>
+                    <line x1="10" y1="14" x2="21" y2="3"/>
+                  </svg>
+                </a>
               </li>
               <li>
-                <strong>Neptun:</strong> <a href="https://neptun.in.ua/" target="_blank" class="about-link">Офіційний сайт та документація neptun.in.ua</a>
+                <strong>Neptun:</strong>
+                <a href="https://neptun.in.ua/" target="_blank" class="about-link" title="Офіційний сайт та документація neptun.in.ua">
+                  <span>Офіційний сайт та документація neptun.in.ua</span>
+                  <svg class="external-link-icon" viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+                    <polyline points="15 3 21 3 21 9"/>
+                    <line x1="10" y1="14" x2="21" y2="3"/>
+                  </svg>
+                </a>
               </li>
             </ul>
           </div>

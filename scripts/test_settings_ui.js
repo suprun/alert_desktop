@@ -121,4 +121,40 @@ const settingsHtml = fs.readFileSync(settingsHtmlPath, 'utf8');
   console.log('✔ Тест 9 пройдено (фокус гарантовано повертається на головне вікно при закритті налаштувань)');
 }
 
+// Тест 10: Перевірка просторої дворядкової структури для бейджа обраної локації (.selected-badge)
+{
+  assert.ok(
+    settingsHtml.includes('class="selected-badge-header"') && settingsHtml.includes('id="selectedBadgeText" class="selected-badge-text"'),
+    'settings.html має містити .selected-badge-header та окремий рядок .selected-badge-text'
+  );
+  const settingsCssPath = path.join(__dirname, '..', 'src', 'renderer', 'settings', 'settings.css');
+  const settingsCss = fs.readFileSync(settingsCssPath, 'utf8');
+  assert.ok(
+    settingsCss.includes('.selected-badge-header') && settingsCss.includes('flex-direction: column;'),
+    'settings.css має задавати flex-direction: column для .selected-badge та стилізувати .selected-badge-header'
+  );
+  console.log('✔ Тест 10 пройдено (бейдж обраної місцевості переведено на 2-рядкову простору верстку без розриву назви)');
+}
+
+// Тест 11: Перевірка іконок зовнішнього переходу для 3 посилань на політики конфіденційності
+{
+  const totalExternalIcons = (settingsHtml.match(/class="external-link-icon"/g) || []).length;
+  assert.strictEqual(
+    totalExternalIcons,
+    6,
+    `Має бути рівно 6 іконок external-link (3 на кнопках About + 3 на посиланнях політик), знайдено: ${totalExternalIcons}`
+  );
+  console.log('✔ Тест 11 пройдено (усі посилання на політики сервісів мап містять векторний SVG значок зовнішнього переходу)');
+}
+
+// Тест 12: Перевірка збільшених шрифтів блоку About
+{
+  const settingsCssPath = path.join(__dirname, '..', 'src', 'renderer', 'settings', 'settings.css');
+  const settingsCss = fs.readFileSync(settingsCssPath, 'utf8');
+  assert.ok(settingsCss.includes('font-size: 13px;') && settingsCss.includes('.about-desc'), '.about-desc має розмір 13px');
+  assert.ok(settingsCss.includes('font-size: 12.5px;') && settingsCss.includes('.about-policies-list'), '.about-policies-list має розмір 12.5px');
+  assert.ok(settingsCss.includes('font-size: 12px;') && settingsCss.includes('.about-legal-item'), '.about-legal-item має розмір 12px');
+  console.log('✔ Тест 12 пройдено (шрифти блоку About збільшено для комфортної читабельності)');
+}
+
 console.log('🎉 Усі тести інтерфейсу налаштувань успішно пройдено!');
