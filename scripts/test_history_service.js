@@ -14,7 +14,8 @@ async function runTests() {
   console.log("🧪 Запуск тестів сервісу історії адмінодиниць (HistoryService)...");
 
   // Тест 1: Форматування тривалості
-  assert.strictEqual(historyService._formatDuration(0), '< 1 хв');
+  assert.strictEqual(historyService._formatDuration(0), '0 хв');
+  assert.strictEqual(historyService._formatDuration(0.5), '< 1 хв');
   assert.strictEqual(historyService._formatDuration(15), '15 хв');
   assert.strictEqual(historyService._formatDuration(60), '1 год');
   assert.strictEqual(historyService._formatDuration(75), '1 год 15 хв');

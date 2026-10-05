@@ -122,6 +122,7 @@ class HistoryService {
    */
   _formatDuration(min) {
     if (min === null || min === undefined || isNaN(min)) return '';
+    if (min <= 0) return '0 хв';
     if (min < 1) return '< 1 хв';
     const hours = Math.floor(min / 60);
     const remainderMin = min % 60;
@@ -273,15 +274,49 @@ class HistoryService {
 
     matched.sort((a, b) => (b.startedAt || 0) - (a.startedAt || 0));
 
+    // 3. Уточнення статистики за сьогодні за фактичними тривогами
+    const nowSec = Math.floor(Date.now() / 1000);
+    const startOfTodaySec = Math.floor(new Date(new Date().setHours(0, 0, 0, 0)).getTime() / 1000);
+
+    const todayAlerts = matched.filter(a => {
+      if (a.startedAt && a.startedAt >= startOfTodaySec) return true;
+      if (a.finishedAt && a.finishedAt >= startOfTodaySec) return true;
+      if (a.isActive) return true;
+      return false;
+    });
+
+    let alertCount = todayStats.alertCount;
+    let totalDurationMin = todayStats.totalDurationMin;
+
+    // Якщо в todayStats немає даних або alertCount 0, розраховуємо з фактичних тривог
+    if (alertCount === 0 && todayAlerts.length > 0) {
+      alertCount = todayAlerts.length;
+      let computedDurationMin = 0;
+      for (const a of todayAlerts) {
+        const aStart = Math.max(a.startedAt || startOfTodaySec, startOfTodaySec);
+        const aEnd = a.finishedAt ? a.finishedAt : nowSec;
+        if (aEnd > aStart) {
+          computedDurationMin += Math.round((aEnd - aStart) / 60);
+        }
+      }
+      totalDurationMin = computedDurationMin;
+    }
+
+    const isActive = todayStats.isActive || todayAlerts.some(a => a.isActive);
+
+    const finalTodayStats = {
+      alertCount,
+      totalDurationMin,
+      isActive,
+      durationFormatted: this._formatDuration(totalDurationMin)
+    };
+
     return {
       success: true,
       source: 'fallback_alerts_in_ua',
       regionUid: uidStr,
       oblastUid: oblastUidStr,
-      todayStats: {
-        ...todayStats,
-        durationFormatted: this._formatDuration(todayStats.totalDurationMin)
-      },
+      todayStats: finalTodayStats,
       recentAlerts: matched.slice(0, 15)
     };
   }

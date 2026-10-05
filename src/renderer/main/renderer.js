@@ -374,9 +374,42 @@ function renderRegionHistory(data, meta) {
   `;
 
   // 2. Статистика за сьогодні
+  function formatDurationMinutes(min) {
+    if (min === null || min === undefined || isNaN(min) || min <= 0) return '0 хв';
+    if (min < 1) return '< 1 хв';
+    const hours = Math.floor(min / 60);
+    const remainderMin = min % 60;
+    if (hours === 0) return `${remainderMin} хв`;
+    if (remainderMin === 0) return `${hours} год`;
+    return `${hours} год ${remainderMin} хв`;
+  }
+
   const todayStats = data && (data.todayStats || data.today_stats);
-  const count = todayStats ? (todayStats.alertCount ?? todayStats.alert_count ?? 0) : 0;
-  const durationText = todayStats ? (todayStats.durationFormatted || todayStats.duration_formatted || `${todayStats.totalDurationMin || todayStats.total_duration_min || 0} хв`) : '0 хв';
+  let count = todayStats ? (todayStats.alertCount ?? todayStats.alert_count ?? 0) : 0;
+  let totalMin = todayStats ? (todayStats.totalDurationMin ?? todayStats.total_duration_min ?? 0) : 0;
+
+  // Якщо тривога активна прямо зараз, обов'язково враховуємо її в сьогоднішній статистиці
+  let currentElapsedMin = 0;
+  if (isAlert) {
+    if (count === 0) count = 1;
+    if (startedAt) {
+      const startTs = new Date(startedAt).getTime();
+      if (!isNaN(startTs) && startTs > 0) {
+        currentElapsedMin = Math.max(1, Math.round((Date.now() - startTs) / 60000));
+      }
+    }
+    if (totalMin === 0 && currentElapsedMin > 0) {
+      totalMin = currentElapsedMin;
+    }
+  }
+
+  let durationText = '0 хв';
+  if (totalMin > 0) {
+    durationText = formatDurationMinutes(totalMin);
+  } else if (todayStats && (todayStats.durationFormatted || todayStats.duration_formatted) && count > 0) {
+    const rawFmt = todayStats.durationFormatted || todayStats.duration_formatted;
+    durationText = (rawFmt === '< 1 хв' && totalMin === 0) ? '0 хв' : rawFmt;
+  }
 
   const statsCardHtml = `
     <div class="history-stats-card">
@@ -386,7 +419,48 @@ function renderRegionHistory(data, meta) {
   `;
 
   // 3. Недавні тривоги
-  const alertsList = (data && (data.recentAlerts || data.recent_alerts)) || [];
+  let alertsList = (data && (data.recentAlerts || data.recent_alerts)) ? [...(data.recentAlerts || data.recent_alerts)] : [];
+
+  // Якщо тривога активна прямо зараз, синхронізуємо або додаємо її до списку
+  if (isAlert) {
+    const activeItem = alertsList.find(a => a.isActive || !a.finishedAt);
+    let currentThreatType = 1;
+    let currentThreatLabel = 'Повітряна тривога';
+
+    if (alertLevel === 'yellow' || alertType === 'drone') {
+      currentThreatType = 4;
+      currentThreatLabel = 'Дронова загроза';
+    } else if (alertType === 'artillery_shelling') {
+      currentThreatType = 2;
+      currentThreatLabel = 'Загроза артобстрілу';
+    } else if (alertType === 'missile') {
+      currentThreatType = 3;
+      currentThreatLabel = 'Ракетна загроза';
+    } else if (alertType === 'aviation') {
+      currentThreatType = 5;
+      currentThreatLabel = 'Загроза тактичної авіації';
+    }
+
+    if (activeItem) {
+      activeItem.threatType = currentThreatType;
+      activeItem.threatLabel = currentThreatLabel;
+      if (currentElapsedMin > 0 && !activeItem.durationText && !activeItem.duration_text) {
+        activeItem.durationText = formatDurationMinutes(currentElapsedMin);
+      }
+    } else {
+      alertsList.unshift({
+        id: `active_${Date.now()}`,
+        startedAt: startedAt ? Math.floor(new Date(startedAt).getTime() / 1000) : Math.floor(Date.now() / 1000),
+        finishedAt: null,
+        isActive: true,
+        threatType: currentThreatType,
+        threatLabel: currentThreatLabel,
+        startedText: startedAt ? `Сьогодні, ${new Date(startedAt).toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit' })}` : 'Сьогодні, щойно',
+        finishedText: 'Триває',
+        durationText: currentElapsedMin > 0 ? formatDurationMinutes(currentElapsedMin) : ''
+      });
+    }
+  }
   let timelineItemsHtml = '';
 
   if (alertsList.length > 0) {

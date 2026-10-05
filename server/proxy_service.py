@@ -779,6 +779,32 @@ class AlertProxyService:
 
         formatted_alerts.sort(key=lambda x: x.get("started_at") or 0, reverse=True)
 
+        now_ts = int(datetime.now(timezone.utc).timestamp())
+        today_midnight = int(datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0).timestamp())
+
+        today_alerts = [
+            a for a in formatted_alerts
+            if (a.get("started_at") and a.get("started_at") >= today_midnight)
+            or (a.get("finished_at") and a.get("finished_at") >= today_midnight)
+            or a.get("is_active")
+        ]
+
+        if len(today_alerts) > today_stats["alert_count"]:
+            today_stats["alert_count"] = len(today_alerts)
+
+        computed_dur = 0
+        for a in today_alerts:
+            s = max(a.get("started_at") or today_midnight, today_midnight)
+            f = a.get("finished_at") or now_ts
+            if f > s:
+                computed_dur += round((f - s) / 60)
+
+        if computed_dur > today_stats["total_duration_min"]:
+            today_stats["total_duration_min"] = computed_dur
+
+        if any(a.get("is_active") for a in today_alerts):
+            today_stats["is_active"] = True
+
         return {
             "success": True,
             "source": "gateway",
