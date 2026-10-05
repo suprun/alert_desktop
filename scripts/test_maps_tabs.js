@@ -38,12 +38,20 @@ assert.ok(!emojiRegex.test(indexHtml), 'В index.html не повинно бут
 assert.ok(!emojiRegex.test(rendererJs), 'В renderer.js не повинно бути емодзі');
 console.log('✔ Тест 4 пройдено (в інтерфейсі повністю відсутні емодзі — виключно векторні SVG)');
 
-// 5. Перевірка наявності всіх 4 вкладок у розмітці
+// 5. Перевірка наявності всіх 4 вкладок у розмітці та векторизованих favicons сайтів
 const requiredTabs = ['internal', 'alertsinua', 'ukrainealarm', 'neptun'];
 for (const tab of requiredTabs) {
   assert.ok(indexHtml.includes(`data-tab="${tab}"`), `Вкладка ${tab} має бути присутня в index.html`);
 }
-console.log('✔ Тест 5 пройдено (усі 4 вкладки present: internal, alertsinua, ukrainealarm, neptun)');
+// Векторизований маячок Alerts.in.ua (промені, купол, основа)
+assert.ok(indexHtml.includes('rect x="5" y="17" width="14" height="4"'), 'Вкладка alertsinua має містити векторизований маячок Alerts.in.ua');
+// Векторизований силует карти України UkraineAlarm у колі
+assert.ok(indexHtml.includes('circle cx="12" cy="12" r="9.5"'), 'Вкладка ukrainealarm має містити коло-бейдж');
+assert.ok(indexHtml.includes('M5.2 12l1.6-2.6'), 'Вкладка ukrainealarm має містити векторизований силует карти України');
+// Векторизований радар Neptun з надзвуковим літаком-ціллю
+assert.ok(indexHtml.includes('circle cx="6.7" cy="17.3" r="1.3"'), 'Вкладка neptun має містити маркер на концентричному колі радара');
+assert.ok(indexHtml.includes('M21.5 2.5 L19.2 8.5'), 'Вкладка neptun має містити силует літака-цілі');
+console.log('✔ Тест 5 пройдено (усі 4 вкладки present з векторизованими favicons сайтів)');
 
 // 6. Перевірка методів WindowManager
 const windowManager = require('../src/main/window');
