@@ -85,4 +85,40 @@ const settingsHtml = fs.readFileSync(settingsHtmlPath, 'utf8');
   console.log('✔ Тест 6 пройдено (preload-settings.js містить notifyReady для захисту від мерехтіння)');
 }
 
+// Тест 7: Перевірка іконок зовнішнього переходу (external-link) на 3 кнопках About
+{
+  const occurrences = (settingsHtml.match(/class="external-link-icon"/g) || []).length;
+  assert.ok(
+    occurrences >= 3,
+    `В блоці About на кнопках Репозиторій, Ліцензія, Автор мають бути значки зовнішнього переходу (знайдено: ${occurrences})`
+  );
+  console.log('✔ Тест 7 пройдено (кнопки Репозиторій, Ліцензія, Автор містять векторні SVG значки зовнішнього переходу)');
+}
+
+// Тест 8: Перевірка відсутності подвійної плашки (плашка в плашці) у блоці About
+{
+  const settingsCssPath = path.join(__dirname, '..', 'src', 'renderer', 'settings', 'settings.css');
+  const settingsCss = fs.readFileSync(settingsCssPath, 'utf8');
+  assert.ok(
+    settingsCss.includes('border: none;'),
+    'settings.css має задавати border: none для .about-card щоб усунути подвійну рамку'
+  );
+  assert.ok(
+    settingsCss.includes('background: transparent;'),
+    'settings.css має задавати background: transparent для .about-card'
+  );
+  console.log('✔ Тест 8 пройдено (блок About витягнуто із внутрішньої плашки в плашці — border: none та background: transparent)');
+}
+
+// Тест 9: Перевірка повернення фокусу на головне вікно при закритті налаштувань
+{
+  const settingsWindowJsPath = path.join(__dirname, '..', 'src', 'main', 'settings-window.js');
+  const settingsWindowJs = fs.readFileSync(settingsWindowJsPath, 'utf8');
+  assert.ok(
+    settingsWindowJs.includes('parentWindow.focus()'),
+    'settings-window.js повинен викликати parentWindow.focus() при закритті вікна'
+  );
+  console.log('✔ Тест 9 пройдено (фокус гарантовано повертається на головне вікно при закритті налаштувань)');
+}
+
 console.log('🎉 Усі тести інтерфейсу налаштувань успішно пройдено!');

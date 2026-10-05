@@ -140,6 +140,22 @@ assert.ok(rendererJs.includes('onMapTabChanged'), 'renderer.js має слуха
 assert.ok(indexHtml.includes('id="internalMapContainer" class="internal-map-container" style="display: none;"'), 'index.html повинен мати initial display:none для internalMapContainer');
 console.log('✔ Тест 14 пройдено (синхронізація активної вкладки при старті та захист від показу вбудованої карти валідні)');
 
+// Тест 15: Фіксований розмір кнопок вкладок
+assert.ok(styleCss.includes('width: 136px;'), 'style.css повинен задавати фіксовану ширину 136px для .tab-btn');
+assert.ok(styleCss.includes('min-width: 136px;'), 'style.css повинен задавати min-width 136px для .tab-btn');
+console.log('✔ Тест 15 пройдено (кнопки вкладок мають фіксований розмір 136px без зсуву верстки)');
+
+// Тест 16: Окремий шар підсвічування обраного району
+assert.ok(indexHtml.includes('id="selectedHighlightLayer"'), 'index.html повинен містити окремий шар selectedHighlightLayer');
+assert.ok(styleCss.includes('.selected-highlight-layer'), 'style.css повинен стилізувати selected-highlight-layer');
+assert.ok(styleCss.includes('.map-district-highlight-outline'), 'style.css повинен містити стиль .map-district-highlight-outline');
+assert.ok(rendererJs.includes('selectedHighlightLayer'), 'renderer.js повинен керувати selectedHighlightLayer');
+console.log('✔ Тест 16 пройдено (окремий шар selectedHighlightLayer для неподільного контуру валідний)');
+
+// Тест 17: Логіка трея та фокусу
+assert.ok(windowJs.includes('this.mainWindow.isFocused()'), 'window.js повинен перевіряти isFocused() у toggle()');
+console.log('✔ Тест 17 пройдено (toggle() фокусує вікно замість приховування при неактивному фокусі)');
+
 console.log('🎉 Усі тести панелі вкладок, тем та векторної карти успішно виконано!');
 
 

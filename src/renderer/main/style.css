@@ -776,7 +776,22 @@ html.theme-light #themeMoonIcon {
 .map-district.selected {
   stroke: #38bdf8 !important;
   stroke-width: 1.3px !important;
-  filter: drop-shadow(0 0 4px rgba(56, 189, 248, 0.85)) brightness(1.15) !important;
+  filter: brightness(1.15) !important;
+}
+
+/* Окремий оверлей-шар підсвічування виділеного району (малюється поверх меж та сусідніх районів) */
+.selected-highlight-layer {
+  pointer-events: none;
+}
+
+.map-district-highlight-outline {
+  fill: none !important;
+  stroke: #38bdf8 !important;
+  stroke-width: 1.5px !important;
+  stroke-linejoin: round !important;
+  stroke-linecap: round !important;
+  filter: drop-shadow(0 0 5px rgba(56, 189, 248, 0.95)) !important;
+  pointer-events: none !important;
 }
 
 /* Висувна бічна панель деталей та історії адмінодиниці */
@@ -1232,9 +1247,15 @@ html.theme-light #themeMoonIcon {
 .tab-btn {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  justify-content: center;
+  gap: 7px;
+  width: 136px;
+  min-width: 136px;
+  max-width: 136px;
   height: 32px;
-  padding: 0 14px;
+  padding: 0 8px;
+  box-sizing: border-box;
+  flex-shrink: 0;
   border-radius: 8px;
   border: 1px solid transparent;
   background-color: transparent;
@@ -1242,7 +1263,7 @@ html.theme-light #themeMoonIcon {
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
   user-select: none;
 }
 

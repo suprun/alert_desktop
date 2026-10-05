@@ -96,9 +96,21 @@ class SettingsWindowManager {
       setTimeout(showWindow, 300);
     });
 
+    this.settingsWindow.on('close', () => {
+      if (parentWindow && !parentWindow.isDestroyed() && parentWindow.isVisible()) {
+        if (parentWindow.isMinimized()) {
+          parentWindow.restore();
+        }
+        parentWindow.focus();
+      }
+    });
+
     this.settingsWindow.on('closed', () => {
       ipcMain.removeListener('settings-window-ready', onSettingsReady);
       this.settingsWindow = null;
+      if (parentWindow && !parentWindow.isDestroyed() && parentWindow.isVisible()) {
+        parentWindow.focus();
+      }
     });
 
     return this.settingsWindow;

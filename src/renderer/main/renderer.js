@@ -23,6 +23,7 @@ const ukraineVectorSvg = document.getElementById('ukraineVectorSvg');
 const svgDefs = document.getElementById('svgDefs');
 const districtsLayer = document.getElementById('districtsLayer');
 const oblastBordersLayer = document.getElementById('oblastBordersLayer');
+const selectedHighlightLayer = document.getElementById('selectedHighlightLayer');
 const oblastLabelsLayer = document.getElementById('oblastLabelsLayer');
 const mapRegionTooltip = document.getElementById('mapRegionTooltip');
 const tooltipRegionTitle = document.getElementById('tooltipRegionTitle');
@@ -191,6 +192,7 @@ function initVectorMap() {
   // Очищення шарів
   districtsLayer.innerHTML = '';
   if (oblastBordersLayer) oblastBordersLayer.innerHTML = '';
+  if (selectedHighlightLayer) selectedHighlightLayer.innerHTML = '';
   if (oblastLabelsLayer) oblastLabelsLayer.innerHTML = '';
 
   // Створення елементів районів
@@ -288,6 +290,11 @@ function onDistrictClick(e) {
   }
   el.classList.add('selected');
 
+  // Неподільний шар підсвічування поверх меж та сусідніх районів
+  if (selectedHighlightLayer) {
+    selectedHighlightLayer.innerHTML = `<use href="#dist-${uid}" class="map-district-highlight-outline" />`;
+  }
+
   // Приховуємо спливаючий тултіп, щоб не перекривав
   if (mapRegionTooltip) {
     mapRegionTooltip.style.display = 'none';
@@ -331,6 +338,9 @@ function closeHistoryDrawer() {
   }
   if (districtsLayer) {
     districtsLayer.querySelectorAll('.map-district.selected').forEach(p => p.classList.remove('selected'));
+  }
+  if (selectedHighlightLayer) {
+    selectedHighlightLayer.innerHTML = '';
   }
 }
 
@@ -939,7 +949,7 @@ function updateUI(status) {
       tooltipMsg = `Резервне API: ${provName}${timeStr}`;
     } else if (status.isRealtime) {
       connectionStatus.className = 'connection-status';
-      tooltipMsg = `Підключено наживо (0s)${timeStr}`;
+      tooltipMsg = `Підключено наживо${timeStr}`;
     } else {
       connectionStatus.className = 'connection-status';
       tooltipMsg = `Підключено через сервер${timeStr}`;
@@ -1187,7 +1197,7 @@ if (window.alertAPI) {
       if (themeInfo && typeof themeInfo.isDark === 'boolean') {
         applyTheme(themeInfo.isDark);
       }
-    }).catch(() => {});
+    }).catch(() => { });
   }
 
   // Синхронізація зміни вкладки з боку головного процесу
@@ -1205,7 +1215,7 @@ if (window.alertAPI) {
       if (tabId) {
         setActiveTabUI(tabId);
       }
-    }).catch(() => {});
+    }).catch(() => { });
   }
 
   // Завантаження початкового стану
@@ -1221,6 +1231,6 @@ if (window.alertAPI) {
       if (Array.isArray(alerts) && alerts.length > 0) {
         applyAlertsToVectorMap(alerts);
       }
-    }).catch(() => {});
+    }).catch(() => { });
   }
 }

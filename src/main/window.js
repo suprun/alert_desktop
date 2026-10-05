@@ -422,9 +422,19 @@ class WindowManager {
   }
 
   toggle() {
-    if (!this.mainWindow || !this.mainWindow.isVisible()) {
+    if (!this.mainWindow) {
       this.show();
+      return;
+    }
+    // Якщо вікно приховане або згорнуте — показуємо та фокусуємо
+    if (!this.mainWindow.isVisible() || this.mainWindow.isMinimized()) {
+      this.show();
+    } else if (!this.mainWindow.isFocused()) {
+      // Якщо вікно вже видиме, але не у фокусі (позаду інших програм) — переводимо фокус на нього
+      this.mainWindow.show();
+      this.mainWindow.focus();
     } else {
+      // Тільки якщо вікно вже у фокусі користувача — ховаємо в трей
       this.hide();
     }
   }
