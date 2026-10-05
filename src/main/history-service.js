@@ -587,10 +587,14 @@ class HistoryService {
       alertCount = todayAlerts.length;
       let computedDurationMin = 0;
       for (const a of todayAlerts) {
-        const aStart = Math.max(a.startedAt || startOfTodaySec, startOfTodaySec);
-        const aEnd = a.finishedAt ? a.finishedAt : nowSec;
-        if (aEnd > aStart) {
-          computedDurationMin += Math.round((aEnd - aStart) / 60);
+        if (typeof a.durationMin === 'number' && a.durationMin > 0) {
+          computedDurationMin += a.durationMin;
+        } else {
+          const aStart = Math.max(a.startedAt || startOfTodaySec, startOfTodaySec);
+          const aEnd = a.finishedAt ? a.finishedAt : nowSec;
+          if (aEnd > aStart) {
+            computedDurationMin += Math.round((aEnd - aStart) / 60);
+          }
         }
       }
       totalDurationMin = computedDurationMin;
@@ -790,9 +794,13 @@ class HistoryService {
           if (hadConsolidation && todayConsolidated.length > 0) {
             let totalDur = 0;
             for (const a of todayConsolidated) {
-              const aStart = Math.max(a.startedAt || startOfTodaySec, startOfTodaySec);
-              const aEnd = a.finishedAt ? a.finishedAt : nowSec;
-              if (aEnd > aStart) totalDur += Math.round((aEnd - aStart) / 60);
+              if (typeof a.durationMin === 'number' && a.durationMin > 0) {
+                totalDur += a.durationMin;
+              } else {
+                const aStart = Math.max(a.startedAt || startOfTodaySec, startOfTodaySec);
+                const aEnd = a.finishedAt ? a.finishedAt : nowSec;
+                if (aEnd > aStart) totalDur += Math.round((aEnd - aStart) / 60);
+              }
             }
             if (data.today_stats) {
               data.today_stats.alert_count = todayConsolidated.length;

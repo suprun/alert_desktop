@@ -72,9 +72,18 @@ try {
             \`;
           }
 
-          // Для Neptun: приховуємо нижній рекламний док, банери підтримки, кнопки встановлення застосунку та рекламу
+          // Для Neptun: приховуємо нижній рекламний док, банери підтримки, кнопки встановлення застосунку, промо-банери та рекламу
           if (host.includes('neptun')) {
             css += \`
+              [class*="AppPromoBanner_"],
+              [class*="AppPromoBanner"],
+              [class*="promoOverlay"],
+              [class*="promo-fade"],
+              [class*="promo-pop"],
+              [role="dialog"][aria-label*="застосунок"],
+              [role="dialog"][aria-label*="додаток"],
+              [role="dialog"][aria-label*="app" i],
+              div[class*="overlay"][role="dialog"],
               [class*="BottomDock_dock"],
               [class*="BottomDock_"],
               [class*="SupportBanner_"],
@@ -93,6 +102,9 @@ try {
                 pointer-events: none !important;
                 height: 0 !important;
                 overflow: hidden !important;
+              }
+              body:has([class*="AppPromoBanner"]) {
+                overflow: auto !important;
               }
             \`;
           }
@@ -267,20 +279,48 @@ try {
         };
       } catch (e) {}
 
+      // 7. Спеціальне усунення промо-банера додатка на карті Neptun
+      const dismissNeptunPromo = () => {
+        try {
+          const host = window.location ? (window.location.hostname || '') : '';
+          if (!host.includes('neptun')) return;
+
+          const promoEls = document.querySelectorAll(
+            '[class*="AppPromoBanner"], [role="dialog"][aria-label*="застосунок"], [role="dialog"][aria-label*="додаток"]'
+          );
+          if (promoEls.length > 0) {
+            promoEls.forEach((el) => {
+              try {
+                const closeBtn = el.querySelector('button[class*="close"], button[aria-label*="акрити"]');
+                if (closeBtn) closeBtn.click();
+                el.remove();
+              } catch (e) {}
+            });
+            if (document.body && document.body.style.overflow === 'hidden') {
+              document.body.style.overflow = '';
+            }
+          }
+        } catch (e) {}
+      };
+
       // Ініціалізація стилів та пігулки
       if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', () => {
           injectCustomStyles();
           injectFloatingPill();
+          dismissNeptunPromo();
         });
       } else {
         injectCustomStyles();
         injectFloatingPill();
+        dismissNeptunPromo();
       }
       window.addEventListener('load', () => {
         injectCustomStyles();
         injectFloatingPill();
+        dismissNeptunPromo();
       });
+      setInterval(dismissNeptunPromo, 1000);
     })();
   `);
 } catch (err) {

@@ -26,7 +26,7 @@ class WindowManager {
         domain: 'map.ukrainealarm.com'
       },
       neptun: {
-        url: 'https://neptun.in.ua/',
+        url: 'https://neptun.in.ua/?nopromo=1',
         partition: 'persist:neptun_map',
         domain: 'neptun.in.ua'
       }
@@ -347,6 +347,15 @@ class WindowManager {
       mapWebContents.executeJavaScript(disablePipScript).catch(() => {});
       if (entry.tabId === 'neptun') {
         const neptunAdCss = `
+          [class*="AppPromoBanner_"],
+          [class*="AppPromoBanner"],
+          [class*="promoOverlay"],
+          [class*="promo-fade"],
+          [class*="promo-pop"],
+          [role="dialog"][aria-label*="застосунок"],
+          [role="dialog"][aria-label*="додаток"],
+          [role="dialog"][aria-label*="app" i],
+          div[class*="overlay"][role="dialog"],
           [class*="BottomDock_dock"],
           [class*="BottomDock_"],
           [class*="SupportBanner_"],
@@ -365,6 +374,9 @@ class WindowManager {
             pointer-events: none !important;
             height: 0 !important;
             overflow: hidden !important;
+          }
+          body:has([class*="AppPromoBanner"]) {
+            overflow: auto !important;
           }
         `;
         mapWebContents.insertCSS(neptunAdCss).catch(() => {});
