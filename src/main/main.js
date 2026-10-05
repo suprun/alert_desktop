@@ -133,6 +133,12 @@ if (!gotTheLock) {
     return historyService.getRegionHistory(regionUid, oblastUid);
   });
 
+  ipcMain.on('open-external-url', (_event, url) => {
+    if (url && (url.startsWith('https://') || url.startsWith('http://'))) {
+      shell.openExternal(url);
+    }
+  });
+
   app.whenReady().then(() => {
     // Блокуємо будь-які спроби запиту дозволу на Picture-in-Picture
     if (session && session.defaultSession) {

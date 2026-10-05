@@ -72,4 +72,27 @@ assert.ok(indexHtml.includes('id="regionHistoryDrawer"'), 'Панель regionHi
 assert.ok(indexHtml.includes('id="btnHistoryClose"'), 'Кнопка btnHistoryClose має бути в index.html');
 console.log('✔ Тест 9 пройдено (висувна панель деталей та історії regionHistoryDrawer присутня)');
 
+// 10. Перевірка однакового розміру кнопки перемикання теми та кнопки налаштувань
+assert.ok(styleCss.includes('width: 32px;'), '.btn-icon має мати width: 32px');
+assert.ok(styleCss.includes('height: 32px;'), '.btn-icon має мати height: 32px');
+assert.ok(indexHtml.includes('id="btnThemeToggle" class="btn-icon"'), 'btnThemeToggle має мати клас .btn-icon');
+assert.ok(indexHtml.includes('id="btnSettings" class="btn-icon"'), 'btnSettings має мати клас .btn-icon');
+console.log('✔ Тест 10 пройдено (кнопка перемикання теми та кнопка налаштувань мають однаковий розмір 32x32px)');
+
+// 11. Перевірка посилань на політики конфіденційності сервісів мап у налаштуваннях
+const settingsHtml = fs.readFileSync(path.join(__dirname, '..', 'src', 'renderer', 'settings', 'settings.html'), 'utf8');
+assert.ok(settingsHtml.includes('alerts.in.ua/privacy-policy'), 'settings.html має містити посилання на політику Alerts.in.ua');
+assert.ok(settingsHtml.includes('map.ukrainealarm.com/confidentiality'), 'settings.html має містити посилання на політику UkraineAlarm');
+assert.ok(settingsHtml.includes('neptun.in.ua'), 'settings.html має містити посилання на Neptun');
+assert.ok(!emojiRegex.test(settingsHtml), 'В settings.html не повинно бути емодзі');
+console.log('✔ Тест 11 пройдено (посилання на політики сервісів мап присутні в налаштуваннях без емодзі)');
+
+// 12. Перевірка плаваючої пігулки та приховування меню/реклами UkraineAlarm у preload-map.js
+const preloadMapJs = fs.readFileSync(path.join(__dirname, '..', 'src', 'preload', 'preload-map.js'), 'utf8');
+assert.ok(preloadMapJs.includes('app-map-external-pill'), 'preload-map.js має містити віджет app-map-external-pill');
+assert.ok(preloadMapJs.includes('.bottom-banner'), 'preload-map.js має приховувати .bottom-banner');
+assert.ok(preloadMapJs.includes('.header, .header-wrapper'), 'preload-map.js має приховувати .header UkraineAlarm');
+assert.ok(!emojiRegex.test(preloadMapJs), 'В preload-map.js не повинно бути емодзі');
+console.log('✔ Тест 12 пройдено (плаваюча пігулка та приховування меню/реклами UkraineAlarm валідні)');
+
 console.log('🎉 Усі тести панелі вкладок, тем та векторної карти успішно виконано!');

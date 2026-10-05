@@ -109,6 +109,37 @@ async function runTests() {
   // Відновлюємо оригінальний метод
   historyService._fetchJson = origFetchJson;
 
+  // Тест 6: Сувора дедуплікація та виключення дублів між alerts та alert_events
+  historyService._fallbackStats = [{ luid: 120, ac: 1, d: 600000, a: false }];
+  historyService._fallbackAlerts = [
+    { i: 201, luid: 120, s: 151200000, at: 1, loi: 2 } // Алерт
+  ];
+  historyService._fallbackEvents = [
+    { i: 901, luid: 120, s: 151200000, at: 1, loi: 2 }, // Дублікат події з тим самим luid і s
+    { i: 902, luid: 120, f: 151201000, loi: 2 }          // Подія відбою без s (не повинна створювати окрему картку!)
+  ];
+
+  const dedupRes = historyService._buildFallbackResponse('120', '2');
+  assert.strictEqual(dedupRes.recentAlerts.length, 1, 'Повинна бути рівно одна картка тривоги після дедуплікації');
+  assert.strictEqual(dedupRes.recentAlerts[0].finishedAt, 1640000000 + 151201000, 'Відбій має оновити тривогу');
+  assert.strictEqual(dedupRes.recentAlerts[0].durationMin, 17, 'Тривалість має розрахуватися коректно');
+  console.log("✔ Тест 6 пройдено (сувора дедуплікація та відсутність дублікатів карток)");
+
+  // Тест 7: Ізоляція обраного району від сусідніх районів тієї ж області (захист від хибного loi-збігу)
+  historyService._fallbackAlerts = [
+    { i: 201, luid: 120, s: 151200000, t: 'r', loi: 2 }, // Жмеринський район (наш)
+    { i: 202, luid: 121, s: 151200050, t: 'r', loi: 2 }, // Могилів-Подільський район (чужий)
+    { i: 203, luid: 2,   s: 151200100, t: 's', loi: 2 }  // Загальнообласна тривога Вінницької обл (має включитися)
+  ];
+  historyService._fallbackEvents = [];
+
+  const isolateRes = historyService._buildFallbackResponse('120', '2');
+  assert.strictEqual(isolateRes.recentAlerts.length, 2, 'Має включити тільки тривогу свого району та загальнообласну');
+  assert(isolateRes.recentAlerts.some(a => a.id === 201), 'Має бути свій район (201)');
+  assert(isolateRes.recentAlerts.some(a => a.id === 203), 'Має бути область (203)');
+  assert(!isolateRes.recentAlerts.some(a => a.id === 202), 'Не має бути чужого району 202');
+  console.log("✔ Тест 7 пройдено (ізоляція обраного району від сусідніх районів області)");
+
   console.log("🎉 Усі тести сервісу історії успішно пройдено!\n");
 }
 

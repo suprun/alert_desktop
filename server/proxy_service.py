@@ -697,18 +697,45 @@ class AlertProxyService:
         }
 
         # 2. Недавні тривоги
-        raw_alerts = []
+        is_oblast_selected = uid_str == oblast_uid_str
+
+        def is_matching_location(item: dict) -> bool:
+            i_luid = str(item.get("luid", ""))
+            i_loi = str(item.get("loi", ""))
+            i_type = str(item.get("t", ""))
+            if is_oblast_selected:
+                return i_luid == uid_str or i_loi == uid_str
+            # Обрано конкретний район або місто спеціального статусу
+            return i_luid == uid_str or (bool(oblast_uid_str) and i_type == "s" and i_luid == oblast_uid_str)
+
+        alerts_by_key: Dict[str, dict] = {}
         for a in self._history_alerts_cache:
+            if not is_matching_location(a):
+                continue
+            s_raw = a.get("s")
+            if not s_raw:
+                continue
             a_luid = str(a.get("luid", ""))
-            a_loi = str(a.get("loi", ""))
-            if a_luid == uid_str or (oblast_uid_str and (a_luid == oblast_uid_str or a_loi == oblast_uid_str)):
-                raw_alerts.append(a)
+            key = f"{a_luid}_{s_raw}"
+            alerts_by_key[key] = dict(a)
 
         for e in self._history_events_cache:
+            if not is_matching_location(e):
+                continue
             e_luid = str(e.get("luid", ""))
-            e_loi = str(e.get("loi", ""))
-            if e_luid == uid_str or (oblast_uid_str and (e_luid == oblast_uid_str or e_loi == oblast_uid_str)):
-                raw_alerts.append(e)
+            s_raw = e.get("s")
+            if s_raw:
+                key = f"{e_luid}_{s_raw}"
+                if key not in alerts_by_key:
+                    alerts_by_key[key] = dict(e)
+                elif e.get("f") and not alerts_by_key[key].get("f"):
+                    alerts_by_key[key]["f"] = e.get("f")
+            elif e.get("f"):
+                # Подія завершення без старту: оновлюємо відкриту тривогу для цієї ж локації
+                for k, alert_item in alerts_by_key.items():
+                    if str(alert_item.get("luid", "")) == e_luid and not alert_item.get("f") and (alert_item.get("s") or 0) <= e.get("f"):
+                        alert_item["f"] = e.get("f")
+                        break
 
         threat_labels = {
             1: "Повітряна тривога",
@@ -722,20 +749,16 @@ class AlertProxyService:
         }
 
         formatted_alerts = []
-        seen_ids = set()
         BASE_EPOCH = 1640000000
 
-        for a in raw_alerts:
-            aid = a.get("i") or a.get("u")
-            if aid in seen_ids:
-                continue
-            seen_ids.add(aid)
-
+        for a in alerts_by_key.values():
             s_raw = a.get("s")
+            if not s_raw:
+                continue
             f_raw = a.get("f")
-            started_at = (BASE_EPOCH + s_raw) if s_raw else None
+            started_at = BASE_EPOCH + s_raw
             finished_at = (BASE_EPOCH + f_raw) if f_raw else None
-            duration_min = round((f_raw - s_raw) / 60) if (s_raw and f_raw and f_raw >= s_raw) else None
+            duration_min = round((f_raw - s_raw) / 60) if (f_raw and f_raw >= s_raw) else None
 
             at_val = a.get("at", 1)
             threat_name = threat_labels.get(at_val, "Повітряна тривога")
@@ -743,7 +766,7 @@ class AlertProxyService:
                 threat_name = a.get("m")
 
             formatted_alerts.append({
-                "id": aid,
+                "id": a.get("i") or a.get("u") or f"{a.get('luid')}_{s_raw}",
                 "started_at": started_at,
                 "finished_at": finished_at,
                 "duration_min": duration_min,

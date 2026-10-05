@@ -486,12 +486,16 @@ html.theme-light .app-header.has-alert.artillery,
   border: 1px solid var(--btn-border);
   color: var(--btn-color);
   cursor: pointer;
-  padding: 6px;
-  border-radius: 6px;
-  display: flex;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  box-sizing: border-box;
+  border-radius: 8px;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   transition: all 0.15s ease;
+  user-select: none;
 }
 
 .btn-icon:hover {
@@ -636,6 +640,14 @@ html.theme-light .app-header.has-alert.artillery,
 }
 
 /* Відображення іконки Сонця/Місяця у верхній шапці залежно від теми */
+.theme-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+}
+
 html.theme-dark #themeSunIcon {
   display: inline-flex;
 }

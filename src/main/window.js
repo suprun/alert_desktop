@@ -8,8 +8,9 @@ class WindowManager {
     this.headerHeight = 56;
     this.footerHeight = 44;
     this.isQuitting = false;
-    this.isDarkTheme = (nativeTheme && typeof nativeTheme.shouldUseDarkColors === 'boolean') ? nativeTheme.shouldUseDarkColors : true;
-    this.hasMapThemeOverride = false;
+    const savedTheme = config.get('theme');
+    this.isDarkTheme = savedTheme ? savedTheme !== 'light' : ((nativeTheme && typeof nativeTheme.shouldUseDarkColors === 'boolean') ? nativeTheme.shouldUseDarkColors : true);
+    this.hasMapThemeOverride = Boolean(savedTheme);
     this.activeTab = config.get('activeMapTab') || 'internal';
 
     // Конфігурація підтримуваних зовнішніх веб-карт
@@ -317,6 +318,32 @@ class WindowManager {
     }
 
     return { success: true, tabId };
+  }
+
+  setTheme(isDark, fromMap = false) {
+    this.isDarkTheme = Boolean(isDark);
+    if (fromMap) {
+      this.hasMapThemeOverride = true;
+    }
+    config.saveConfig({ theme: this.isDarkTheme ? 'dark' : 'light' });
+
+    if (this.mainWindow && !this.mainWindow.isDestroyed()) {
+      const themeBg = this.isDarkTheme ? '#232529' : '#eff0f2';
+      this.mainWindow.setBackgroundColor(themeBg);
+      this.mainWindow.webContents.send('theme-updated', { isDark: this.isDarkTheme });
+    }
+
+    for (const entry of this.views.values()) {
+      if (entry && entry.view && entry.view.webContents) {
+        try {
+          entry.view.webContents.send('set-view-theme', { isDark: this.isDarkTheme });
+        } catch (e) {}
+      }
+    }
+  }
+
+  broadcastThemeToViews(isDark) {
+    this.setTheme(isDark, false);
   }
 
   reloadMap() {

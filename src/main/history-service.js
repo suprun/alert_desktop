@@ -181,45 +181,82 @@ class HistoryService {
     };
 
     // 2. Список недавніх тривог
-    const matched = [];
-    const seenIds = new Set();
+    const isOblastSelected = uidStr === oblastUidStr;
 
-    const allItems = [...this._fallbackAlerts, ...this._fallbackEvents];
-
-    for (const item of allItems) {
+    const isMatchingLocation = (item) => {
       const iLuid = String(item.luid || '');
       const iLoi = String(item.loi || '');
+      const iType = String(item.t || '');
+      if (isOblastSelected) {
+        return iLuid === uidStr || iLoi === uidStr;
+      }
+      // Обрано конкретний район або місто спеціального статусу
+      return iLuid === uidStr || (Boolean(oblastUidStr) && iType === 's' && iLuid === oblastUidStr);
+    };
 
-      const isMatch = iLuid === uidStr || (oblastUidStr && (iLuid === oblastUidStr || iLoi === oblastUidStr));
-      if (!isMatch) continue;
+    const alertsByKey = new Map();
 
-      const id = item.i || item.u;
-      if (id && seenIds.has(id)) continue;
-      if (id) seenIds.add(id);
+    // 1. Додаємо записи з alerts (основний перелік тривог)
+    for (const a of this._fallbackAlerts) {
+      if (!isMatchingLocation(a)) continue;
+      const sRaw = a.s;
+      if (!sRaw) continue; // Ігноруємо без мітки початку
+      const aLuid = String(a.luid || '');
+      const key = `${aLuid}_${sRaw}`;
+      alertsByKey.set(key, { ...a });
+    }
 
+    // 2. Додаємо/оновлюємо з alert_events
+    for (const e of this._fallbackEvents) {
+      if (!isMatchingLocation(e)) continue;
+      const eLuid = String(e.luid || '');
+      const sRaw = e.s;
+      if (sRaw) {
+        const key = `${eLuid}_${sRaw}`;
+        if (!alertsByKey.has(key)) {
+          alertsByKey.set(key, { ...e });
+        } else if (e.f && !alertsByKey.get(key).f) {
+          alertsByKey.get(key).f = e.f;
+        }
+      } else if (e.f) {
+        // Подія відбою без часу початку: оновлюємо відкриту тривогу для цієї локації
+        for (const [key, alertItem] of alertsByKey.entries()) {
+          if (String(alertItem.luid || '') === eLuid && !alertItem.f && (alertItem.s || 0) <= e.f) {
+            alertItem.f = e.f;
+            break;
+          }
+        }
+      }
+    }
+
+    const threatLabels = {
+      1: 'Повітряна тривога',
+      2: 'Загроза артобстрілу',
+      3: 'Ракетна загроза',
+      4: 'Дронова загроза',
+      5: 'Загроза тактичної авіації',
+      6: 'Загроза пусків КАБ',
+      7: 'Хімічна загроза',
+      8: 'Радіаційна загроза'
+    };
+
+    const matched = [];
+
+    for (const item of alertsByKey.values()) {
       const sRaw = item.s;
-      const fRaw = item.f;
-      const startedAt = sRaw ? (BASE_EPOCH_ALERTS_IN_UA + sRaw) : null;
-      const finishedAt = fRaw ? (BASE_EPOCH_ALERTS_IN_UA + fRaw) : null;
-      const durationMin = (sRaw && fRaw && fRaw >= sRaw) ? Math.round((fRaw - sRaw) / 60) : null;
+      if (!sRaw) continue;
 
-      const threatLabels = {
-        1: 'Повітряна тривога',
-        2: 'Загроза артобстрілу',
-        3: 'Ракетна загроза',
-        4: 'Дронова загроза',
-        5: 'Загроза тактичної авіації',
-        6: 'Загроза пусків КАБ',
-        7: 'Хімічна загроза',
-        8: 'Радіаційна загроза'
-      };
+      const fRaw = item.f;
+      const startedAt = BASE_EPOCH_ALERTS_IN_UA + sRaw;
+      const finishedAt = fRaw ? (BASE_EPOCH_ALERTS_IN_UA + fRaw) : null;
+      const durationMin = (fRaw && fRaw >= sRaw) ? Math.round((fRaw - sRaw) / 60) : null;
 
       const threatVal = item.at || 1;
       let threatName = threatLabels[threatVal] || 'Повітряна тривога';
       if (item.m) threatName = item.m;
 
       matched.push({
-        id,
+        id: item.i || item.u || `${item.luid}_${sRaw}`,
         startedAt,
         finishedAt,
         startedText: this._formatTime(startedAt),

@@ -274,7 +274,7 @@
 
       <!-- 5. Розділ "Про застосунок та правова інформація" -->
       <section class="settings-group about-group">
-        <span class="group-label">Про застосунок</span>
+        <span class="group-label">Про застосунок та сервіси мап</span>
         <div class="about-card">
           <div class="about-header-row">
             <span class="about-app-name">AlertDesktop <span class="about-version"></span></span>
@@ -283,17 +283,40 @@
           <p class="about-desc">
             Вільний клієнт моніторингу повітряних тривог із відкритим вихідним кодом.
           </p>
+
+          <!-- Політики сервісів мап -->
+          <div class="about-policies-box" style="margin-top: 10px; margin-bottom: 10px; padding: 10px 12px; background: rgba(255, 255, 255, 0.04); border: 1px solid var(--border-color); border-radius: 8px;">
+            <span style="font-size: 11.5px; font-weight: 600; color: var(--text-main); display: block; margin-bottom: 6px;">Політика конфіденційності та умови сервісів мап:</span>
+            <ul style="margin: 0; padding-left: 18px; font-size: 11.5px; color: var(--updated-color); line-height: 1.6;">
+              <li>
+                <strong>Alerts.in.ua:</strong> <a href="https://alerts.in.ua/privacy-policy" target="_blank" class="about-link">Політика конфіденційності alerts.in.ua</a>
+              </li>
+              <li>
+                <strong>UkraineAlarm:</strong> <a href="https://map.ukrainealarm.com/confidentiality" target="_blank" class="about-link">Політика конфіденційності map.ukrainealarm.com</a>
+              </li>
+              <li>
+                <strong>Neptun:</strong> <a href="https://neptun.in.ua/" target="_blank" class="about-link">Офіційний сайт та документація neptun.in.ua</a>
+              </li>
+            </ul>
+          </div>
+
           <div class="about-legal-box">
             <div class="about-legal-item">
-              <span class="about-legal-icon">ℹ️</span>
-              <span><strong>Неофіційний клієнт:</strong> Інтерактивна мапа та веб-контент надаються сервісом <a href="https://alerts.in.ua/" target="_blank" class="about-link">alerts.in.ua</a> (волонтерська ініціатива «УкрДзен»).</span>
+              <span class="about-legal-icon" aria-hidden="true" style="display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; margin-right: 6px;">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="10"/>
+                  <line x1="12" y1="16" x2="12" y2="12"/>
+                  <line x1="12" y1="8" x2="12.01" y2="8"/>
+                </svg>
+              </span>
+              <span><strong>Неофіційний клієнт:</strong> Веб-мапи надаються сторонніми сервісами. Клієнт зберігає налаштування виключно локально і не збирає персональні дані користувача.</span>
             </div>
             <div class="about-legal-item">
-              <span class="about-legal-icon">🔒</span>
-              <span>Використання вбудованої сторінки регулюється <a href="https://alerts.in.ua/privacy-policy" target="_blank" class="about-link">Політикою конфіденційності alerts.in.ua</a>. Клієнт зберігає параметри лише локально і не збирає персональні дані.</span>
-            </div>
-            <div class="about-legal-item">
-              <span class="about-legal-icon">🛡️</span>
+              <span class="about-legal-icon" aria-hidden="true" style="display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; margin-right: 6px;">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                </svg>
+              </span>
               <span>Застосунок надається за принципом «ЯК Є» для інформування. Завжди орієнтуйтеся на офіційні сповіщення ДСНС та Повітряних Сил ЗСУ.</span>
             </div>
           </div>
