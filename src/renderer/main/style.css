@@ -1299,7 +1299,7 @@ html.theme-light #themeMoonIcon {
   justify-content: center;
   gap: 5px;
   height: 32px;
-  padding: 0 8px;
+  padding: 0 12px;
   box-sizing: border-box;
   flex-shrink: 0;
   border-radius: 8px;
@@ -1313,29 +1313,29 @@ html.theme-light #themeMoonIcon {
   user-select: none;
 }
 
-/* Індивідуальна фіксована ширина для кожної вкладки відповідно до її вмісту в активному стані */
+/* Індивідуальна фіксована ширина для кожної вкладки відповідно до її вмісту в активному стані та комфортних відступів з боків */
 .tab-btn[data-tab="internal"] {
+  width: 142px;
+  min-width: 142px;
+  max-width: 142px;
+}
+
+.tab-btn[data-tab="alertsinua"] {
   width: 116px;
   min-width: 116px;
   max-width: 116px;
 }
 
-.tab-btn[data-tab="alertsinua"] {
-  width: 112px;
-  min-width: 112px;
-  max-width: 112px;
-}
-
 .tab-btn[data-tab="ukrainealarm"] {
-  width: 126px;
-  min-width: 126px;
-  max-width: 126px;
+  width: 132px;
+  min-width: 132px;
+  max-width: 132px;
 }
 
 .tab-btn[data-tab="neptun"] {
-  width: 86px;
-  min-width: 86px;
-  max-width: 86px;
+  width: 92px;
+  min-width: 92px;
+  max-width: 92px;
 }
 
 .tab-btn:hover {

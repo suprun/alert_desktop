@@ -154,13 +154,14 @@ assert.ok(styleCss.includes('.tab-btn[data-tab="internal"]'), 'style.css пов�
 assert.ok(styleCss.includes('.tab-btn[data-tab="alertsinua"]'), 'style.css повинен задавати стиль для вкладки alertsinua');
 assert.ok(styleCss.includes('.tab-btn[data-tab="ukrainealarm"]'), 'style.css повинен задавати стиль для вкладки ukrainealarm');
 assert.ok(styleCss.includes('.tab-btn[data-tab="neptun"]'), 'style.css повинен задавати стиль для вкладки neptun');
-assert.ok(styleCss.includes('width: 116px;'), 'style.css повинен задавати фіксовану ширину 116px для internal');
-assert.ok(styleCss.includes('width: 112px;'), 'style.css повинен задавати фіксовану ширину 112px для alertsinua');
-assert.ok(styleCss.includes('width: 126px;'), 'style.css повинен задавати фіксовану ширину 126px для ukrainealarm');
-assert.ok(styleCss.includes('width: 86px;'), 'style.css повинен задавати фіксовану ширину 86px для neptun');
+assert.ok(styleCss.includes('width: 142px;'), 'style.css повинен задавати фіксовану ширину 142px для internal');
+assert.ok(styleCss.includes('width: 116px;'), 'style.css повинен задавати фіксовану ширину 116px для alertsinua');
+assert.ok(styleCss.includes('width: 132px;'), 'style.css повинен задавати фіксовану ширину 132px для ukrainealarm');
+assert.ok(styleCss.includes('width: 92px;'), 'style.css повинен задавати фіксовану ширину 92px для neptun');
+assert.ok(styleCss.includes('padding: 0 12px;'), 'style.css повинен задавати padding: 0 12px для комфортного відступу з боків');
 assert.ok(styleCss.includes('gap: 5px;'), 'style.css повинен задавати зменшений відступ gap: 5px між іконкою і лейблом');
 assert.ok(styleCss.includes('transform: translateY(-1px);'), 'style.css повинен піднімати іконку translateY(-1px) для оптичного центрування');
-console.log('✔ Тест 15 пройдено (кожна вкладка має індивідуальну фіксовану ширину відповідно до контенту: 116/112/126/86px)');
+console.log('✔ Тест 15 пройдено (кожна вкладка має індивідуальну фіксовану ширину відповідно до контенту: 142/116/132/92px)');
 
 // Тест 16: Окремий шар підсвічування обраного району
 assert.ok(indexHtml.includes('id="selectedHighlightLayer"'), 'index.html повинен містити окремий шар selectedHighlightLayer');
