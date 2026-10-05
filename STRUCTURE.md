@@ -103,7 +103,9 @@ alert_desktop/
 │   ├── test_oblast_aggregation.js        # Unit-тести агрегації тривог по районах для обраної області
 │   ├── test_updater.js                   # Unit-тести модуля UpdaterService (автооновлення)
 │   ├── test_autostart_sync.js            # Unit-тести синхронізації автозапуску між ОС та config.json
-│   └── test_ubilling_adapter.js          # Unit-тести адаптера Ubilling Aerial Alerts API (нормалізація, мапінг регіонів, ієрархія)
+│   ├── test_ubilling_adapter.js          # Unit-тести адаптера Ubilling Aerial Alerts API (нормалізація, мапінг регіонів, ієрархія)
+│   ├── test_neptun_adapter.js            # Unit-тести адаптера NEPTUN API (нормалізація 136 районів/міст, WebSocket, ієрархія, загрози)
+│   └── test_jaam_adapter.js              # Unit-тести адаптера JAAM API (нормалізація версій v3/v2, часові мітки, ієрархія тривог)
 │
 ├── server/                               # Гібридний шлюз тривог на Python для Ubuntu (Webhook, WebSocket & Threats Enricher)
 │   ├── .env.example                      # Шаблон конфігурації шлюзу (UkraineAlarm та alerts.in.ua токени, webhook URL, порт)
@@ -125,7 +127,7 @@ alert_desktop/
     │   ├── tray.js                       # Керування системним треєм (іконка, tooltip, меню, пункт оновлення)
     │   ├── updater.js                    # Сервіс перевірки та встановлення автооновлень (electron-updater / GitHub Releases)
     │   ├── threat-utils.js               # Нормалізація типів загроз (дрони, ракети тощо), усунення тавтології та генерація текстів
-    │   ├── api.js                        # WebSocket зв'язок у реальному часі (0 сек) + HTTP fallback + збагачення threatInfo + адаптер Ubilling API
+    │   ├── api.js                        # WebSocket зв'язок у реальному часі (0 сек) + HTTP fallback + адаптери постачальників (Gateway, Ubilling, NEPTUN, JAAM)
     │   ├── autostart.js                  # Менеджер автозапуску Windows (Electron API + HKCU Run)
     │   ├── config.js                     # Робота з config.json, .env та автозапуском ОС
     │   ├── notifier.js                   # Системні сповіщення Windows (Toast із часом знизу та тривалістю) і запуск звуку

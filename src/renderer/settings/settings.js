@@ -28,6 +28,8 @@ const radioProviderGateway = document.getElementById('radioProviderGateway');
 const radioProviderUkraineAlarm = document.getElementById('radioProviderUkraineAlarm');
 const radioProviderAlertsInUa = document.getElementById('radioProviderAlertsInUa');
 const radioProviderUbilling = document.getElementById('radioProviderUbilling');
+const radioProviderNeptun = document.getElementById('radioProviderNeptun');
+const radioProviderJaam = document.getElementById('radioProviderJaam');
 const apiProviderRadios = document.querySelectorAll('input[name="apiProviderRadio"]');
 const inputServerUrl = document.getElementById('inputServerUrl');
 const inputApiKey = document.getElementById('inputApiKey');
@@ -39,6 +41,8 @@ const DEFAULT_PROXY_URL = 'https://api.applink.pp.ua/v1/alerts/active.json';
 const URL_UKRAINE_ALARM = 'https://api.ukrainealarm.com/api/v3/alerts';
 const URL_ALERTS_IN_UA = 'https://api.alerts.in.ua/v1/alerts/active.json';
 const URL_UBILLING = 'https://ubilling.net.ua/aerialalerts/';
+const URL_NEPTUN = 'https://neptun.in.ua/api/v1/alerts';
+const URL_JAAM = 'https://jaam.net.ua/alerts_statuses_v3.json';
 
 const playSvg = `
   <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -145,6 +149,26 @@ function updateApiProviderState() {
     inputApiKey.disabled = true;
     inputApiKey.value = '';
     inputApiKey.placeholder = 'Токен не потрібен для Ubilling API';
+  } else if (provider === 'neptun') {
+    inputServerUrl.disabled = false;
+    inputServerUrl.placeholder = URL_NEPTUN;
+    if (!inputServerUrl.value || inputServerUrl.value === DEFAULT_PROXY_URL || inputServerUrl.value === URL_UKRAINE_ALARM || inputServerUrl.value === URL_ALERTS_IN_UA || inputServerUrl.value === URL_UBILLING || inputServerUrl.value === URL_JAAM) {
+      inputServerUrl.value = URL_NEPTUN;
+    }
+
+    inputApiKey.disabled = true;
+    inputApiKey.value = '';
+    inputApiKey.placeholder = 'Токен не потрібен для NEPTUN API';
+  } else if (provider === 'jaam') {
+    inputServerUrl.disabled = false;
+    inputServerUrl.placeholder = URL_JAAM;
+    if (!inputServerUrl.value || inputServerUrl.value === DEFAULT_PROXY_URL || inputServerUrl.value === URL_UKRAINE_ALARM || inputServerUrl.value === URL_ALERTS_IN_UA || inputServerUrl.value === URL_UBILLING || inputServerUrl.value === URL_NEPTUN) {
+      inputServerUrl.value = URL_JAAM;
+    }
+
+    inputApiKey.disabled = true;
+    inputApiKey.value = '';
+    inputApiKey.placeholder = 'Токен не потрібен для JAAM API';
   }
 }
 
@@ -463,6 +487,10 @@ async function init() {
       radioProviderAlertsInUa.checked = true;
     } else if (provider === 'ubilling' && radioProviderUbilling) {
       radioProviderUbilling.checked = true;
+    } else if (provider === 'neptun' && radioProviderNeptun) {
+      radioProviderNeptun.checked = true;
+    } else if (provider === 'jaam' && radioProviderJaam) {
+      radioProviderJaam.checked = true;
     } else if (radioProviderGateway) {
       radioProviderGateway.checked = true;
     }
@@ -526,6 +554,12 @@ btnSave.addEventListener('click', async () => {
       finalApiKey = '';
     } else if (currentProvider === 'ubilling') {
       finalServerUrl = inputServerUrl.value.trim() || URL_UBILLING;
+      finalApiKey = '';
+    } else if (currentProvider === 'neptun') {
+      finalServerUrl = inputServerUrl.value.trim() || URL_NEPTUN;
+      finalApiKey = '';
+    } else if (currentProvider === 'jaam') {
+      finalServerUrl = inputServerUrl.value.trim() || URL_JAAM;
       finalApiKey = '';
     } else {
       finalServerUrl = inputServerUrl.value.trim() || (currentProvider === 'ukrainealarm' ? URL_UKRAINE_ALARM : URL_ALERTS_IN_UA);

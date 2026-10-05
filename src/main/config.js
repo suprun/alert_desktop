@@ -151,8 +151,15 @@ class ConfigManager extends EventEmitter {
   }
 
   getWsUrl() {
-    if (this.config.apiProvider === 'ubilling') {
+    const provider = this.config.apiProvider || (this.config.devMode ? 'ukrainealarm' : 'gateway');
+    if (provider === 'ubilling' || provider === 'jaam' || provider === 'ukrainealarm' || provider === 'alertsinua') {
       return null;
+    }
+    if (provider === 'neptun') {
+      if (this.config.devMode && this.config.wsUrl && this.config.wsUrl !== DEFAULT_WS_URL) {
+        return this.config.wsUrl;
+      }
+      return 'wss://neptun.in.ua/api/v1/stream';
     }
     if (this.config.devMode) {
       if (this.config.wsUrl && this.config.wsUrl !== DEFAULT_WS_URL) {

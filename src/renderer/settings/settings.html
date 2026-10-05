@@ -209,6 +209,44 @@
                 <span class="radio-desc">Кешоване публічне API без токена. Деталізація лише на рівні областей.</span>
               </div>
             </label>
+
+            <!-- 5. API NEPTUN -->
+            <label class="radio-item" for="radioProviderNeptun">
+              <input type="radio" id="radioProviderNeptun" name="apiProviderRadio" value="neptun" class="form-radio">
+              <div class="radio-content">
+                <div class="radio-title-row">
+                  <span class="radio-title">API NEPTUN</span>
+                  <a href="https://neptun.in.ua/developers" target="_blank" class="external-api-link" title="Відкрити документацію neptun.in.ua/developers">
+                    <span>neptun.in.ua</span>
+                    <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+                      <polyline points="15 3 21 3 21 9"/>
+                      <line x1="10" y1="14" x2="21" y2="3"/>
+                    </svg>
+                  </a>
+                </div>
+                <span class="radio-desc">Офіційні тривоги по районах та областях (0s WebSocket + загрози, без токена).</span>
+              </div>
+            </label>
+
+            <!-- 6. API JAAM -->
+            <label class="radio-item" for="radioProviderJaam">
+              <input type="radio" id="radioProviderJaam" name="apiProviderRadio" value="jaam" class="form-radio">
+              <div class="radio-content">
+                <div class="radio-title-row">
+                  <span class="radio-title">API JAAM</span>
+                  <a href="https://jaam.net.ua/api" target="_blank" class="external-api-link" title="Відкрити документацію jaam.net.ua/api">
+                    <span>jaam.net.ua</span>
+                    <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+                      <polyline points="15 3 21 3 21 9"/>
+                      <line x1="10" y1="14" x2="21" y2="3"/>
+                    </svg>
+                  </a>
+                </div>
+                <span class="radio-desc">Легковажна булева карта тривог v3 (без токена, рівень областей та великих міст).</span>
+              </div>
+            </label>
           </div>
 
           <!-- Поля адреси та токена -->

@@ -20,7 +20,21 @@ for (const loc of locationsData) {
     locationByUid.set(String(loc.uid), loc);
   }
   if (loc.title) {
-    locationByTitle.set(loc.title.toLowerCase().trim(), loc);
+    const raw = loc.title.toLowerCase().trim();
+    locationByTitle.set(raw, loc);
+    const normalized = raw.replace(/[\u2019\u02bc\u0060]/g, '\u0027');
+    if (normalized !== raw) {
+      locationByTitle.set(normalized, loc);
+    }
+    if (raw === 'м. київ') {
+      locationByTitle.set('київ', loc);
+    } else if (raw === 'м. севастополь') {
+      locationByTitle.set('севастополь', loc);
+    } else if (raw === 'автономна республіка крим') {
+      locationByTitle.set('крим', loc);
+    } else if (raw.includes('берестинський район')) {
+      locationByTitle.set('красноградський район', loc);
+    }
   }
   if (loc.type === 'Район' && loc.oblastUid) {
     const obUid = String(loc.oblastUid);
@@ -215,7 +229,27 @@ class AlertApiService extends EventEmitter {
   }
 
   _handleWsMessage(data) {
-    if (!data || !data.event) return;
+    if (!data) return;
+
+    // 1. Повідомлення від NEPTUN WebSocket: { type: 'alerts', data: { raions, oblasts } }
+    if (data.type === 'alerts' && data.data) {
+      const alerts = this.normalizeNeptunPayload(data.data);
+      this._processAlertsPayload(alerts);
+      return;
+    }
+    if (data.type === 'snapshot' && data.data) {
+      if (data.data.raions || data.data.oblasts) {
+        const alerts = this.normalizeNeptunPayload(data.data);
+        this._processAlertsPayload(alerts);
+      }
+      return;
+    }
+    if (data.type === 'heartbeat') {
+      return;
+    }
+
+    // 2. Вбудований шлюз (Gateway)
+    if (!data.event) return;
 
     if (data.event === 'initial_state' || data.event === 'sync_state') {
       const alerts = Array.isArray(data.alerts) ? data.alerts : [];
@@ -503,9 +537,10 @@ class AlertApiService extends EventEmitter {
       const defaultProxyUrl = process.env.ALERTS_API_URL || 'https://api.applink.pp.ua/v1/alerts/active.json';
       let requestUrl = devMode ? (config.get('serverUrl') || defaultProxyUrl) : defaultProxyUrl;
       const apiKey = devMode ? (config.get('apiKey') || '') : '';
+      const isPublicNoAuth = apiProvider === 'ubilling' || apiProvider === 'neptun' || apiProvider === 'jaam';
 
-      // Якщо вказано API ключ (у режимі розробника) і провайдер не Ubilling, додаємо його до запиту
-      if (apiKey && apiProvider !== 'ubilling') {
+      // Якщо вказано API ключ (у режимі розробника) і провайдер не публічний, додаємо його до запиту
+      if (apiKey && !isPublicNoAuth) {
         if (!requestUrl.includes('token=')) {
           const sep = requestUrl.includes('?') ? '&' : '?';
           requestUrl = `${requestUrl}${sep}token=${encodeURIComponent(apiKey)}`;
@@ -517,7 +552,7 @@ class AlertApiService extends EventEmitter {
         'User-Agent': 'alert_desktop/2.0'
       };
 
-      if (apiKey && apiProvider !== 'ubilling') {
+      if (apiKey && !isPublicNoAuth) {
         headers['X-API-Key'] = apiKey;
         headers['Authorization'] = `Bearer ${apiKey}`;
       }
@@ -539,7 +574,11 @@ class AlertApiService extends EventEmitter {
       const data = await response.json();
       let alerts = [];
 
-      if (apiProvider === 'ubilling' || (data && typeof data === 'object' && data.states)) {
+      if (apiProvider === 'neptun' || (data && typeof data === 'object' && (data.raions || data.oblasts))) {
+        alerts = this.normalizeNeptunPayload(data);
+      } else if (apiProvider === 'jaam' || (data && typeof data === 'object' && data.version && data.states)) {
+        alerts = this.normalizeJaamPayload(data);
+      } else if (apiProvider === 'ubilling' || (data && typeof data === 'object' && data.states)) {
         alerts = this.normalizeUbillingPayload(data);
       } else {
         alerts = Array.isArray(data) ? data : (data.alerts || []);
@@ -603,6 +642,120 @@ class AlertApiService extends EventEmitter {
         alert_level: 'red',
         threats: [],
         started_at: this._parseUbillingDate(stateInfo.changed)
+      });
+    }
+
+    return alerts;
+  }
+
+  normalizeNeptunPayload(data) {
+    if (!data || typeof data !== 'object') {
+      return [];
+    }
+
+    const alerts = [];
+
+    // 1. Райони
+    if (Array.isArray(data.raions)) {
+      for (const r of data.raions) {
+        if (!r || !r.name) continue;
+
+        const cleanName = r.name.toLowerCase().replace(/[\u2019\u02bc\u0060]/g, '\u0027').trim();
+        const loc = locationByTitle.get(cleanName);
+        const uid = loc ? String(loc.uid) : '';
+        const title = loc ? loc.title : r.name;
+        const oblast = r.oblast || (loc ? loc.oblastTitle : '');
+
+        let alertType = 'air_raid';
+        const reasons = Array.isArray(r.reasons) ? r.reasons : [];
+        const reasonsText = reasons.join(' ').toLowerCase();
+
+        const threats = [];
+        if (reasonsText.includes('артобстріл')) {
+          alertType = 'artillery_shelling';
+          threats.push({ threat_type: 'artillery', level: r.level || 'red' });
+        } else if (reasonsText.includes('дрон') || reasonsText.includes('бпла') || reasonsText.includes('шахед')) {
+          threats.push({ threat_type: 'drones', level: r.level || 'yellow' });
+        } else if (reasonsText.includes('балістик')) {
+          threats.push({ threat_type: 'ballistic', level: r.level || 'red' });
+        } else if (reasonsText.includes('каб') || reasonsText.includes('авіаці')) {
+          threats.push({ threat_type: 'guided_bombs', level: r.level || 'red' });
+        } else if (reasonsText.includes('ракет')) {
+          threats.push({ threat_type: 'unspecified_missiles', level: r.level || 'red' });
+        }
+
+        alerts.push({
+          location_uid: uid,
+          location_title: title,
+          location_type: 'district',
+          location_oblast: oblast,
+          alert_type: alertType,
+          alert_level: r.level || 'red',
+          threats,
+          started_at: r.since || data.updatedAt || new Date().toISOString()
+        });
+      }
+    }
+
+    // 2. Області
+    if (Array.isArray(data.oblasts)) {
+      for (const ob of data.oblasts) {
+        if (!ob || !ob.name) continue;
+
+        const cleanName = ob.name.toLowerCase().replace(/[\u2019\u02bc\u0060]/g, '\u0027').trim();
+        const loc = locationByTitle.get(cleanName);
+        const uid = loc ? String(loc.uid) : '';
+        const title = loc ? loc.title : ob.name;
+        const oblast = ob.oblast || (loc ? (loc.oblastTitle || loc.title) : title);
+
+        alerts.push({
+          location_uid: uid,
+          location_title: title,
+          location_type: 'state',
+          location_oblast: oblast,
+          alert_type: 'air_raid',
+          alert_level: ob.level || 'red',
+          threats: [],
+          started_at: ob.since || data.updatedAt || new Date().toISOString()
+        });
+      }
+    }
+
+    return alerts;
+  }
+
+  normalizeJaamPayload(data) {
+    if (!data || typeof data !== 'object' || !data.states) {
+      return [];
+    }
+
+    const alerts = [];
+    for (const [stateName, stateVal] of Object.entries(data.states)) {
+      // Підтримка v3 (stateVal === true) та v2 (stateVal.alertnow === true)
+      const isActive = typeof stateVal === 'boolean' ? stateVal : (stateVal && Boolean(stateVal.alertnow));
+      if (!isActive) continue;
+
+      const cleanLower = stateName.toLowerCase().replace(/[\u2019\u02bc\u0060]/g, '\u0027').trim();
+      const loc = locationByTitle.get(cleanLower);
+      const uid = loc ? String(loc.uid) : '';
+      const title = loc ? loc.title : stateName;
+      const oblast = loc ? (loc.oblastTitle || loc.title) : stateName;
+      const locType = loc && loc.type === 'Громада' ? 'hromada' : (loc && loc.type === 'Район' ? 'district' : 'state');
+
+      let startedAt = new Date().toISOString();
+      if (typeof stateVal === 'object' && stateVal.changes) {
+        startedAt = stateVal.changes;
+      }
+
+      alerts.push({
+        location_uid: uid,
+        location_title: title,
+        location_type: locType,
+        location_oblast: oblast,
+        alert_type: 'air_raid',
+        alert_level: 'red',
+        threats: [],
+        started_at: startedAt
       });
     }
 
