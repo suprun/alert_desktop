@@ -2,6 +2,7 @@ const { EventEmitter } = require('events');
 const config = require('./config');
 const locationsData = require('./locations.json');
 const threatUtils = require('./threat-utils');
+const netCheck = require('./net-check');
 
 let WebSocketClient;
 try {
@@ -70,12 +71,17 @@ class AlertApiService extends EventEmitter {
       allAlertsCount: 0,
       isOffline: false,
       isRealtime: false,
+      activeProvider: config.get('apiProvider') || 'gateway',
+      fallbackActive: false,
+      offlineReason: null,
       lastChecked: null
     };
 
     // Слухаємо зміни конфігурації
     config.on('changed', () => {
       this.lastState.locationTitle = config.get('locationTitle');
+      this.lastState.activeProvider = config.get('apiProvider') || 'gateway';
+      this.lastState.fallbackActive = false;
       // При зміні локації / налаштувань перераховуємо статус, але НЕ відтворюємо звукові сповіщення
       if (this.currentAlerts.length > 0) {
         this._processAlertsPayload(this.currentAlerts, { suppressNotification: true });
@@ -497,6 +503,9 @@ class AlertApiService extends EventEmitter {
       allAlertsCount: alerts.length,
       isOffline: false,
       isRealtime: this.isWsConnected,
+      activeProvider: options.activeProvider || this.lastState.activeProvider || config.get('apiProvider') || 'gateway',
+      fallbackActive: options.fallbackActive !== undefined ? options.fallbackActive : Boolean(this.lastState.fallbackActive),
+      offlineReason: null,
       lastChecked: new Date().toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
     };
 
@@ -527,45 +536,90 @@ class AlertApiService extends EventEmitter {
     this.emit('status-updated', this.lastState);
   }
 
-  async checkNow(options = {}) {
-    if (this.isChecking) return;
-    this.isChecking = true;
+  normalizeUkraineAlarmPayload(data) {
+    if (!Array.isArray(data)) return [];
+    const alerts = [];
+    for (const group of data) {
+      if (!group || !Array.isArray(group.activeAlerts) || group.activeAlerts.length === 0) continue;
+      const rid = String(group.regionId || '').trim();
+      const rname = group.regionName || '';
+      const rtype = (group.regionType || 'State').toLowerCase();
+
+      let loc = locationByUid.get(rid);
+      if (!loc && rname) {
+        loc = locationByTitle.get(rname.toLowerCase().trim());
+      }
+      const title = loc ? loc.title : rname;
+      const oblast = loc ? (loc.oblastTitle || loc.title) : rname;
+      const uid = loc ? String(loc.uid) : rid;
+
+      for (const a of group.activeAlerts) {
+        const rawType = (a.type || 'AIR').toUpperCase();
+        let alertType = 'air_raid';
+        if (rawType.includes('ARTILLERY')) alertType = 'artillery_shelling';
+        else if (rawType.includes('URBAN')) alertType = 'urban_fights';
+        else if (rawType.includes('CHEMICAL')) alertType = 'chemical';
+        else if (rawType.includes('NUCLEAR')) alertType = 'nuclear';
+
+        const lastUpdate = a.lastUpdate || new Date().toISOString();
+        alerts.push({
+          location_uid: uid,
+          location_title: title,
+          location_type: rtype === 'state' ? 'state' : (loc ? loc.type.toLowerCase() : rtype),
+          location_oblast: oblast,
+          alert_type: alertType,
+          alert_level: 'red',
+          threats: [],
+          started_at: lastUpdate
+        });
+      }
+    }
+    return alerts;
+  }
+
+  async _fetchFromProvider(providerName) {
+    const devMode = config.get('devMode') === true;
+    const defaultProxyUrl = process.env.ALERTS_API_URL || 'https://api.applink.pp.ua/v1/alerts/active.json';
+
+    let requestUrl = '';
+    const headers = {
+      'Accept': 'application/json',
+      'User-Agent': 'alert_desktop/2.0'
+    };
+
+    if (providerName === 'gateway') {
+      requestUrl = (devMode && config.get('apiProvider') === 'gateway' && config.get('serverUrl')) 
+        ? config.get('serverUrl') 
+        : defaultProxyUrl;
+    } else if (providerName === 'neptun') {
+      requestUrl = 'https://neptun.in.ua/api/v1/alerts';
+    } else if (providerName === 'ubilling') {
+      requestUrl = 'https://ubilling.net.ua/aerialalerts/';
+    } else if (providerName === 'jaam') {
+      requestUrl = 'https://jaam.net.ua/alerts_statuses_v3.json';
+    } else if (providerName === 'alertsinua') {
+      requestUrl = 'https://api.alerts.in.ua/v1/alerts/active.json';
+      const token = config.get('apiKey') || process.env.ALERTS_API_KEY || '';
+      if (!token) throw new Error('Токен alerts.in.ua не налаштовано');
+      headers['Authorization'] = `Bearer ${token}`;
+    } else if (providerName === 'ukrainealarm') {
+      requestUrl = 'https://api.ukrainealarm.com/api/v3/alerts';
+      const token = config.get('apiKey') || '';
+      if (!token) throw new Error('Токен UkraineAlarm не налаштовано');
+      headers['Authorization'] = token;
+    } else {
+      throw new Error(`Невідомий провайдер: ${providerName}`);
+    }
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 8000);
 
     try {
-      const devMode = config.get('devMode') === true;
-      const apiProvider = config.get('apiProvider') || (devMode ? 'ukrainealarm' : 'gateway');
-      const defaultProxyUrl = process.env.ALERTS_API_URL || 'https://api.applink.pp.ua/v1/alerts/active.json';
-      let requestUrl = devMode ? (config.get('serverUrl') || defaultProxyUrl) : defaultProxyUrl;
-      const apiKey = devMode ? (config.get('apiKey') || '') : '';
-      const isPublicNoAuth = apiProvider === 'ubilling' || apiProvider === 'neptun' || apiProvider === 'jaam';
-
-      // Якщо вказано API ключ (у режимі розробника) і провайдер не публічний, додаємо його до запиту
-      if (apiKey && !isPublicNoAuth) {
-        if (!requestUrl.includes('token=')) {
-          const sep = requestUrl.includes('?') ? '&' : '?';
-          requestUrl = `${requestUrl}${sep}token=${encodeURIComponent(apiKey)}`;
-        }
-      }
-
-      const headers = {
-        'Accept': 'application/json',
-        'User-Agent': 'alert_desktop/2.0'
-      };
-
-      if (apiKey && !isPublicNoAuth) {
-        headers['X-API-Key'] = apiKey;
-        headers['Authorization'] = `Bearer ${apiKey}`;
-      }
-
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 10000);
-
       const response = await fetch(requestUrl, {
         method: 'GET',
         headers,
         signal: controller.signal
       });
-      clearTimeout(timeoutId);
 
       if (!response.ok) {
         throw new Error(`HTTP помилка: ${response.status} ${response.statusText}`);
@@ -574,28 +628,125 @@ class AlertApiService extends EventEmitter {
       const data = await response.json();
       let alerts = [];
 
-      if (apiProvider === 'neptun' || (data && typeof data === 'object' && (data.raions || data.oblasts))) {
+      if (providerName === 'neptun' || (data && typeof data === 'object' && (data.raions || data.oblasts))) {
         alerts = this.normalizeNeptunPayload(data);
-      } else if (apiProvider === 'jaam' || (data && typeof data === 'object' && data.version && data.states)) {
+      } else if (providerName === 'jaam' || (data && typeof data === 'object' && data.version && data.states)) {
         alerts = this.normalizeJaamPayload(data);
-      } else if (apiProvider === 'ubilling' || (data && typeof data === 'object' && data.states)) {
+      } else if (providerName === 'ubilling' || (data && typeof data === 'object' && data.states)) {
         alerts = this.normalizeUbillingPayload(data);
+      } else if (providerName === 'ukrainealarm' || (Array.isArray(data) && data.length > 0 && data[0] && data[0].regionId !== undefined)) {
+        alerts = this.normalizeUkraineAlarmPayload(data);
       } else {
         alerts = Array.isArray(data) ? data : (data.alerts || []);
       }
 
-      this._processAlertsPayload(alerts, options);
+      return alerts;
+    } finally {
+      clearTimeout(timeoutId);
+    }
+  }
 
-    } catch (err) {
-      console.warn('Помилка під час REST опитування сервера тривог:', err.message);
-      if (!this.isWsConnected) {
+  async checkNow(options = {}) {
+    if (this.isChecking) return;
+    this.isChecking = true;
+
+    try {
+      const devMode = config.get('devMode') === true;
+      const primaryProvider = config.get('apiProvider') || (devMode ? 'ukrainealarm' : 'gateway');
+
+      // 1. Спроба запиту до основного провайдера
+      try {
+        const alerts = await this._fetchFromProvider(primaryProvider);
+        this.lastState.fallbackActive = false;
+        this.lastState.activeProvider = primaryProvider;
+        this.lastState.isOffline = false;
+        this.lastState.offlineReason = null;
+        this._processAlertsPayload(alerts, { ...options, activeProvider: primaryProvider, fallbackActive: false });
+        return;
+      } catch (primaryErr) {
+        console.warn(`[API] Збій основного сервера (${primaryProvider}):`, primaryErr.message);
+      }
+
+      // 2. Якщо основний провайдер не відповів — перевіряємо зв'язок з інтернетом через Anycast IP Google та Cloudflare
+      const netStatus = await netCheck.checkInternetConnectivity({ timeout: 2000 });
+
+      // Якщо фізично немає інтернету — фіксуємо офлайн і не перебираємо fallback
+      if (!netStatus.connected) {
+        if (!this.isWsConnected) {
+          this.lastState = {
+            ...this.lastState,
+            isOffline: true,
+            offlineReason: 'no_internet',
+            fallbackActive: false,
+            activeProvider: primaryProvider,
+            lastChecked: new Date().toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+          };
+          this.emit('status-updated', this.lastState);
+        }
+        return;
+      }
+
+      // 3. Інтернет активний! Перевіряємо, чи увімкнено резервування в налаштуваннях
+      const enableFallback = config.get('enableFallback') !== false;
+      if (!enableFallback) {
+        // Суворий режим: користувач вимкнув fallback
+        if (!this.isWsConnected) {
+          this.lastState = {
+            ...this.lastState,
+            isOffline: true,
+            offlineReason: 'primary_down',
+            fallbackActive: false,
+            activeProvider: primaryProvider,
+            lastChecked: new Date().toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+          };
+          this.emit('status-updated', this.lastState);
+        }
+        return;
+      }
+
+      // 4. Формуємо чергу резервних провайдерів за пріоритетом користувача:
+      // gateway, Alerts.in.ua (якщо є токен), UkraineAlarm (якщо є токен), neptun, ubilling, jaam
+      const allRankedProviders = ['gateway', 'alertsinua', 'ukrainealarm', 'neptun', 'ubilling', 'jaam'];
+      const apiKey = config.get('apiKey') || '';
+      const aiuEnvToken = process.env.ALERTS_API_KEY || '';
+
+      const fallbackCandidates = allRankedProviders.filter(p => {
+        if (p === primaryProvider) return false;
+        if (p === 'alertsinua') return Boolean(apiKey || aiuEnvToken);
+        if (p === 'ukrainealarm') return Boolean(apiKey);
+        return true;
+      });
+
+      let fallbackSuccess = false;
+      for (const fbProv of fallbackCandidates) {
+        try {
+          console.log(`[API Fallback] Спроба отримати дані з резервного джерела: ${fbProv}...`);
+          const fbAlerts = await this._fetchFromProvider(fbProv);
+          this.lastState.fallbackActive = true;
+          this.lastState.activeProvider = fbProv;
+          this.lastState.isOffline = false;
+          this.lastState.offlineReason = null;
+          this._processAlertsPayload(fbAlerts, { ...options, activeProvider: fbProv, fallbackActive: true });
+          fallbackSuccess = true;
+          console.log(`[API Fallback] Успішно перейшли на резервне джерело: ${fbProv}`);
+          break;
+        } catch (fbErr) {
+          console.warn(`[API Fallback] Резервне джерело ${fbProv} також недоступне:`, fbErr.message);
+        }
+      }
+
+      if (!fallbackSuccess && !this.isWsConnected) {
         this.lastState = {
           ...this.lastState,
           isOffline: true,
+          offlineReason: 'all_down',
+          fallbackActive: false,
+          activeProvider: primaryProvider,
           lastChecked: new Date().toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
         };
         this.emit('status-updated', this.lastState);
       }
+
     } finally {
       this.isChecking = false;
     }

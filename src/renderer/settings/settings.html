@@ -258,6 +258,17 @@
             <label for="inputApiKey" class="field-label">API ключ / токен доступу</label>
             <input type="password" id="inputApiKey" class="form-input" placeholder="Токен не потрібен для вбудованого шлюзу" disabled>
           </div>
+
+          <!-- Автоматичний перехід на резервні джерела (Fallback) -->
+          <div class="checkbox-control" style="margin-top: 14px; margin-bottom: 4px;">
+            <input type="checkbox" id="chkEnableFallback" class="form-checkbox" checked>
+            <label for="chkEnableFallback" class="checkbox-label">
+              Автоматичний перехід на резервні джерела (Fallback) при збої
+            </label>
+          </div>
+          <p class="field-hint" style="margin-top: 0; margin-bottom: 4px;">
+            Якщо основне API не відповідає, але інтернет є (перевіряється через Cloudflare/Google IP), застосунок отримає дані з резервного джерела за черговістю надійності.
+          </p>
         </div>
       </section>
 

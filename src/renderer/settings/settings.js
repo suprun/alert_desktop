@@ -33,6 +33,7 @@ const radioProviderJaam = document.getElementById('radioProviderJaam');
 const apiProviderRadios = document.querySelectorAll('input[name="apiProviderRadio"]');
 const inputServerUrl = document.getElementById('inputServerUrl');
 const inputApiKey = document.getElementById('inputApiKey');
+const chkEnableFallback = document.getElementById('chkEnableFallback');
 const btnCancel = document.getElementById('btnCancel');
 const btnSave = document.getElementById('btnSave');
 const audioTest = document.getElementById('audioTest');
@@ -479,6 +480,9 @@ async function init() {
     volumeValue.textContent = `${volumeSlider.value}%`;
     chkAutoStart.checked = Boolean(cfg.autoStart);
     chkDevMode.checked = Boolean(cfg.devMode);
+    if (chkEnableFallback) {
+      chkEnableFallback.checked = cfg.enableFallback !== false;
+    }
 
     const provider = cfg.apiProvider || (cfg.devMode ? 'ukrainealarm' : 'gateway');
     if (provider === 'ukrainealarm' && radioProviderUkraineAlarm) {
@@ -579,6 +583,7 @@ btnSave.addEventListener('click', async () => {
     autoStart: chkAutoStart.checked,
     devMode: isDevMode,
     apiProvider: currentProvider,
+    enableFallback: chkEnableFallback ? chkEnableFallback.checked : true,
     serverUrl: finalServerUrl,
     apiKey: finalApiKey
   };

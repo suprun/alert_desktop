@@ -139,15 +139,18 @@ class TrayManager {
     }
   }
 
-  updateStatus({ isAlert, alertType, alertLevel, alertScope, threats, threatInfo, locationTitle, startedAt, isOffline }) {
+  updateStatus({ isAlert, alertType, alertLevel, alertScope, threats, threatInfo, locationTitle, startedAt, isOffline, fallbackActive, activeProvider, offlineReason }) {
     if (!this.tray) return;
 
     let iconName = 'tray-normal';
     let tooltip = `Повітряні тривоги — ${locationTitle || 'Україна'}: Немає тривоги`;
 
+    const fallbackTag = (fallbackActive && activeProvider) ? ` [резерв: ${activeProvider.toUpperCase()}]` : '';
+
     if (isOffline) {
       iconName = 'tray-offline';
-      tooltip = `Повітряні тривоги — ${locationTitle || 'Україна'}: Офлайн (немає зв'язку)`;
+      const reasonLabel = offlineReason === 'no_internet' ? 'немає інтернету' : 'немає зв\'язку';
+      tooltip = `Повітряні тривоги — ${locationTitle || 'Україна'}: Офлайн (${reasonLabel})`;
     } else if (isAlert) {
       const alertInfo = this.getAlertInfo(alertType, alertLevel, threatInfo);
       iconName = alertInfo.icon;
@@ -158,7 +161,9 @@ class TrayManager {
         : '';
       const scopeNote = alertScope ? ` (${alertScope})` : '';
       
-      tooltip = `Повітряні тривоги — ${locationTitle}: ${alertInfo.title}${threatLabel}${scopeNote}${timeStr ? ` (з ${timeStr})` : ''}`;
+      tooltip = `Повітряні тривоги — ${locationTitle}: ${alertInfo.title}${threatLabel}${scopeNote}${fallbackTag}${timeStr ? ` (з ${timeStr})` : ''}`;
+    } else {
+      tooltip = `Повітряні тривоги — ${locationTitle || 'Україна'}: Немає тривоги${fallbackTag}`;
     }
 
     try {

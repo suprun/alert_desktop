@@ -126,6 +126,18 @@ function applyTheme(isDark) {
   }
 }
 
+function getProviderDisplayName(key) {
+  const map = {
+    gateway: 'Шлюз',
+    alertsinua: 'Alerts.in.ua',
+    ukrainealarm: 'UkraineAlarm',
+    neptun: 'NEPTUN',
+    ubilling: 'Ubilling',
+    jaam: 'JAAM'
+  };
+  return map[key] || (key ? key.toUpperCase() : 'Резерв');
+}
+
 function updateUI(status) {
   if (!status) return;
 
@@ -134,17 +146,26 @@ function updateUI(status) {
   // Оновлення нейтральної іконки зв'язку та швидкого тултіпа
   if (connectionStatus && fastTooltipText) {
     let tooltipMsg = '';
+    const timeStr = status.lastChecked ? ` · ${status.lastChecked}` : '';
+
     if (status.isOffline) {
       connectionStatus.className = 'connection-status offline';
-      const timeStr = status.lastChecked ? ` · ${status.lastChecked}` : '';
-      tooltipMsg = `Офлайн · Немає зв’язку${timeStr}`;
+      if (status.offlineReason === 'no_internet') {
+        tooltipMsg = `Офлайн · Немає інтернету${timeStr}`;
+      } else if (status.offlineReason === 'primary_down') {
+        tooltipMsg = `Офлайн · Сервер тривог недоступний${timeStr}`;
+      } else {
+        tooltipMsg = `Офлайн · Немає зв’язку${timeStr}`;
+      }
+    } else if (status.fallbackActive && status.activeProvider) {
+      connectionStatus.className = 'connection-status';
+      const provName = getProviderDisplayName(status.activeProvider);
+      tooltipMsg = `Резервне API: ${provName}${timeStr}`;
     } else if (status.isRealtime) {
       connectionStatus.className = 'connection-status';
-      const timeStr = status.lastChecked ? ` · ${status.lastChecked}` : '';
       tooltipMsg = `Підключено наживо (0s)${timeStr}`;
     } else {
       connectionStatus.className = 'connection-status';
-      const timeStr = status.lastChecked ? ` · ${status.lastChecked}` : '';
       tooltipMsg = `Підключено через сервер${timeStr}`;
     }
     fastTooltipText.textContent = tooltipMsg;
@@ -160,7 +181,11 @@ function updateUI(status) {
   if (status.isOffline) {
     statusBadge.classList.add('offline');
     statusIcon.innerHTML = icons.offline;
-    statusText.textContent = 'Офлайн (немає зв’язку)';
+    if (status.offlineReason === 'no_internet') {
+      statusText.textContent = 'Офлайн (немає інтернету)';
+    } else {
+      statusText.textContent = 'Офлайн (немає зв’язку)';
+    }
   } else if (status.isAlert) {
     const isYellow = status.alertLevel === 'yellow';
     const threatInfo = status.threatInfo;

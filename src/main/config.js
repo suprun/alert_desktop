@@ -25,6 +25,7 @@ class ConfigManager extends EventEmitter {
       autoStart: false,
       devMode: false,
       apiProvider: 'gateway',
+      enableFallback: true,
       serverUrl: process.env.ALERTS_API_URL || DEFAULT_PROXY_URL,
       wsUrl: process.env.ALERTS_WS_URL || DEFAULT_WS_URL,
       apiKey: process.env.ALERTS_API_KEY || '',
@@ -90,6 +91,12 @@ class ConfigManager extends EventEmitter {
         // Якщо devMode не було задано, вимикаємо його за замовчуванням
         if (parsed.devMode === undefined) {
           config.devMode = false;
+          needsSave = true;
+        }
+
+        // Автоматична міграція резервування API (Fallback)
+        if (parsed.enableFallback === undefined) {
+          config.enableFallback = true;
           needsSave = true;
         }
 
