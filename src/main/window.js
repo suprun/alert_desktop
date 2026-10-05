@@ -1,4 +1,4 @@
-const { BrowserWindow, WebContentsView, BrowserView, shell, nativeTheme } = require('electron');
+const { BrowserWindow, WebContentsView, BrowserView, shell, nativeTheme, session } = require('electron');
 const path = require('path');
 const config = require('./config');
 
@@ -194,6 +194,22 @@ class WindowManager {
       this.sendMapLoadingState('loading');
     }
 
+    // Мережевий фільтр блокування реклами та сторонніх трекерів для зовнішніх веб-карт
+    if (mapWebContents.session && mapWebContents.session.webRequest) {
+      const adFilter = [
+        '*://*.doubleclick.net/*',
+        '*://*.googleadservices.com/*',
+        '*://*.googlesyndication.com/*',
+        '*://pagead2.googlesyndication.com/*',
+        '*://*.adservice.google.com/*'
+      ];
+      try {
+        mapWebContents.session.webRequest.onBeforeRequest({ urls: adFilter }, (_details, callback) => {
+          callback({ cancel: true });
+        });
+      } catch (e) {}
+    }
+
     mapWebContents.loadURL(cfg.url);
 
     // Скрипт блокування Picture-in-Picture та приховування кнопок міні-мапи
@@ -244,6 +260,30 @@ class WindowManager {
 
     const onReady = () => {
       mapWebContents.executeJavaScript(disablePipScript).catch(() => {});
+      if (entry.tabId === 'neptun') {
+        const neptunAdCss = `
+          [class*="BottomDock_dock"],
+          [class*="BottomDock_"],
+          [class*="SupportBanner_"],
+          [class*="MapHeader_installSlot"],
+          [class*="InstallPill_pill"],
+          [class*="InstallChoice_"],
+          ins.adsbygoogle,
+          [id*="google_ads"],
+          [class*="advertisement"],
+          [class*="ad-banner"],
+          iframe[src*="google"],
+          iframe[src*="doubleclick"] {
+            display: none !important;
+            visibility: hidden !important;
+            opacity: 0 !important;
+            pointer-events: none !important;
+            height: 0 !important;
+            overflow: hidden !important;
+          }
+        `;
+        mapWebContents.insertCSS(neptunAdCss).catch(() => {});
+      }
       entry.isReady = true;
       try {
         mapWebContents.send('set-view-theme', { isDark: this.isDarkTheme });

@@ -72,6 +72,31 @@ try {
             \`;
           }
 
+          // Для Neptun: приховуємо нижній рекламний док, банери підтримки, кнопки встановлення застосунку та рекламу
+          if (host.includes('neptun')) {
+            css += \`
+              [class*="BottomDock_dock"],
+              [class*="BottomDock_"],
+              [class*="SupportBanner_"],
+              [class*="MapHeader_installSlot"],
+              [class*="InstallPill_pill"],
+              [class*="InstallChoice_"],
+              ins.adsbygoogle,
+              [id*="google_ads"],
+              [class*="advertisement"],
+              [class*="ad-banner"],
+              iframe[src*="google"],
+              iframe[src*="doubleclick"] {
+                display: none !important;
+                visibility: hidden !important;
+                opacity: 0 !important;
+                pointer-events: none !important;
+                height: 0 !important;
+                overflow: hidden !important;
+              }
+            \`;
+          }
+
           // Стилі для плаваючої пігулки переходу на зовнішній сайт
           css += \`
             #app-map-external-pill {

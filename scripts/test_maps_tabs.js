@@ -185,6 +185,15 @@ assert.ok(rendererJs.includes('activeDrawerDistrictUid'), 'renderer.js пови�
 assert.ok(rendererJs.includes('drawerLiveRefreshTimer'), 'renderer.js повинен містити live-таймер drawerLiveRefreshTimer');
 console.log('✔ Тест 19 пройдено (бічна панель вбудованої карти оновлюється наживо коли відкрита)');
 
+// Тест 20: Приховування рекламних банерів та доку на карті Neptun зі збереженням NationwideBanner
+assert.ok(preloadMapJs.includes('BottomDock_dock'), 'preload-map.js повинен приховувати BottomDock на карті Neptun');
+assert.ok(preloadMapJs.includes('SupportBanner_'), 'preload-map.js повинен приховувати SupportBanner на карті Neptun');
+assert.ok(preloadMapJs.includes('MapHeader_installSlot'), 'preload-map.js повинен приховувати MapHeader_installSlot на карті Neptun');
+assert.ok(!preloadMapJs.includes('NationwideBanner'), 'preload-map.js не повинен приховувати NationwideBanner (оперативні сповіщення про загрози)');
+assert.ok(windowJs.includes('BottomDock_dock'), 'window.js повинен містити insertCSS для очищення реклами Neptun');
+assert.ok(windowJs.includes('adFilter'), 'window.js повинен містити мережевий adFilter для блокування рекламних мереж');
+console.log('✔ Тест 20 пройдено (рекламні банери та док на карті Neptun надійно блокуються, а NationwideBanner збережено)');
+
 console.log('🎉 Усі тести панелі вкладок, тем та векторної карти успішно виконано!');
 
 
