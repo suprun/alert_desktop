@@ -48,9 +48,9 @@ assert.ok(indexHtml.includes('rect x="5" y="17" width="14" height="4"'), 'Вкл
 // Детальний векторизований силует карти України UkraineAlarm у колі
 assert.ok(indexHtml.includes('circle cx="12" cy="12" r="9.5"'), 'Вкладка ukrainealarm має містити коло-бейдж');
 assert.ok(indexHtml.includes('M19.97 10.85L19.86 10.24'), 'Вкладка ukrainealarm має містити детальний векторизований силует карти України');
-// Векторизований щит Neptun із тризубом
-assert.ok(indexHtml.includes('M12 3.2C16.8 3.2'), 'Вкладка neptun має містити векторизований щит');
-assert.ok(indexHtml.includes('M12 6.2L13.2 8.5'), 'Вкладка neptun має містити векторизований тризуб');
+// Векторизований тризуб Neptun без щита зі збільшеним розміром
+assert.ok(indexHtml.includes('M12 2.5L13.7 5.8'), 'Вкладка neptun має містити векторизований тризуб');
+assert.ok(!indexHtml.includes('fill-rule="evenodd"'), 'Вкладка neptun не повинна містити контур щита');
 
 // Перевірка наявності файлів іконок вкладок у assets/icons/tabs/
 const tabsAssetDir = path.join(__dirname, '..', 'assets', 'icons', 'tabs');
@@ -149,10 +149,12 @@ assert.ok(rendererJs.includes('onMapTabChanged'), 'renderer.js має слуха
 assert.ok(indexHtml.includes('id="internalMapContainer" class="internal-map-container" style="display: none;"'), 'index.html повинен мати initial display:none для internalMapContainer');
 console.log('✔ Тест 14 пройдено (синхронізація активної вкладки при старті та захист від показу вбудованої карти валідні)');
 
-// Тест 15: Фіксований розмір кнопок вкладок
-assert.ok(styleCss.includes('width: 136px;'), 'style.css повинен задавати фіксовану ширину 136px для .tab-btn');
-assert.ok(styleCss.includes('min-width: 136px;'), 'style.css повинен задавати min-width 136px для .tab-btn');
-console.log('✔ Тест 15 пройдено (кнопки вкладок мають фіксований розмір 136px без зсуву верстки)');
+// Тест 15: Оптимальний фіксований розмір кнопок вкладок та мікровирівнювання
+assert.ok(styleCss.includes('width: 120px;'), 'style.css повинен задавати оптимальну фіксовану ширину 120px для .tab-btn');
+assert.ok(styleCss.includes('min-width: 120px;'), 'style.css повинен задавати min-width 120px для .tab-btn');
+assert.ok(styleCss.includes('gap: 5px;'), 'style.css повинен задавати зменшений відступ gap: 5px між іконкою і лейблом');
+assert.ok(styleCss.includes('transform: translateY(-1px);'), 'style.css повинен піднімати іконку translateY(-1px) для ідеального оптичного центрування');
+console.log('✔ Тест 15 пройдено (кнопки вкладок мають оптимальний фіксований розмір 120px, gap 5px та підняту іконку)');
 
 // Тест 16: Окремий шар підсвічування обраного району
 assert.ok(indexHtml.includes('id="selectedHighlightLayer"'), 'index.html повинен містити окремий шар selectedHighlightLayer');
@@ -164,6 +166,18 @@ console.log('✔ Тест 16 пройдено (окремий шар selectedHig
 // Тест 17: Логіка трея та фокусу
 assert.ok(windowJs.includes('this.mainWindow.isFocused()'), 'window.js повинен перевіряти isFocused() у toggle()');
 console.log('✔ Тест 17 пройдено (toggle() фокусує вікно замість приховування при неактивному фокусі)');
+
+// Тест 18: Згасання тіні бічної панелі деталей при закритті до 0
+assert.ok(styleCss.includes('box-shadow: 0 0 0 rgba(0, 0, 0, 0);'), 'region-history-drawer повинен мати нульову тінь у закритому стані');
+assert.ok(styleCss.includes('box-shadow 0.24s'), 'region-history-drawer повинен плавно анімувати згасання тіні');
+assert.ok(styleCss.includes('box-shadow: -6px 0 24px rgba(0, 0, 0, 0.35);'), 'region-history-drawer.open повинен мати тінь лише у відкритому стані');
+console.log('✔ Тест 18 пройдено (тінь висувної бічної панелі плавно згасає до 0 при закритті)');
+
+// Тест 19: Оновлення бічної панелі наживо (Live update)
+assert.ok(rendererJs.includes('refreshOpenHistoryDrawer'), 'renderer.js повинен містити функцію refreshOpenHistoryDrawer');
+assert.ok(rendererJs.includes('activeDrawerDistrictUid'), 'renderer.js повинен відстежувати activeDrawerDistrictUid');
+assert.ok(rendererJs.includes('drawerLiveRefreshTimer'), 'renderer.js повинен містити live-таймер drawerLiveRefreshTimer');
+console.log('✔ Тест 19 пройдено (бічна панель вбудованої карти оновлюється наживо коли відкрита)');
 
 console.log('🎉 Усі тести панелі вкладок, тем та векторної карти успішно виконано!');
 

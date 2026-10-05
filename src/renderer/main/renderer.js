@@ -51,6 +51,8 @@ let currentThemeIsDark = true;
 let allLocationsCache = [];
 let hromadaToRaionMap = new Map();
 let currentAlertsList = [];
+let activeDrawerDistrictUid = null;
+let drawerLiveRefreshTimer = null;
 
 // Лінійні SVG іконки статусів (виключно векторні без емодзі)
 const icons = {
@@ -270,6 +272,51 @@ function onDistrictMouseLeave() {
   }
 }
 
+function refreshOpenHistoryDrawer(isBackground = true) {
+  if (!regionHistoryDrawer || !regionHistoryDrawer.classList.contains('open') || !activeDrawerDistrictUid) {
+    return;
+  }
+  if (!districtsLayer) return;
+
+  const currentEl = districtsLayer.querySelector(`.map-district[data-uid="${activeDrawerDistrictUid}"]`);
+  if (!currentEl) return;
+
+  const uid = activeDrawerDistrictUid;
+  const title = currentEl.getAttribute('data-title') || 'Адмінодиниця';
+  const oblastUid = currentEl.getAttribute('data-oblast-uid') || '';
+  const oblastTitle = currentEl.getAttribute('data-oblast-title') || '';
+  const alertType = currentEl.getAttribute('data-alert-type') || '';
+  const alertLevel = currentEl.getAttribute('data-alert-level') || '';
+  const startedAt = currentEl.getAttribute('data-started-at') || '';
+  const isAlert = currentEl.classList.contains('alert') || currentEl.classList.contains('yellow') || currentEl.classList.contains('artillery');
+
+  if (historyRegionTitle) historyRegionTitle.textContent = title;
+  if (historyOblastTitle) historyOblastTitle.textContent = oblastTitle ? `${oblastTitle}` : '';
+
+  if (!isBackground && historyDrawerBody) {
+    historyDrawerBody.innerHTML = `
+      <div class="drawer-loading">
+        <div class="drawer-spinner"></div>
+        <span>Завантаження історії...</span>
+      </div>
+    `;
+  }
+
+  if (window.alertAPI && window.alertAPI.getRegionHistory) {
+    window.alertAPI.getRegionHistory({ regionUid: uid, oblastUid })
+      .then((data) => {
+        if (regionHistoryDrawer && regionHistoryDrawer.classList.contains('open') && activeDrawerDistrictUid === uid) {
+          renderRegionHistory(data, { uid, title, oblastTitle, isAlert, alertType, alertLevel, startedAt });
+        }
+      })
+      .catch((err) => {
+        if (!isBackground && historyDrawerBody) {
+          historyDrawerBody.innerHTML = `<div class="drawer-loading"><span>Помилка завантаження історії (${escapeHtml(err.message)})</span></div>`;
+        }
+      });
+  }
+}
+
 function onDistrictClick(e) {
   e.stopPropagation();
   const el = e.currentTarget;
@@ -283,6 +330,8 @@ function onDistrictClick(e) {
   const alertLevel = el.getAttribute('data-alert-level') || '';
   const startedAt = el.getAttribute('data-started-at') || '';
   const isAlert = el.classList.contains('alert') || el.classList.contains('yellow') || el.classList.contains('artillery');
+
+  activeDrawerDistrictUid = uid;
 
   // Виділення району на карті
   if (districtsLayer) {
@@ -317,11 +366,21 @@ function onDistrictClick(e) {
     `;
   }
 
+  // Запуск фонового live-таймера для регулярного оновлення відкритої панелі
+  if (drawerLiveRefreshTimer) {
+    clearInterval(drawerLiveRefreshTimer);
+  }
+  drawerLiveRefreshTimer = setInterval(() => {
+    refreshOpenHistoryDrawer(true);
+  }, 10000);
+
   // Запит історії через IPC (Gateway -> Fallback)
   if (window.alertAPI && window.alertAPI.getRegionHistory) {
     window.alertAPI.getRegionHistory({ regionUid: uid, oblastUid })
       .then((data) => {
-        renderRegionHistory(data, { uid, title, oblastTitle, isAlert, alertType, alertLevel, startedAt });
+        if (regionHistoryDrawer && regionHistoryDrawer.classList.contains('open') && activeDrawerDistrictUid === uid) {
+          renderRegionHistory(data, { uid, title, oblastTitle, isAlert, alertType, alertLevel, startedAt });
+        }
       })
       .catch((err) => {
         if (historyDrawerBody) {
@@ -332,6 +391,11 @@ function onDistrictClick(e) {
 }
 
 function closeHistoryDrawer() {
+  activeDrawerDistrictUid = null;
+  if (drawerLiveRefreshTimer) {
+    clearInterval(drawerLiveRefreshTimer);
+    drawerLiveRefreshTimer = null;
+  }
   if (regionHistoryDrawer) {
     regionHistoryDrawer.classList.remove('open');
     regionHistoryDrawer.setAttribute('aria-hidden', 'true');
@@ -906,6 +970,11 @@ function applyAlertsToVectorMap(alerts) {
     } else {
       tabInternalAlertBadge.style.display = 'none';
     }
+  }
+
+  // Оновлення бічної панелі наживо при зміні карти тривог
+  if (activeDrawerDistrictUid && regionHistoryDrawer && regionHistoryDrawer.classList.contains('open')) {
+    refreshOpenHistoryDrawer(true);
   }
 }
 

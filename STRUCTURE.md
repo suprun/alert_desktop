@@ -65,7 +65,7 @@ alert_desktop/
 │       │   ├── tab-internal.svg          # Вбудована швидка векторна мапа
 │       │   ├── tab-alertsinua.svg        # Мапа Alerts.in.ua (векторизований маяк)
 │       │   ├── tab-ukrainealarm.svg      # Офіційна мапа UkraineAlarm (детальний силует карти України в колі)
-│       │   └── tab-neptun.svg            # Мапа Neptun (векторизований щит із тризубом)
+│       │   └── tab-neptun.svg            # Мапа Neptun (векторизований стилізований тризуб)
 │       └── ui/                           # Лінійні системні піктограми інтерфейсу
 │           ├── bell.svg / bell-off.svg   # Індикація звуку
 │           ├── gear.svg                  # Кнопка налаштувань
