@@ -63,19 +63,24 @@ try {
   // Silent catch
 }
 
-// 2. Відстеження теми оформлення (світла/темна) на веб-сторінці alerts.in.ua
+// 2. Відстеження теми оформлення (світла/темна) на веб-сторінках (alerts.in.ua, map.ukrainealarm.com, neptun.in.ua)
 let lastKnownIsDark = null;
 
 function detectTheme() {
   try {
-    // А) Пріоритет: значення darkMode у localStorage сторінки alerts.in.ua
+    // А) UkraineAlarm: ключ 'alarm-theme'
+    const alarmTheme = window.localStorage ? window.localStorage.getItem('alarm-theme') : null;
+    if (alarmTheme === 'light') return false;
+    if (alarmTheme === 'dark') return true;
+
+    // Б) Alerts.in.ua: значення darkMode у localStorage
     const stored = window.localStorage ? window.localStorage.getItem('darkMode') : null;
     if (stored !== null) {
       if (stored === 'true' || stored === true || stored === '1') return true;
       if (stored === 'false' || stored === false || stored === '0') return false;
     }
 
-    // Б) Класи на documentElement та body
+    // В) Класи на documentElement та body
     const docCls = document.documentElement ? document.documentElement.classList : null;
     const bodyCls = document.body ? document.body.classList : null;
 
@@ -86,7 +91,7 @@ function detectTheme() {
       return true;
     }
 
-    // В) Системний медіа-запит prefers-color-scheme
+    // Г) Системний медіа-запит prefers-color-scheme
     if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
       return true;
     }
@@ -111,6 +116,34 @@ function checkAndEmitTheme() {
   }
 }
 
+// Примусове застосування теми з головного вікна
+ipcRenderer.on('set-view-theme', (_event, { isDark }) => {
+  try {
+    lastKnownIsDark = Boolean(isDark);
+    if (window.localStorage) {
+      window.localStorage.setItem('darkMode', isDark ? 'true' : 'false');
+      if (isDark) {
+        window.localStorage.removeItem('alarm-theme');
+      } else {
+        window.localStorage.setItem('alarm-theme', 'light');
+      }
+    }
+    if (document.documentElement) {
+      document.documentElement.classList.toggle('dark', isDark);
+      document.documentElement.classList.toggle('light', !isDark);
+    }
+    if (document.body) {
+      document.body.classList.toggle('dark', isDark);
+      document.body.classList.toggle('light', !isDark);
+    }
+    // UkraineAlarm елементи
+    const switcher = document.querySelector('.theme-switcher');
+    if (switcher) switcher.classList.toggle('light', !isDark);
+    const states = document.querySelectorAll('.state');
+    states.forEach(el => el.classList.toggle('light', !isDark));
+  } catch (e) {}
+});
+
 // Початкова перевірка при завантаженні DOM
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', checkAndEmitTheme);
@@ -132,18 +165,18 @@ try {
   }
 } catch (e) {}
 
-// Відстеження зміни ключа у localStorage
+// Відстеження зміни ключів у localStorage
 window.addEventListener('storage', (e) => {
-  if (e.key === 'darkMode') {
+  if (e.key === 'darkMode' || e.key === 'alarm-theme') {
     checkAndEmitTheme();
   }
 });
 
-// Перехоплення кліків на перемикач теми
+// Перехоплення кліків на перемикачі теми сторінки
 window.addEventListener('click', () => {
   setTimeout(checkAndEmitTheme, 50);
   setTimeout(checkAndEmitTheme, 250);
 }, true);
 
-// Періодична контрольна звірка раз на 1.5 секунди
-setInterval(checkAndEmitTheme, 1500);
+// Періодична контрольна звірка раз на 2 секунди
+setInterval(checkAndEmitTheme, 2000);

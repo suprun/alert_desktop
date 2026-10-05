@@ -26,6 +26,7 @@ class ConfigManager extends EventEmitter {
       devMode: false,
       apiProvider: 'gateway',
       enableFallback: true,
+      activeMapTab: 'internal',
       serverUrl: process.env.ALERTS_API_URL || DEFAULT_PROXY_URL,
       wsUrl: process.env.ALERTS_WS_URL || DEFAULT_WS_URL,
       apiKey: process.env.ALERTS_API_KEY || '',

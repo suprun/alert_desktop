@@ -40,6 +40,7 @@ if (!gotTheLock) {
   api.on('status-updated', (status) => {
     tray.updateStatus(status);
     windowManager.sendStatusUpdate(status);
+    windowManager.sendAllAlertsUpdate(api.getAllAlerts());
   });
 
   api.on('status-changed', (status) => {
@@ -107,6 +108,23 @@ if (!gotTheLock) {
   ipcMain.handle('check-for-updates', () => {
     updater.checkForUpdates(true);
     return updater.getStatus();
+  });
+
+  ipcMain.handle('select-map-tab', (_event, tabId) => {
+    return windowManager.switchMapTab(tabId);
+  });
+
+  ipcMain.handle('get-active-map-tab', () => {
+    return windowManager.getActiveMapTab();
+  });
+
+  ipcMain.on('toggle-app-theme', (_event, { isDark }) => {
+    windowManager.setTheme(isDark, false);
+    settingsWindowManager.setTheme(isDark, false);
+  });
+
+  ipcMain.handle('get-all-alerts', () => {
+    return api.getAllAlerts();
   });
 
   app.whenReady().then(() => {

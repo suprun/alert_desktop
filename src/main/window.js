@@ -1,22 +1,51 @@
 const { BrowserWindow, WebContentsView, BrowserView, shell, nativeTheme } = require('electron');
 const path = require('path');
+const config = require('./config');
 
 class WindowManager {
   constructor() {
     this.mainWindow = null;
-    this.mapView = null;
     this.headerHeight = 56;
+    this.footerHeight = 44;
     this.isQuitting = false;
-    this.isMapReady = false;
-    this.isDarkTheme = nativeTheme.shouldUseDarkColors;
+    this.isDarkTheme = (nativeTheme && typeof nativeTheme.shouldUseDarkColors === 'boolean') ? nativeTheme.shouldUseDarkColors : true;
     this.hasMapThemeOverride = false;
+    this.activeTab = config.get('activeMapTab') || 'internal';
 
-    // Слідкуємо за системною зміною теми Windows (light/dark) як фолбек
-    nativeTheme.on('updated', () => {
-      if (!this.hasMapThemeOverride) {
-        this.setTheme(nativeTheme.shouldUseDarkColors, false);
+    // Конфігурація підтримуваних зовнішніх веб-карт
+    this.webMapConfigs = {
+      alertsinua: {
+        url: 'https://alerts.in.ua/',
+        partition: 'persist:alerts_map',
+        domain: 'alerts.in.ua'
+      },
+      ukrainealarm: {
+        url: 'https://map.ukrainealarm.com/',
+        partition: 'persist:ukrainealarm_map',
+        domain: 'map.ukrainealarm.com'
+      },
+      neptun: {
+        url: 'https://neptun.in.ua/',
+        partition: 'persist:neptun_map',
+        domain: 'neptun.in.ua'
       }
-    });
+    };
+
+    // Пул створених переглядів: tabId -> { view, isReady, url }
+    this.views = new Map();
+
+    // Слідкуємо за системною зміною теми Windows як фолбек
+    if (nativeTheme && typeof nativeTheme.on === 'function') {
+      nativeTheme.on('updated', () => {
+        if (!this.hasMapThemeOverride) {
+          this.setTheme(nativeTheme.shouldUseDarkColors, false);
+        }
+      });
+    }
+  }
+
+  getActiveMapTab() {
+    return this.activeTab;
   }
 
   setTheme(isDark, fromMap = true) {
@@ -24,10 +53,24 @@ class WindowManager {
     if (fromMap) {
       this.hasMapThemeOverride = true;
     }
+
     if (this.mainWindow && !this.mainWindow.isDestroyed()) {
       const themeBg = this.isDarkTheme ? '#232529' : '#eff0f2';
       this.mainWindow.setBackgroundColor(themeBg);
       this.mainWindow.webContents.send('theme-updated', { isDark: this.isDarkTheme });
+    }
+
+    // Трансляція теми в усі ініціалізовані перегляди карт
+    this.broadcastThemeToViews(this.isDarkTheme);
+  }
+
+  broadcastThemeToViews(isDark) {
+    for (const [, entry] of this.views.entries()) {
+      if (entry.view && entry.view.webContents && !entry.view.webContents.isDestroyed()) {
+        try {
+          entry.view.webContents.send('set-view-theme', { isDark });
+        } catch (e) {}
+      }
     }
   }
 
@@ -60,18 +103,12 @@ class WindowManager {
       }
     });
 
-    // Видаляємо стандартне меню (File, Edit...)
     this.mainWindow.removeMenu();
     this.mainWindow.setMenuBarVisibility(false);
 
-    // Завантажуємо локальну шапку зі статусом та кнопкою налаштувань
     const mainHtmlPath = path.join(__dirname, '..', 'renderer', 'main', 'index.html');
     this.mainWindow.loadFile(mainHtmlPath);
 
-    // Створюємо та додаємо перегляд карти alerts.in.ua у нижню частину вікна
-    this.attachMapView();
-
-    // Перехоплюємо закриття вікна (кнопка X ховає застосунок у трей)
     this.mainWindow.on('close', (event) => {
       if (!this.isQuitting) {
         event.preventDefault();
@@ -85,10 +122,11 @@ class WindowManager {
 
     this.mainWindow.webContents.on('did-finish-load', () => {
       this.mainWindow.webContents.send('theme-updated', { isDark: this.isDarkTheme });
+      this.mainWindow.webContents.send('map-tab-changed', { activeTab: this.activeTab });
     });
 
     this.mainWindow.once('ready-to-show', () => {
-      this.updateViewBounds();
+      this.applyInitialTab();
       this.mainWindow.webContents.send('theme-updated', { isDark: this.isDarkTheme });
       if (!process.argv.includes('--hidden')) {
         this.show();
@@ -98,42 +136,64 @@ class WindowManager {
     return this.mainWindow;
   }
 
-  attachMapView() {
-    const mapUrl = 'https://alerts.in.ua/';
-    const mapPreloadPath = path.join(__dirname, '..', 'preload', 'preload-map.js');
-    
-    // Перевірка підтримки сучасного WebContentsView (Electron 30+)
-    if (WebContentsView && this.mainWindow.contentView && this.mainWindow.contentView.addChildView) {
-      this.mapView = new WebContentsView({
-        webPreferences: {
-          partition: 'persist:alerts_map',
-          contextIsolation: true,
-          nodeIntegration: false,
-          preload: mapPreloadPath
-        }
-      });
-      this.mainWindow.contentView.addChildView(this.mapView);
-      this.configureMapWebContents(this.mapView.webContents, mapUrl);
-    } else if (BrowserView) {
-      // Сумісність для старіших версій Electron
-      this.mapView = new BrowserView({
-        webPreferences: {
-          partition: 'persist:alerts_map',
-          contextIsolation: true,
-          nodeIntegration: false,
-          preload: mapPreloadPath
-        }
-      });
-      this.mainWindow.setBrowserView(this.mapView);
-      this.configureMapWebContents(this.mapView.webContents, mapUrl);
+  applyInitialTab() {
+    if (this.activeTab !== 'internal') {
+      this.getOrCreateWebView(this.activeTab);
     }
+    this.updateViewBounds();
   }
 
-  configureMapWebContents(mapWebContents, mapUrl) {
-    this.sendMapLoadingState('loading');
-    mapWebContents.loadURL(mapUrl);
+  getOrCreateWebView(tabId) {
+    if (!this.webMapConfigs[tabId]) return null;
 
-    // Скрипт блокування Picture-in-Picture та приховування кнопок запуску міні-мапи
+    if (this.views.has(tabId)) {
+      return this.views.get(tabId);
+    }
+
+    const cfg = this.webMapConfigs[tabId];
+    const mapPreloadPath = path.join(__dirname, '..', 'preload', 'preload-map.js');
+    let viewInstance = null;
+
+    const webPreferences = {
+      partition: cfg.partition,
+      contextIsolation: true,
+      nodeIntegration: false,
+      preload: mapPreloadPath
+    };
+
+    if (WebContentsView && this.mainWindow.contentView && this.mainWindow.contentView.addChildView) {
+      viewInstance = new WebContentsView({ webPreferences });
+      this.mainWindow.contentView.addChildView(viewInstance);
+    } else if (BrowserView) {
+      viewInstance = new BrowserView({ webPreferences });
+      this.mainWindow.setBrowserView(viewInstance);
+    }
+
+    if (!viewInstance) return null;
+
+    const entry = {
+      view: viewInstance,
+      isReady: false,
+      url: cfg.url,
+      tabId
+    };
+
+    this.views.set(tabId, entry);
+    this.configureMapWebContents(entry, cfg);
+    return entry;
+  }
+
+  configureMapWebContents(entry, cfg) {
+    const { view } = entry;
+    const mapWebContents = view.webContents;
+
+    if (this.activeTab === entry.tabId) {
+      this.sendMapLoadingState('loading');
+    }
+
+    mapWebContents.loadURL(cfg.url);
+
+    // Скрипт блокування Picture-in-Picture та приховування кнопок міні-мапи
     const disablePipScript = `
       try {
         Object.defineProperty(document, 'pictureInPictureEnabled', {
@@ -174,28 +234,33 @@ class WindowManager {
     `;
 
     mapWebContents.on('did-start-loading', () => {
-      this.sendMapLoadingState('loading');
+      if (this.activeTab === entry.tabId) {
+        this.sendMapLoadingState('loading');
+      }
     });
 
-    mapWebContents.on('dom-ready', () => {
+    const onReady = () => {
       mapWebContents.executeJavaScript(disablePipScript).catch(() => {});
-      this.isMapReady = true;
+      entry.isReady = true;
+      try {
+        mapWebContents.send('set-view-theme', { isDark: this.isDarkTheme });
+      } catch (e) {}
       this.updateViewBounds();
-      this.sendMapLoadingState('ready');
-    });
+      if (this.activeTab === entry.tabId) {
+        this.sendMapLoadingState('ready');
+      }
+    };
 
-    mapWebContents.on('did-finish-load', () => {
-      mapWebContents.executeJavaScript(disablePipScript).catch(() => {});
-      this.isMapReady = true;
-      this.updateViewBounds();
-      this.sendMapLoadingState('ready');
-    });
+    mapWebContents.on('dom-ready', onReady);
+    mapWebContents.on('did-finish-load', onReady);
 
     mapWebContents.on('did-fail-load', (_event, errorCode, errorDescription, _validatedURL, isMainFrame) => {
       if (isMainFrame && errorCode !== -3) {
-        this.isMapReady = false;
+        entry.isReady = false;
         this.updateViewBounds();
-        this.sendMapLoadingState('failed', errorDescription || 'Помилка підключення до сервера карти');
+        if (this.activeTab === entry.tabId) {
+          this.sendMapLoadingState('failed', errorDescription || 'Помилка підключення до сервера карти');
+        }
       }
     });
 
@@ -206,19 +271,68 @@ class WindowManager {
     });
 
     mapWebContents.on('will-navigate', (event, url) => {
-      if (!url.startsWith('https://alerts.in.ua')) {
+      try {
+        const parsed = new URL(url);
+        if (!parsed.hostname.includes(cfg.domain)) {
+          event.preventDefault();
+          shell.openExternal(url);
+        }
+      } catch (e) {
         event.preventDefault();
-        shell.openExternal(url);
       }
     });
   }
 
+  switchMapTab(tabId) {
+    if (!['internal', 'alertsinua', 'ukrainealarm', 'neptun'].includes(tabId)) {
+      tabId = 'internal';
+    }
+
+    this.activeTab = tabId;
+    config.saveConfig({ activeMapTab: tabId });
+
+    if (this.mainWindow && !this.mainWindow.isDestroyed()) {
+      this.mainWindow.webContents.send('map-tab-changed', { activeTab: tabId });
+    }
+
+    if (tabId === 'internal') {
+      this.updateViewBounds();
+      this.sendMapLoadingState('ready');
+      return { success: true, tabId };
+    }
+
+    // Для зовнішньої веб-карти
+    const entry = this.getOrCreateWebView(tabId);
+    this.updateViewBounds();
+
+    if (entry) {
+      if (entry.isReady) {
+        this.sendMapLoadingState('ready');
+        try {
+          entry.view.webContents.send('set-view-theme', { isDark: this.isDarkTheme });
+        } catch (e) {}
+      } else {
+        this.sendMapLoadingState('loading');
+      }
+    }
+
+    return { success: true, tabId };
+  }
+
   reloadMap() {
-    if (this.mapView && this.mapView.webContents) {
-      this.isMapReady = false;
+    if (this.activeTab === 'internal') {
+      if (this.mainWindow && !this.mainWindow.isDestroyed()) {
+        this.mainWindow.webContents.send('reload-internal-map');
+      }
+      return;
+    }
+
+    const entry = this.views.get(this.activeTab);
+    if (entry && entry.view && entry.view.webContents) {
+      entry.isReady = false;
       this.updateViewBounds();
       this.sendMapLoadingState('loading');
-      this.mapView.webContents.loadURL('https://alerts.in.ua/');
+      entry.view.webContents.reload();
     }
   }
 
@@ -229,29 +343,36 @@ class WindowManager {
   }
 
   updateViewBounds() {
-    if (!this.mainWindow || !this.mapView) return;
+    if (!this.mainWindow) return;
 
     const [width, height] = this.mainWindow.getContentSize();
-    if (this.mapView.setVisible) {
-      this.mapView.setVisible(this.isMapReady);
-    }
+    const contentHeight = Math.max(0, height - this.headerHeight - this.footerHeight);
 
-    const bounds = this.isMapReady
-      ? {
-          x: 0,
-          y: this.headerHeight,
-          width: width,
-          height: Math.max(0, height - this.headerHeight)
-        }
-      : {
-          x: 0,
-          y: this.headerHeight,
-          width: 0,
-          height: 0
-        };
+    for (const [key, entry] of this.views.entries()) {
+      const isCurrentActive = this.activeTab === key;
+      const shouldBeVisible = isCurrentActive && entry.isReady;
 
-    if (this.mapView.setBounds) {
-      this.mapView.setBounds(bounds);
+      if (entry.view.setVisible) {
+        entry.view.setVisible(shouldBeVisible);
+      }
+
+      const bounds = shouldBeVisible
+        ? {
+            x: 0,
+            y: this.headerHeight,
+            width: width,
+            height: contentHeight
+          }
+        : {
+            x: 0,
+            y: this.headerHeight,
+            width: 0,
+            height: 0
+          };
+
+      if (entry.view.setBounds) {
+        entry.view.setBounds(bounds);
+      }
     }
   }
 
@@ -282,6 +403,12 @@ class WindowManager {
   sendStatusUpdate(status) {
     if (this.mainWindow && !this.mainWindow.isDestroyed()) {
       this.mainWindow.webContents.send('status-update', status);
+    }
+  }
+
+  sendAllAlertsUpdate(alerts) {
+    if (this.mainWindow && !this.mainWindow.isDestroyed()) {
+      this.mainWindow.webContents.send('all-alerts-update', alerts);
     }
   }
 

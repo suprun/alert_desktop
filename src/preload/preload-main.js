@@ -24,5 +24,14 @@ contextBridge.exposeInMainWorld('alertAPI', {
     ipcRenderer.on('map-loading-state', handler);
     return () => ipcRenderer.removeListener('map-loading-state', handler);
   },
-  reloadMap: () => ipcRenderer.send('reload-map')
+  reloadMap: () => ipcRenderer.send('reload-map'),
+  selectMapTab: (tabId) => ipcRenderer.invoke('select-map-tab', tabId),
+  getActiveMapTab: () => ipcRenderer.invoke('get-active-map-tab'),
+  toggleTheme: (isDark) => ipcRenderer.send('toggle-app-theme', { isDark }),
+  getAllAlerts: () => ipcRenderer.invoke('get-all-alerts'),
+  onAllAlertsUpdate: (callback) => {
+    const handler = (_event, data) => callback(data);
+    ipcRenderer.on('all-alerts-update', handler);
+    return () => ipcRenderer.removeListener('all-alerts-update', handler);
+  }
 });

@@ -1,0 +1,58 @@
+const assert = require('assert');
+const fs = require('fs');
+const path = require('path');
+
+console.log('🧪 Запуск тестів панелі вкладок та вбудованої векторної карти...');
+
+// 1. Перевірка конфігурації
+const config = require('../src/main/config');
+const initialTab = config.get('activeMapTab');
+assert.strictEqual(typeof initialTab, 'string', 'activeMapTab має бути рядком');
+console.log('✔ Тест 1 пройдено (activeMapTab присутній у конфігурації)');
+
+// 2. Перевірка геоданих карти
+const mapData = require('../src/renderer/main/map-data');
+assert.ok(mapData.MAP_VIEWBOX, 'MAP_VIEWBOX має бути визначений');
+assert.ok(Array.isArray(mapData.MAP_REGIONS), 'MAP_REGIONS має бути масивом');
+assert.ok(mapData.MAP_REGIONS.length >= 136, `Очікується мінімум 136 регіонів, отримано: ${mapData.MAP_REGIONS.length}`);
+assert.ok(Array.isArray(mapData.MAP_OBLAST_BORDERS), 'MAP_OBLAST_BORDERS має бути масивом');
+assert.ok(mapData.MAP_OBLAST_BORDERS.length >= 24, `Очікується мінімум 24 межі областей, отримано: ${mapData.MAP_OBLAST_BORDERS.length}`);
+console.log(`✔ Тест 2 пройдено (геодані карти валідні: ${mapData.MAP_REGIONS.length} районів/регіонів, ${mapData.MAP_OBLAST_BORDERS.length} меж областей)`);
+
+// 3. Перевірка наявності ключових міст та регіонів
+const uids = new Set(mapData.MAP_REGIONS.map(r => String(r.uid)));
+assert.ok(uids.has('31'), 'м. Київ (31) має бути на карті');
+assert.ok(uids.has('29'), 'АР Крим (29) має бути на карті');
+assert.ok(uids.has('30'), 'м. Севастополь (30) має бути на карті');
+console.log('✔ Тест 3 пройдено (Київ, Крим та Севастополь присутні на карті)');
+
+// 4. Перевірка повної відсутності емодзі у файлах інтерфейсу
+const indexHtml = fs.readFileSync(path.join(__dirname, '..', 'src', 'renderer', 'main', 'index.html'), 'utf8');
+const rendererJs = fs.readFileSync(path.join(__dirname, '..', 'src', 'renderer', 'main', 'renderer.js'), 'utf8');
+
+// Regex для детекції емодзі
+const emojiRegex = /[\u{1F300}-\u{1F5FF}\u{1F600}-\u{1F64F}\u{1F680}-\u{1F6FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{1F900}-\u{1F9FF}\u{1F018}-\u{1F270}]/u;
+
+assert.ok(!emojiRegex.test(indexHtml), 'В index.html не повинно бути емодзі');
+assert.ok(!emojiRegex.test(rendererJs), 'В renderer.js не повинно бути емодзі');
+console.log('✔ Тест 4 пройдено (в інтерфейсі повністю відсутні емодзі — виключно векторні SVG)');
+
+// 5. Перевірка наявності всіх 4 вкладок у розмітці
+const requiredTabs = ['internal', 'alertsinua', 'ukrainealarm', 'neptun'];
+for (const tab of requiredTabs) {
+  assert.ok(indexHtml.includes(`data-tab="${tab}"`), `Вкладка ${tab} має бути присутня в index.html`);
+}
+console.log('✔ Тест 5 пройдено (усі 4 вкладки present: internal, alertsinua, ukrainealarm, neptun)');
+
+// 6. Перевірка методів WindowManager
+const windowManager = require('../src/main/window');
+assert.strictEqual(typeof windowManager.switchMapTab, 'function');
+assert.strictEqual(typeof windowManager.getActiveMapTab, 'function');
+assert.strictEqual(typeof windowManager.broadcastThemeToViews, 'function');
+
+const res = windowManager.switchMapTab('internal');
+assert.strictEqual(res.success, true);
+assert.strictEqual(windowManager.getActiveMapTab(), 'internal');
+console.log('✔ Тест 6 пройдено (методи WindowManager перемикання вкладок та тем працюють)');
+
+console.log('🎉 Усі тести панелі вкладок та векторної карти успішно виконано!');

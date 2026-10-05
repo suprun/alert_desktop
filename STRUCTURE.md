@@ -107,7 +107,8 @@ alert_desktop/
 │   ├── test_neptun_adapter.js            # Unit-тести адаптера NEPTUN API (нормалізація 136 районів/міст, WebSocket, ієрархія, загрози)
 │   ├── test_jaam_adapter.js              # Unit-тести адаптера JAAM API (нормалізація версій v3/v2, часові мітки, ієрархія тривог)
 │   ├── test_net_check.js                 # Unit-тести модуля перевірки зв'язку через Anycast IP Google та Cloudflare
-│   └── test_fallback_resilience.js       # Unit-тести стійкості Fallback API, пріоритетів джерел, суворого режиму та відновлення
+│   ├── test_fallback_resilience.js       # Unit-тести стійкості Fallback API, пріоритетів джерел, суворого режиму та відновлення
+│   └── test_maps_tabs.js                 # Unit-тести панелі вкладок, геоданих векторної карти, повної відсутності емодзі та перемикання карт
 │
 ├── server/                               # Гібридний шлюз тривог на Python для Ubuntu (Webhook, WebSocket & Threats Enricher)
 │   ├── .env.example                      # Шаблон конфігурації шлюзу (UkraineAlarm та alerts.in.ua токени, webhook URL, порт)
@@ -123,29 +124,30 @@ alert_desktop/
 │
 └── src/                                  # Вихідний код застосунку
     ├── main/                             # Головний процес (Node.js / Electron Main)
-    │   ├── main.js                       # Точка входу: single instance lock, життєвий цикл
-    │   ├── window.js                     # Менеджер головного вікна (BrowserWindow + WebContentsView)
+    │   ├── main.js                       # Точка входу: single instance lock, життєвий цикл, IPC маршрутизація вкладок і тривог
+    │   ├── window.js                     # Менеджер головного вікна, пул переглядів веб-карт, розрахунок footerHeight (44px) та синхронізація тем
     │   ├── settings-window.js            # Менеджер діалогового вікна налаштувань
     │   ├── tray.js                       # Керування системним треєм (іконка, tooltip, меню, пункт оновлення)
     │   ├── updater.js                    # Сервіс перевірки та встановлення автооновлень (electron-updater / GitHub Releases)
     │   ├── threat-utils.js               # Нормалізація типів загроз (дрони, ракети тощо), усунення тавтології та генерація текстів
-    │   ├── api.js                        # WebSocket зв'язок (0s) + HTTP fallback + багаторівневе резервування (Gateway, Alerts.in.ua, UkraineAlarm, NEPTUN, Ubilling, JAAM)
+    │   ├── api.js                        # WebSocket зв'язок (0s) + HTTP fallback + багаторівневе резервування + список усіх активних тривог allAlerts
     │   ├── net-check.js                  # Швидка перевірка зв'язку з інтернетом через Anycast IP Google та Cloudflare (порти 53/443)
     │   ├── autostart.js                  # Менеджер автозапуску Windows (Electron API + HKCU Run)
-    │   ├── config.js                     # Робота з config.json, .env та автозапуском ОС
+    │   ├── config.js                     # Робота з config.json (збереження activeMapTab), .env та автозапуском ОС
     │   ├── notifier.js                   # Системні сповіщення Windows (Toast із часом знизу та тривалістю) і запуск звуку
     │   └── locations.json                # Повний довідник 1622 локацій України (UID, назви, типи)
     │
     ├── preload/                          # Безпечний ізольований Preload-шар (contextBridge)
-    │   ├── preload-main.js               # API для статус-панелі головного вікна (статус, аудіо, тема)
+    │   ├── preload-main.js               # API для головного вікна (статус, вибір вкладок, векторна тема, масив усіх тривог)
     │   ├── preload-settings.js           # API для вікна налаштувань (конфігурація, локації, тема)
-    │   └── preload-map.js                # Блокування PiP/міні-мапи та відстеження теми оформлення на alerts.in.ua
+    │   └── preload-map.js                # Блокування PiP та двостороння синхронізація тем для alerts.in.ua, map.ukrainealarm.com і neptun.in.ua
     │
     └── renderer/                         # Інтерфейс користувача (Renderer Process)
-        ├── main/                         # Верхня панель керування головного вікна
-        │   ├── index.html                # Розмітка шапки: окрема локація з піном (.location-item), єдиний об'єднаний статус-бейдж (#statusBadge), нейтральна іконка зв'язку з швидким тултіпом (#connectionStatus)
-        │   ├── style.css                 # Стилізація у світлій та темній темах, інтегрований статус-бейдж загрози, швидкий кастомний тултіп (80 мс)
-        │   └── renderer.js               # Відображення об'єднаного статусу із загрозою, нейтральної іконки зв'язку, синхронізація теми
+        ├── main/                         # Головне вікно застосунку
+        │   ├── map-data.js               # Векторні геодані карти України: 148 районів/спецміст та 25 меж областей у точній сітці viewBox
+        │   ├── index.html                # Розмітка: шапка, вбудована векторна карта, векторний перемикач теми та нижня панель вкладок без емодзі
+        │   ├── style.css                 # Стилізація світлої/темної тем, векторних контурів районів, рівнів загроз, тултіпів та вкладок
+        │   └── renderer.js               # Рендеринг векторної карти, багаторівневе забарвлення тривог (область/район/громада), перемикання вкладок
         └── settings/                     # Діалогове вікно налаштувань
             ├── settings.html             # Форма налаштувань (регіон, звук, автозапуск, API)
             ├── settings.css              # Стилізація Windows Fluent у світлій та темній темах

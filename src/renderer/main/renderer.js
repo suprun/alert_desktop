@@ -7,13 +7,43 @@ const connectionStatus = document.getElementById('connectionStatus');
 const fastTooltipText = document.getElementById('fastTooltipText');
 const btnSettings = document.getElementById('btnSettings');
 const mapProgressBar = document.getElementById('mapProgressBar');
+const mapPlaceholder = document.getElementById('mapPlaceholder');
 const mapLoadingState = document.getElementById('mapLoadingState');
 const mapErrorState = document.getElementById('mapErrorState');
 const mapErrorDescription = document.getElementById('mapErrorDescription');
 const btnRetryMap = document.getElementById('btnRetryMap');
 const audioPlayer = document.getElementById('audioPlayer');
 
-// Лінійні SVG іконки статусів
+// Елементи вбудованої векторної карти
+const internalMapContainer = document.getElementById('internalMapContainer');
+const internalAlertsSummary = document.getElementById('internalAlertsSummary');
+const btnMapThemeToggle = document.getElementById('btnMapThemeToggle');
+const ukraineMapWrapper = document.getElementById('ukraineMapWrapper');
+const ukraineVectorSvg = document.getElementById('ukraineVectorSvg');
+const svgDefs = document.getElementById('svgDefs');
+const districtsLayer = document.getElementById('districtsLayer');
+const oblastBordersLayer = document.getElementById('oblastBordersLayer');
+const mapRegionTooltip = document.getElementById('mapRegionTooltip');
+const tooltipRegionTitle = document.getElementById('tooltipRegionTitle');
+const tooltipOblastTitle = document.getElementById('tooltipOblastTitle');
+const tooltipStatusBadge = document.getElementById('tooltipStatusBadge');
+const tooltipStatusIcon = document.getElementById('tooltipStatusIcon');
+const tooltipStatusText = document.getElementById('tooltipStatusText');
+const tooltipHromadasList = document.getElementById('tooltipHromadasList');
+const tooltipTimeStarted = document.getElementById('tooltipTimeStarted');
+
+// Елементи панелі вкладок
+const tabButtons = document.querySelectorAll('.tab-btn');
+const tabInternalAlertBadge = document.getElementById('tabInternalAlertBadge');
+
+// Поточний стан
+let currentActiveTab = 'internal';
+let currentThemeIsDark = true;
+let allLocationsCache = [];
+let hromadaToRaionMap = new Map();
+let currentAlertsList = [];
+
+// Лінійні SVG іконки статусів (виключно векторні без емодзі)
 const icons = {
   safe: `
     <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -117,7 +147,8 @@ const threatIcons = {
 };
 
 function applyTheme(isDark) {
-  if (isDark) {
+  currentThemeIsDark = Boolean(isDark);
+  if (currentThemeIsDark) {
     document.documentElement.classList.remove('theme-light');
     document.documentElement.classList.add('theme-dark');
   } else {
@@ -138,6 +169,346 @@ function getProviderDisplayName(key) {
   return map[key] || (key ? key.toUpperCase() : 'Резерв');
 }
 
+// ==========================================================================
+// 1. ІНІЦІАЛІЗАЦІЯ ВЕКТОРНОЇ КАРТИ УКРАЇНИ
+// ==========================================================================
+function initVectorMap() {
+  if (typeof MAP_REGIONS === 'undefined' || !districtsLayer) return;
+
+  // Додавання маски (для Харкова)
+  if (svgDefs && typeof MAP_MASK_KHARKIV !== 'undefined') {
+    svgDefs.innerHTML = MAP_MASK_KHARKIV;
+  }
+
+  // Очищення шарів
+  districtsLayer.innerHTML = '';
+  if (oblastBordersLayer) oblastBordersLayer.innerHTML = '';
+
+  // Створення елементів районів
+  const fragment = document.createDocumentFragment();
+  for (const reg of MAP_REGIONS) {
+    const p = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    p.setAttribute('class', 'map-district safe');
+    p.setAttribute('id', `dist-${reg.uid}`);
+    p.setAttribute('data-uid', reg.uid);
+    p.setAttribute('data-title', reg.title);
+    p.setAttribute('data-oblast-uid', reg.oblastUid || '');
+    p.setAttribute('data-oblast-title', reg.oblastTitle || '');
+    p.setAttribute('d', reg.d);
+    if (reg.mask) {
+      p.setAttribute('mask', `url(#${reg.mask})`);
+    }
+
+    // Слухачі для тултіпа
+    p.addEventListener('mouseenter', onDistrictMouseEnter);
+    p.addEventListener('mousemove', onDistrictMouseMove);
+    p.addEventListener('mouseleave', onDistrictMouseLeave);
+    p.addEventListener('click', onDistrictClick);
+
+    fragment.appendChild(p);
+  }
+  districtsLayer.appendChild(fragment);
+
+  // Створення меж областей (Overlay)
+  if (oblastBordersLayer && typeof MAP_OBLAST_BORDERS !== 'undefined') {
+    const obFragment = document.createDocumentFragment();
+    for (const ob of MAP_OBLAST_BORDERS) {
+      const p = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      p.setAttribute('class', 'oblast-border');
+      p.setAttribute('d', ob.d);
+      if (ob.mask) {
+        p.setAttribute('mask', `url(#${ob.mask})`);
+      }
+      obFragment.appendChild(p);
+    }
+    oblastBordersLayer.appendChild(obFragment);
+  }
+}
+
+// Обробка спливаючої підказки (Tooltip)
+function onDistrictMouseEnter(e) {
+  showDistrictTooltip(e.currentTarget, e);
+}
+
+function onDistrictMouseMove(e) {
+  positionTooltip(e);
+}
+
+function onDistrictMouseLeave() {
+  if (mapRegionTooltip) {
+    mapRegionTooltip.style.display = 'none';
+  }
+}
+
+function onDistrictClick(e) {
+  const el = e.currentTarget;
+  const uid = el.getAttribute('data-uid');
+  const title = el.getAttribute('data-title');
+  if (window.alertAPI && window.alertAPI.openSettings) {
+    window.alertAPI.openSettings();
+  }
+}
+
+function showDistrictTooltip(targetEl, e) {
+  if (!mapRegionTooltip) return;
+
+  const title = targetEl.getAttribute('data-title') || 'Район';
+  const oblast = targetEl.getAttribute('data-oblast-title') || '';
+  const alertType = targetEl.getAttribute('data-alert-type') || '';
+  const alertLevel = targetEl.getAttribute('data-alert-level') || '';
+  const startedAt = targetEl.getAttribute('data-started-at') || '';
+  const hromadasStr = targetEl.getAttribute('data-active-hromadas') || '';
+
+  tooltipRegionTitle.textContent = title;
+  tooltipOblastTitle.textContent = oblast ? `${oblast}` : '';
+
+  tooltipStatusBadge.className = 'tooltip-status-badge';
+
+  if (targetEl.classList.contains('alert') || targetEl.classList.contains('yellow') || targetEl.classList.contains('artillery')) {
+    if (targetEl.classList.contains('artillery')) {
+      tooltipStatusBadge.classList.add('artillery');
+      tooltipStatusIcon.innerHTML = threatIcons.artillery;
+      tooltipStatusText.textContent = 'Загроза артобстрілу';
+    } else if (targetEl.classList.contains('yellow') || alertLevel === 'yellow') {
+      tooltipStatusBadge.classList.add('yellow');
+      tooltipStatusIcon.innerHTML = threatIcons.drone;
+      tooltipStatusText.textContent = 'Дронова загроза';
+    } else {
+      tooltipStatusBadge.classList.add('alert');
+      tooltipStatusIcon.innerHTML = icons.alert;
+      tooltipStatusText.textContent = 'Повітряна тривога';
+    }
+
+    // Якщо тривога лише в окремих громадах
+    if (hromadasStr) {
+      try {
+        const hromadas = JSON.parse(hromadasStr);
+        if (hromadas.length > 0) {
+          tooltipHromadasList.style.display = 'block';
+          tooltipHromadasList.textContent = `Тривога в громадах: ${hromadas.join(', ')}`;
+        } else {
+          tooltipHromadasList.style.display = 'none';
+        }
+      } catch (err) {
+        tooltipHromadasList.style.display = 'none';
+      }
+    } else {
+      tooltipHromadasList.style.display = 'none';
+    }
+
+    if (startedAt) {
+      const timeStr = new Date(startedAt).toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit' });
+      tooltipTimeStarted.textContent = `Початок: ${timeStr}`;
+      tooltipTimeStarted.style.display = 'block';
+    } else {
+      tooltipTimeStarted.style.display = 'none';
+    }
+  } else {
+    tooltipStatusBadge.classList.add('safe');
+    tooltipStatusIcon.innerHTML = icons.safe;
+    tooltipStatusText.textContent = 'Немає тривоги';
+    tooltipHromadasList.style.display = 'none';
+    tooltipTimeStarted.style.display = 'none';
+  }
+
+  mapRegionTooltip.style.display = 'block';
+  positionTooltip(e);
+}
+
+function positionTooltip(e) {
+  if (!mapRegionTooltip || !internalMapContainer) return;
+
+  const containerRect = internalMapContainer.getBoundingClientRect();
+  const x = e.clientX - containerRect.left;
+  const y = e.clientY - containerRect.top;
+
+  mapRegionTooltip.style.left = `${x}px`;
+  mapRegionTooltip.style.top = `${y}px`;
+}
+
+// ==========================================================================
+// 2. ДИНАМІЧНЕ ЗАБАРВЛЕННЯ ВЕКТОРНОЇ КАРТИ ТРИВОГ (ОБЛАСТІ, РАЙОНИ, ГРОМАДИ)
+// ==========================================================================
+function applyAlertsToVectorMap(alerts) {
+  currentAlertsList = Array.isArray(alerts) ? alerts : [];
+  if (!districtsLayer) return;
+
+  const allDistrictPaths = districtsLayer.querySelectorAll('.map-district');
+
+  // 1. Очищення попереднього стану
+  allDistrictPaths.forEach(p => {
+    p.classList.remove('alert', 'yellow', 'artillery');
+    p.classList.add('safe');
+    p.removeAttribute('data-alert-type');
+    p.removeAttribute('data-alert-level');
+    p.removeAttribute('data-started-at');
+    p.removeAttribute('data-active-hromadas');
+  });
+
+  // Карта для збору громад по районах: raionUid -> string[]
+  const hromadasByRaion = new Map();
+  // Множина активних районів для підрахунку
+  const activeRaionUids = new Set();
+  const activeOblastUids = new Set();
+
+  for (const a of currentAlertsList) {
+    const locUid = String(a.location_uid || a.uid || '');
+    const locTitle = (a.location_title || a.title || '').toLowerCase().trim();
+    const locOblast = (a.location_oblast || '').toLowerCase().trim();
+    const locType = (a.location_type || '').toLowerCase();
+    const alertLevel = a.alert_level || 'red';
+    const alertType = a.alert_type || 'air_raid';
+    const startedAt = a.started_at || a.startedAt || '';
+
+    // А) Обласна тривога (state / oblast): поширюється на всі райони області
+    if (locType === 'state' || locType === 'oblast' || (!locType && !a.location_raion)) {
+      allDistrictPaths.forEach(p => {
+        const obUid = p.getAttribute('data-oblast-uid');
+        const obTitle = (p.getAttribute('data-oblast-title') || '').toLowerCase().trim();
+        const distUid = p.getAttribute('data-uid');
+
+        if (obUid === locUid || distUid === locUid || (locOblast && obTitle.includes(locOblast)) || (locTitle && obTitle.includes(locTitle))) {
+          p.classList.remove('safe');
+          if (alertType === 'artillery_shelling') p.classList.add('artillery');
+          else if (alertLevel === 'yellow') p.classList.add('yellow');
+          else p.classList.add('alert');
+
+          p.setAttribute('data-alert-type', alertType);
+          p.setAttribute('data-alert-level', alertLevel);
+          p.setAttribute('data-started-at', startedAt);
+          activeRaionUids.add(distUid);
+          activeOblastUids.add(obUid || locUid);
+        }
+      });
+      continue;
+    }
+
+    // Б) Районна тривога (district / raion): забарвлює конкретний район
+    if (locType === 'district' || locType === 'raion') {
+      allDistrictPaths.forEach(p => {
+        const distUid = p.getAttribute('data-uid');
+        const distTitle = (p.getAttribute('data-title') || '').toLowerCase().trim();
+
+        if (distUid === locUid || (locTitle && distTitle.includes(locTitle))) {
+          p.classList.remove('safe');
+          if (alertType === 'artillery_shelling') p.classList.add('artillery');
+          else if (alertLevel === 'yellow') p.classList.add('yellow');
+          else p.classList.add('alert');
+
+          p.setAttribute('data-alert-type', alertType);
+          p.setAttribute('data-alert-level', alertLevel);
+          p.setAttribute('data-started-at', startedAt);
+          activeRaionUids.add(distUid);
+          activeOblastUids.add(p.getAttribute('data-oblast-uid') || '');
+        }
+      });
+      continue;
+    }
+
+    // В) Тривога в окремій громаді (hromada): знаходить батьківський район
+    let targetRaionUid = null;
+    let targetOblastUid = null;
+
+    if (hromadaToRaionMap.has(locUid)) {
+      const locInfo = hromadaToRaionMap.get(locUid);
+      targetRaionUid = locInfo.raionUid;
+      targetOblastUid = locInfo.oblastUid;
+    } else if (allLocationsCache.length > 0) {
+      const found = allLocationsCache.find(l => String(l.uid) === locUid || (locTitle && l.title && l.title.toLowerCase().trim() === locTitle));
+      if (found && found.raionUid) {
+        targetRaionUid = String(found.raionUid);
+        targetOblastUid = String(found.oblastUid || '');
+      }
+    }
+
+    if (targetRaionUid) {
+      if (!hromadasByRaion.has(targetRaionUid)) {
+        hromadasByRaion.set(targetRaionUid, []);
+      }
+      hromadasByRaion.get(targetRaionUid).push(a.location_title || a.title || 'Громада');
+
+      allDistrictPaths.forEach(p => {
+        const distUid = p.getAttribute('data-uid');
+        if (distUid === targetRaionUid) {
+          p.classList.remove('safe');
+          if (alertType === 'artillery_shelling') p.classList.add('artillery');
+          else if (alertLevel === 'yellow') p.classList.add('yellow');
+          else p.classList.add('alert');
+
+          p.setAttribute('data-alert-type', alertType);
+          p.setAttribute('data-alert-level', alertLevel);
+          p.setAttribute('data-started-at', startedAt);
+          activeRaionUids.add(distUid);
+          activeOblastUids.add(targetOblastUid || p.getAttribute('data-oblast-uid') || '');
+        }
+      });
+    }
+  }
+
+  // Запис переліку громад в атрибути районів
+  for (const [rUid, hList] of hromadasByRaion.entries()) {
+    allDistrictPaths.forEach(p => {
+      if (p.getAttribute('data-uid') === rUid) {
+        p.setAttribute('data-active-hromadas', JSON.stringify(hList));
+      }
+    });
+  }
+
+  // Оновлення лічильника у верхній панелі карти
+  const activeCount = activeRaionUids.size;
+  const oblastsCount = activeOblastUids.size;
+
+  if (internalAlertsSummary) {
+    const mapStatsPill = internalAlertsSummary.closest('.map-stats-pill');
+    if (activeCount > 0) {
+      if (mapStatsPill) mapStatsPill.classList.add('has-alerts');
+      internalAlertsSummary.textContent = `Тривога: ${activeCount} районів у ${oblastsCount} областях`;
+    } else {
+      if (mapStatsPill) mapStatsPill.classList.remove('has-alerts');
+      internalAlertsSummary.textContent = 'Україна: тривог немає';
+    }
+  }
+
+  // Оновлення бейджа на вкладці "Вбудована"
+  if (tabInternalAlertBadge) {
+    if (activeCount > 0) {
+      tabInternalAlertBadge.textContent = activeCount;
+      tabInternalAlertBadge.style.display = 'inline-flex';
+    } else {
+      tabInternalAlertBadge.style.display = 'none';
+    }
+  }
+}
+
+// ==========================================================================
+// 3. ПЕРЕМИКАННЯ ВКЛАДОК КАРТ
+// ==========================================================================
+function setActiveTabUI(tabId) {
+  currentActiveTab = tabId;
+
+  // Оновлення активної кнопки вкладки
+  tabButtons.forEach(btn => {
+    if (btn.getAttribute('data-tab') === tabId) {
+      btn.classList.add('active');
+    } else {
+      btn.classList.remove('active');
+    }
+  });
+
+  // Перемикання видимості контейнерів
+  if (tabId === 'internal') {
+    if (internalMapContainer) internalMapContainer.style.display = 'flex';
+    if (mapPlaceholder) mapPlaceholder.style.display = 'none';
+    if (mapProgressBar) mapProgressBar.classList.remove('active');
+  } else {
+    if (internalMapContainer) internalMapContainer.style.display = 'none';
+    if (mapPlaceholder) mapPlaceholder.style.display = 'flex';
+  }
+}
+
+// ==========================================================================
+// 4. ОНОВЛЕННЯ СТАТУСУ ШАПКИ ЗАСТОСУНКУ
+// ==========================================================================
 function updateUI(status) {
   if (!status) return;
 
@@ -232,20 +603,34 @@ function updateUI(status) {
     statusIcon.innerHTML = icons.safe;
     statusText.textContent = 'Немає тривоги';
   }
+
+  // Оновлення векторної карти при наявності allAlerts у статусі
+  if (Array.isArray(status.allAlerts)) {
+    applyAlertsToVectorMap(status.allAlerts);
+  }
 }
 
 function setMapLoadingState(state, errorMsg = '') {
+  if (currentActiveTab === 'internal') {
+    if (mapProgressBar) mapProgressBar.classList.remove('active');
+    if (mapPlaceholder) mapPlaceholder.style.display = 'none';
+    return;
+  }
+
   if (state === 'loading') {
     if (mapProgressBar) mapProgressBar.classList.add('active');
     if (mapLoadingState) mapLoadingState.style.display = 'flex';
     if (mapErrorState) mapErrorState.style.display = 'none';
+    if (mapPlaceholder) mapPlaceholder.style.display = 'flex';
   } else if (state === 'ready') {
     if (mapProgressBar) mapProgressBar.classList.remove('active');
     if (mapLoadingState) mapLoadingState.style.display = 'none';
     if (mapErrorState) mapErrorState.style.display = 'none';
+    if (mapPlaceholder) mapPlaceholder.style.display = 'none';
   } else if (state === 'failed') {
     if (mapProgressBar) mapProgressBar.classList.remove('active');
     if (mapLoadingState) mapLoadingState.style.display = 'none';
+    if (mapPlaceholder) mapPlaceholder.style.display = 'flex';
     if (mapErrorState) {
       mapErrorState.style.display = 'flex';
       if (mapErrorDescription && errorMsg) {
@@ -273,7 +658,9 @@ function playAudio(soundType, soundId, volume = 80) {
   }
 }
 
-// Слухачі подій
+// ==========================================================================
+// 5. СЛУХАЧІ ПОДІЙ ТА ІНІЦІАЛІЗАЦІЯ
+// ==========================================================================
 btnSettings.addEventListener('click', () => {
   if (window.alertAPI && window.alertAPI.openSettings) {
     window.alertAPI.openSettings();
@@ -298,6 +685,33 @@ if (btnRetryMap) {
   });
 }
 
+// Векторний перемикач теми інтерфейсу на вбудованій карті (без емодзі)
+if (btnMapThemeToggle) {
+  btnMapThemeToggle.addEventListener('click', () => {
+    const nextDark = !currentThemeIsDark;
+    applyTheme(nextDark);
+    if (window.alertAPI && window.alertAPI.toggleTheme) {
+      window.alertAPI.toggleTheme(nextDark);
+    }
+  });
+}
+
+// Перемикання вкладок нижньої панелі
+tabButtons.forEach(btn => {
+  btn.addEventListener('click', () => {
+    const tabId = btn.getAttribute('data-tab');
+    if (!tabId || tabId === currentActiveTab) return;
+    setActiveTabUI(tabId);
+    if (window.alertAPI && window.alertAPI.selectMapTab) {
+      window.alertAPI.selectMapTab(tabId);
+    }
+  });
+});
+
+// Ініціалізація карти в DOM
+initVectorMap();
+
+// Підключення до Electron IPC
 if (window.alertAPI) {
   window.alertAPI.onStatusUpdate((status) => {
     updateUI(status);
@@ -313,12 +727,12 @@ if (window.alertAPI) {
     });
   }
 
-  // Завантаження початкового стану
-  window.alertAPI.getCurrentStatus().then((status) => {
-    updateUI(status);
-  }).catch((err) => {
-    console.warn('Помилка завантаження стану:', err);
-  });
+  // Оновлення всіх активних тривог для векторної карти
+  if (window.alertAPI.onAllAlertsUpdate) {
+    window.alertAPI.onAllAlertsUpdate((alerts) => {
+      applyAlertsToVectorMap(alerts);
+    });
+  }
 
   // Синхронізація теми оформлення
   if (window.alertAPI.onThemeUpdated) {
@@ -331,6 +745,31 @@ if (window.alertAPI) {
     window.alertAPI.getTheme().then((themeInfo) => {
       if (themeInfo && typeof themeInfo.isDark === 'boolean') {
         applyTheme(themeInfo.isDark);
+      }
+    }).catch(() => {});
+  }
+
+  // Завантаження активної вкладки
+  if (window.alertAPI.getActiveMapTab) {
+    window.alertAPI.getActiveMapTab().then((tabId) => {
+      if (tabId) {
+        setActiveTabUI(tabId);
+      }
+    }).catch(() => {});
+  }
+
+  // Завантаження початкового стану
+  window.alertAPI.getCurrentStatus().then((status) => {
+    updateUI(status);
+  }).catch((err) => {
+    console.warn('Помилка завантаження стану:', err);
+  });
+
+  // Отримання масиву всіх тривог при старті
+  if (window.alertAPI.getAllAlerts) {
+    window.alertAPI.getAllAlerts().then((alerts) => {
+      if (Array.isArray(alerts) && alerts.length > 0) {
+        applyAlertsToVectorMap(alerts);
       }
     }).catch(() => {});
   }

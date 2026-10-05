@@ -69,48 +69,187 @@
   <!-- Тонкий індикатор активності підключення до карти -->
   <div id="mapProgressBar" class="map-progress-bar active"></div>
 
-  <!-- Область завантаження / скелетон / повідомлення про помилку -->
-  <main id="mapPlaceholder" class="map-placeholder">
-    <!-- Стан завантаження -->
-    <div id="mapLoadingState" class="map-state-box loading">
-      <div class="loader-spinner">
-        <div class="spinner-ring"></div>
-        <div class="spinner-icon">
-          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/>
-            <line x1="8" y1="2" x2="8" y2="18"/>
-            <line x1="16" y1="6" x2="16" y2="22"/>
-          </svg>
+  <!-- Основна область перегляду: Вбудована карта або Плейсхолдер веб-карт -->
+  <main id="mainContainer" class="main-content-container">
+    
+    <!-- 1. ВБУДОВАНА ВЕКТОРНА КАРТА ТРИВОГ (ОБЛАСТІ, РАЙОНИ, ГРОМАДИ) -->
+    <div id="internalMapContainer" class="internal-map-container">
+      <!-- Верхній тулбар вбудованої карти -->
+      <div class="internal-map-toolbar">
+        <div class="map-stats-pill">
+          <span class="stats-pulse-dot" aria-hidden="true"></span>
+          <span id="internalAlertsSummary" class="stats-label">Україна: перевірка тривог...</span>
+        </div>
+
+        <div class="toolbar-controls">
+          <!-- Векторний перемикач теми інтерфейсу (Сонце / Місяць без емодзі) -->
+          <button type="button" id="btnMapThemeToggle" class="btn-map-theme" title="Перемкнути тему інтерфейсу (Світла / Темна)" aria-label="Перемкнути тему">
+            <span id="themeSunIcon" class="theme-icon sun-icon">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="5"/>
+                <line x1="12" y1="1" x2="12" y2="3"/>
+                <line x1="12" y1="21" x2="12" y2="23"/>
+                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+                <line x1="1" y1="12" x2="3" y2="12"/>
+                <line x1="21" y1="12" x2="23" y2="12"/>
+                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+              </svg>
+            </span>
+            <span id="themeMoonIcon" class="theme-icon moon-icon">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+              </svg>
+            </span>
+          </button>
         </div>
       </div>
-      <h2 class="map-state-title">Завантаження карти...</h2>
-      <p class="map-state-subtitle">Підключення до інтерактивної мапи тривог</p>
-    </div>
 
-    <!-- Стан помилки підключення -->
-    <div id="mapErrorState" class="map-state-box error" style="display: none;">
-      <div class="error-icon-box">
-        <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="10"/>
-          <line x1="12" y1="8" x2="12" y2="12"/>
-          <line x1="12" y1="16" x2="12.01" y2="16"/>
+      <!-- Векторний SVG каркас мапи України -->
+      <div id="ukraineMapWrapper" class="ukraine-map-wrapper">
+        <svg id="ukraineVectorSvg" class="ukraine-vector-svg" viewBox="0 0 260 175" preserveAspectRatio="xMidYMid meet">
+          <!-- Маски та фільтри -->
+          <defs id="svgDefs"></defs>
+          <!-- Шар районів (136 районів + спецміста) -->
+          <g id="districtsLayer" class="districts-layer"></g>
+          <!-- Шар меж областей -->
+          <g id="oblastBordersLayer" class="oblast-borders-layer" pointer-events="none"></g>
         </svg>
       </div>
-      <h2 class="map-state-title">Не вдалося завантажити карту</h2>
-      <p id="mapErrorDescription" class="map-state-subtitle">Перевірте інтернет-з’єднання або доступність сервера alerts.in.ua</p>
-      <button type="button" id="btnRetryMap" class="btn-retry-map">
-        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <polyline points="23 4 23 10 17 10"/>
-          <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
-        </svg>
-        <span>Спробувати знову</span>
-      </button>
+
+      <!-- Легенда векторної карти з геометричними маркерами -->
+      <div class="internal-map-legend">
+        <div class="legend-item">
+          <span class="legend-dot safe"></span>
+          <span class="legend-text">Немає тривоги</span>
+        </div>
+        <div class="legend-item">
+          <span class="legend-dot alert"></span>
+          <span class="legend-text">Повітряна тривога</span>
+        </div>
+        <div class="legend-item">
+          <span class="legend-dot yellow"></span>
+          <span class="legend-text">Дронова загроза</span>
+        </div>
+        <div class="legend-item">
+          <span class="legend-dot artillery"></span>
+          <span class="legend-text">Загроза обстрілу</span>
+        </div>
+      </div>
+
+      <!-- Інтерактивний тултіп району/громади -->
+      <div id="mapRegionTooltip" class="map-region-tooltip" style="display: none;">
+        <div id="tooltipRegionTitle" class="tooltip-region-title"></div>
+        <div id="tooltipOblastTitle" class="tooltip-oblast-title"></div>
+        <div id="tooltipStatusBadge" class="tooltip-status-badge">
+          <span id="tooltipStatusIcon" class="tooltip-status-icon"></span>
+          <span id="tooltipStatusText" class="tooltip-status-text"></span>
+        </div>
+        <div id="tooltipHromadasList" class="tooltip-hromadas-list" style="display: none;"></div>
+        <div id="tooltipTimeStarted" class="tooltip-time-started"></div>
+      </div>
+    </div>
+
+    <!-- 2. Стан завантаження / помилки для зовнішніх веб-карт -->
+    <div id="mapPlaceholder" class="map-placeholder" style="display: none;">
+      <!-- Стан завантаження -->
+      <div id="mapLoadingState" class="map-state-box loading">
+        <div class="loader-spinner">
+          <div class="spinner-ring"></div>
+          <div class="spinner-icon">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/>
+              <line x1="8" y1="2" x2="8" y2="18"/>
+              <line x1="16" y1="6" x2="16" y2="22"/>
+            </svg>
+          </div>
+        </div>
+        <h2 class="map-state-title">Завантаження карти...</h2>
+        <p class="map-state-subtitle">Підключення до обраної інтерактивної мапи</p>
+      </div>
+
+      <!-- Стан помилки підключення -->
+      <div id="mapErrorState" class="map-state-box error" style="display: none;">
+        <div class="error-icon-box">
+          <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="12" y1="8" x2="12" y2="12"/>
+            <line x1="12" y1="16" x2="12.01" y2="16"/>
+          </svg>
+        </div>
+        <h2 class="map-state-title">Не вдалося завантажити карту</h2>
+        <p id="mapErrorDescription" class="map-state-subtitle">Перевірте інтернет-з’єднання або доступність сервера</p>
+        <button type="button" id="btnRetryMap" class="btn-retry-map">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="23 4 23 10 17 10"/>
+            <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+          </svg>
+          <span>Спробувати знову</span>
+        </button>
+      </div>
     </div>
   </main>
+
+  <!-- 3. НИЖНЯ ГОРИЗОНТАЛЬНА ПАНЕЛЬ ВКЛАДОК ПЕРЕМИКАННЯ КАРТ (БЕЗ ЕМОДЗІ) -->
+  <footer id="mapTabsBar" class="map-tabs-bar" role="navigation" aria-label="Вибір карти тривог">
+    <div class="tabs-track">
+      <!-- 1. Вбудована -->
+      <button type="button" class="tab-btn active" data-tab="internal" title="Автономна вбудована векторна карта">
+        <span class="tab-btn-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="12 2 2 7 12 12 22 7 12 2"/>
+            <polyline points="2 17 12 22 22 17"/>
+            <polyline points="2 12 12 17 22 12"/>
+          </svg>
+        </span>
+        <span class="tab-btn-label">Вбудована</span>
+        <span id="tabInternalAlertBadge" class="tab-alert-badge" style="display: none;">0</span>
+      </button>
+
+      <!-- 2. Alerts.in.ua -->
+      <button type="button" class="tab-btn" data-tab="alertsinua" title="Мапа alerts.in.ua">
+        <span class="tab-btn-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2z"/>
+            <path d="m12 12 4-4"/>
+            <circle cx="12" cy="12" r="2"/>
+          </svg>
+        </span>
+        <span class="tab-btn-label">Alerts.in.ua</span>
+      </button>
+
+      <!-- 3. UkraineAlarm -->
+      <button type="button" class="tab-btn" data-tab="ukrainealarm" title="Офіційна мапа map.ukrainealarm.com">
+        <span class="tab-btn-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/>
+            <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>
+          </svg>
+        </span>
+        <span class="tab-btn-label">UkraineAlarm</span>
+      </button>
+
+      <!-- 4. Neptun -->
+      <button type="button" class="tab-btn" data-tab="neptun" title="Мапа neptun.in.ua">
+        <span class="tab-btn-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2v20M5 7v5a7 7 0 0 0 14 0V7"/>
+            <circle cx="5" cy="7" r="1.5"/>
+            <circle cx="12" cy="2" r="1.5"/>
+            <circle cx="19" cy="7" r="1.5"/>
+          </svg>
+        </span>
+        <span class="tab-btn-label">Neptun</span>
+      </button>
+    </div>
+  </footer>
 
   <!-- Аудіо-елемент для відтворення сигналів у вікні -->
   <audio id="audioPlayer" preload="auto"></audio>
 
+  <!-- Скрипти: векторні геодані та контролер інтерфейсу -->
+  <script src="map-data.js"></script>
   <script src="renderer.js"></script>
 </body>
 </html>

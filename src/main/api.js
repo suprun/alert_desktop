@@ -69,6 +69,7 @@ class AlertApiService extends EventEmitter {
       startedAt: null,
       locationTitle: config.get('locationTitle'),
       allAlertsCount: 0,
+      allAlerts: [],
       isOffline: false,
       isRealtime: false,
       activeProvider: config.get('apiProvider') || 'gateway',
@@ -501,6 +502,7 @@ class AlertApiService extends EventEmitter {
       startedAt,
       locationTitle: config.get('locationTitle'),
       allAlertsCount: alerts.length,
+      allAlerts: Array.isArray(alerts) ? alerts : [],
       isOffline: false,
       isRealtime: this.isWsConnected,
       activeProvider: options.activeProvider || this.lastState.activeProvider || config.get('apiProvider') || 'gateway',
@@ -911,6 +913,10 @@ class AlertApiService extends EventEmitter {
     }
 
     return alerts;
+  }
+
+  getAllAlerts() {
+    return Array.isArray(this.currentAlerts) ? this.currentAlerts : [];
   }
 
   getCurrentState() {
