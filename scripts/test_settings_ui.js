@@ -136,15 +136,15 @@ const settingsHtml = fs.readFileSync(settingsHtmlPath, 'utf8');
   console.log('✔ Тест 10 пройдено (бейдж обраної місцевості переведено на 2-рядкову простору верстку без розриву назви)');
 }
 
-// Тест 11: Перевірка іконок зовнішнього переходу для 3 посилань на політики конфіденційності
+// Тест 11: Перевірка іконок зовнішнього переходу для 3 посилань на політики конфіденційності, 3 кнопок About та кнопки донату
 {
   const totalExternalIcons = (settingsHtml.match(/class="external-link-icon"/g) || []).length;
   assert.strictEqual(
     totalExternalIcons,
-    6,
-    `Має бути рівно 6 іконок external-link (3 на кнопках About + 3 на посиланнях політик), знайдено: ${totalExternalIcons}`
+    7,
+    `Має бути рівно 7 іконок external-link (3 на кнопках About + 1 на кнопці донату + 3 на посиланнях політик), знайдено: ${totalExternalIcons}`
   );
-  console.log('✔ Тест 11 пройдено (усі посилання на політики сервісів мап містять векторний SVG значок зовнішнього переходу)');
+  console.log('✔ Тест 11 пройдено (усі посилання на зовнішні ресурси, донат та політики містять векторний SVG значок зовнішнього переходу)');
 }
 
 // Тест 12: Перевірка збільшених шрифтів блоку About
@@ -157,7 +157,7 @@ const settingsHtml = fs.readFileSync(settingsHtmlPath, 'utf8');
   console.log('✔ Тест 12 пройдено (шрифти блоку About збільшено для комфортної читабельності)');
 }
 
-// Тест 13: Перевірка об'єднання блоку оновлень із блоком "Про застосунок" (без внутрішньої картки .update-card та окремої секції)
+// Тест 13: Перевірка порядку елементів (кнопки в 1 рядок, донат, потім блок оновлення)
 {
   assert.ok(
     !settingsHtml.includes('class="settings-group update-group"'),
@@ -165,14 +165,21 @@ const settingsHtml = fs.readFileSync(settingsHtmlPath, 'utf8');
   );
   assert.ok(
     !settingsHtml.includes('class="update-card"'),
-    'Внутрішню підкартку update-card має бути витягнуто (ліквідовано рамки і вкладеність)'
+    'Внутрішню підкартку update-card має бути витягнуто (ліквідовано подвійні рамки)'
   );
   assert.ok(
     settingsHtml.includes('Про застосунок та оновлення'),
     'Заголовок секції має бути "Про застосунок та оновлення"'
   );
+  assert.ok(
+    settingsHtml.includes('class="about-donate-row"') && settingsHtml.includes('https://send.monobank.ua/jar/alert_desktop'),
+    'Рядок підтримки/донату з Monobank банкою має бути присутній'
+  );
 
   const aboutIndex = settingsHtml.indexOf('class="settings-group about-group"');
+  const linksIndex = settingsHtml.indexOf('class="about-links-row"');
+  const donateIndex = settingsHtml.indexOf('class="about-donate-row"');
+  const updateBlockIndex = settingsHtml.indexOf('class="about-update-block"');
   const checkBtnIndex = settingsHtml.indexOf('id="btnCheckUpdate"');
   const downloadBtnIndex = settingsHtml.indexOf('id="btnDownloadUpdate"');
   const installBtnIndex = settingsHtml.indexOf('id="btnInstallUpdate"');
@@ -180,14 +187,25 @@ const settingsHtml = fs.readFileSync(settingsHtmlPath, 'utf8');
   const statusTextIndex = settingsHtml.indexOf('id="updateStatusText"');
   const devGroupIndex = settingsHtml.indexOf('class="settings-group dev-settings-group"');
 
-  assert.ok(checkBtnIndex > aboutIndex && checkBtnIndex < devGroupIndex, 'btnCheckUpdate має бути всередині about-group');
-  assert.ok(downloadBtnIndex > aboutIndex && downloadBtnIndex < devGroupIndex, 'btnDownloadUpdate має бути всередині about-group');
-  assert.ok(installBtnIndex > aboutIndex && installBtnIndex < devGroupIndex, 'btnInstallUpdate має бути всередині about-group');
-  assert.ok(meteredChkIndex > aboutIndex && meteredChkIndex < devGroupIndex, 'chkAutoDownloadMetered має бути всередині about-group');
-  assert.ok(statusTextIndex > aboutIndex && statusTextIndex < devGroupIndex, 'updateStatusText має бути всередині about-group');
+  assert.ok(linksIndex > aboutIndex, 'Кнопки About мають бути всередині about-group');
+  assert.ok(linksIndex < donateIndex, 'Кнопки About мають розташовуватися ПЕРЕД рядком донату');
+  assert.ok(donateIndex < updateBlockIndex, 'Рядок донату має розташовуватися ПЕРЕД блоком оновлень');
+  assert.ok(checkBtnIndex > updateBlockIndex && checkBtnIndex < devGroupIndex, 'btnCheckUpdate має бути всередині about-update-block');
+  assert.ok(downloadBtnIndex > updateBlockIndex && downloadBtnIndex < devGroupIndex, 'btnDownloadUpdate має бути всередині about-update-block');
+  assert.ok(installBtnIndex > updateBlockIndex && installBtnIndex < devGroupIndex, 'btnInstallUpdate має бути всередині about-update-block');
+  assert.ok(meteredChkIndex > updateBlockIndex && meteredChkIndex < devGroupIndex, 'chkAutoDownloadMetered має бути всередині about-update-block');
+  assert.ok(statusTextIndex > updateBlockIndex && statusTextIndex < devGroupIndex, 'updateStatusText має бути всередині about-update-block');
 
   const settingsCssPath = path.join(__dirname, '..', 'src', 'renderer', 'settings', 'settings.css');
   const settingsCss = fs.readFileSync(settingsCssPath, 'utf8');
+  assert.ok(
+    settingsCss.includes('.about-links-row') && settingsCss.includes('flex-wrap: nowrap;'),
+    'settings.css має задавати flex-wrap: nowrap для .about-links-row щоб вмістити кнопки строго в один рядок'
+  );
+  assert.ok(
+    settingsCss.includes('.about-donate-row') && settingsCss.includes('.about-donate-btn'),
+    'settings.css має містити стилі рядка донату'
+  );
   assert.ok(
     settingsCss.includes('.about-status-row') && settingsCss.includes('min-height: 18px;'),
     'settings.css має задавати min-height: 18px для .about-status-row для усунення стрибків layout'
@@ -205,7 +223,7 @@ const settingsHtml = fs.readFileSync(settingsHtmlPath, 'utf8');
     'settings.css не повинен містити стилів застарілої плашки .update-card'
   );
 
-  console.log('✔ Тест 13 пройдено (блок оновлень об\'єднано з About без внутрішньої картки, layout shift усунено)');
+  console.log('✔ Тест 13 пройдено (кнопки About в 1 рядок, блок донату додано, блок оновлень перенесено після них без layout shift)');
 }
 
 console.log('🎉 Усі тести інтерфейсу налаштувань успішно пройдено!');

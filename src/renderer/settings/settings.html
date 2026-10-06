@@ -142,67 +142,15 @@
         <span class="group-label">Про застосунок та оновлення</span>
         <div class="about-card">
           <div class="about-header-row">
-            <div class="about-header-main">
-              <span class="about-app-name">AlertDesktop <span id="updateCurrentVersion" class="about-version"></span></span>
-              <span class="about-license-badge">Apache-2.0</span>
-            </div>
-            <div class="about-actions-col">
-              <button type="button" id="btnCheckUpdate" class="btn-secondary btn-update-action" title="Перевірити наявність нових версій">
-                <svg class="update-icon" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <polyline points="23 4 23 10 17 10"/>
-                  <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
-                </svg>
-                <span>Перевірити оновлення</span>
-              </button>
-              <button type="button" id="btnDownloadUpdate" class="btn-primary btn-update-action" style="display: none;" title="Завантажити доступне оновлення">
-                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                  <polyline points="7 10 12 15 17 10"/>
-                  <line x1="12" y1="15" x2="12" y2="3"/>
-                </svg>
-                <span>Завантажити</span>
-              </button>
-              <button type="button" id="btnInstallUpdate" class="btn-primary btn-update-action" style="display: none;" title="Перезапустити застосунок та встановити оновлення">
-                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
-                </svg>
-                <span>Оновити</span>
-              </button>
-            </div>
-          </div>
-
-          <!-- Рядок статусу оновлень із фіксованою висотою без layout shift -->
-          <div class="about-status-row">
-            <span id="updateStatusText" class="update-status-text">Остання версія встановлена</span>
+            <span class="about-app-name">AlertDesktop <span id="updateCurrentVersion" class="about-version"></span></span>
+            <span class="about-license-badge">Apache-2.0</span>
           </div>
 
           <p class="about-desc">
             Вільний клієнт моніторингу повітряних тривог із відкритим вихідним кодом.
           </p>
 
-          <!-- Тимчасовий прогрес-бар під час завантаження -->
-          <div id="updateProgressWrapper" class="update-progress-wrapper" style="display: none;">
-            <div class="update-progress-info">
-              <span id="updateProgressLabel" class="update-progress-label">Завантаження оновлення...</span>
-              <span id="updateProgressPercent" class="update-progress-percent">0%</span>
-            </div>
-            <div class="update-progress-track">
-              <div id="updateProgressBar" class="update-progress-bar" style="width: 0%;"></div>
-            </div>
-          </div>
-
-          <!-- Чекбокс лімітованого підключення -->
-          <div class="checkbox-control update-checkbox-row">
-            <input type="checkbox" id="chkAutoDownloadMetered" class="form-checkbox">
-            <label for="chkAutoDownloadMetered" class="checkbox-label">
-              Автоматично завантажувати оновлення через лімітоване з'єднання (metered connection)
-            </label>
-          </div>
-          <p class="field-hint" style="margin-top: 2px; margin-bottom: 0;">
-            Якщо вимкнено, застосунок сповістить про нову версію, але не витрачатиме мобільний або обмежений трафік без вашої команди.
-          </p>
-
-          <!-- Мета-посилання проєкту (репозиторій, ліцензія, автор) -->
+          <!-- Мета-посилання проєкту (репозиторій, ліцензія, автор) — в 1 рядок -->
           <div class="about-links-row">
             <a href="https://github.com/suprun/alert_desktop" target="_blank" class="about-meta-link" title="Перейти до репозиторію на GitHub">
               <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -242,6 +190,81 @@
                 <line x1="10" y1="14" x2="21" y2="3"/>
               </svg>
             </a>
+          </div>
+
+          <!-- Рядок підтримки розробки (донат) -->
+          <div class="about-donate-row">
+            <div class="about-donate-info">
+              <svg class="donate-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+              </svg>
+              <span>Підтримати розвиток проєкту:</span>
+            </div>
+            <a href="https://send.monobank.ua/jar/alert_desktop" target="_blank" class="about-donate-btn" title="Підтримати розробку через Monobank Банку">
+              <span>Донат (mono)</span>
+              <svg class="external-link-icon" viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+                <polyline points="15 3 21 3 21 9"/>
+                <line x1="10" y1="14" x2="21" y2="3"/>
+              </svg>
+            </a>
+          </div>
+
+          <!-- Блок "Оновлення застосунку" -->
+          <div class="about-update-block">
+            <div class="about-update-header-row">
+              <div class="about-update-info">
+                <span class="about-update-title">Оновлення застосунку</span>
+                <div class="about-status-row">
+                  <span id="updateStatusText" class="update-status-text">Остання версія встановлена</span>
+                </div>
+              </div>
+              <div class="about-actions-col">
+                <button type="button" id="btnCheckUpdate" class="btn-secondary btn-update-action" title="Перевірити наявність нових версій">
+                  <svg class="update-icon" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="23 4 23 10 17 10"/>
+                    <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+                  </svg>
+                  <span>Перевірити оновлення</span>
+                </button>
+                <button type="button" id="btnDownloadUpdate" class="btn-primary btn-update-action" style="display: none;" title="Завантажити доступне оновлення">
+                  <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                    <polyline points="7 10 12 15 17 10"/>
+                    <line x1="12" y1="15" x2="12" y2="3"/>
+                  </svg>
+                  <span>Завантажити</span>
+                </button>
+                <button type="button" id="btnInstallUpdate" class="btn-primary btn-update-action" style="display: none;" title="Перезапустити застосунок та встановити оновлення">
+                  <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
+                  </svg>
+                  <span>Оновити</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Тимчасовий прогрес-бар під час завантаження -->
+            <div id="updateProgressWrapper" class="update-progress-wrapper" style="display: none;">
+              <div class="update-progress-info">
+                <span id="updateProgressLabel" class="update-progress-label">Завантаження оновлення...</span>
+                <span id="updateProgressPercent" class="update-progress-percent">0%</span>
+              </div>
+              <div class="update-progress-track">
+                <div id="updateProgressBar" class="update-progress-bar" style="width: 0%;"></div>
+              </div>
+            </div>
+
+            <!-- Чекбокс лімітованого підключення -->
+            <div class="checkbox-control update-checkbox-row">
+              <input type="checkbox" id="chkAutoDownloadMetered" class="form-checkbox">
+              <label for="chkAutoDownloadMetered" class="checkbox-label">
+                Автоматично завантажувати оновлення через лімітоване з'єднання (metered connection)
+              </label>
+            </div>
+            <p class="field-hint" style="margin-top: 2px; margin-bottom: 0;">
+              Якщо вимкнено, застосунок сповістить про нову версію, але не витрачатиме мобільний або обмежений трафік без вашої команди.
+            </p>
           </div>
 
           <!-- Політики сервісів мап -->

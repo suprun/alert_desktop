@@ -731,29 +731,7 @@ html.theme-light .selected-badge,
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-}
-
-.about-header-main {
-  display: inline-flex;
-  align-items: center;
   gap: 8px;
-  min-width: 0;
-}
-
-.about-actions-col {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-shrink: 0;
-}
-
-.about-status-row {
-  min-height: 18px;
-  line-height: 18px;
-  display: flex;
-  align-items: center;
-  margin-top: -4px;
 }
 
 .about-app-name {
@@ -791,25 +769,29 @@ html.theme-light .selected-badge,
 
 .about-links-row {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   align-items: center;
   gap: 8px;
   margin-top: 2px;
 }
 
 .about-meta-link {
+  flex: 1 1 0;
+  min-width: 0;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  justify-content: center;
+  gap: 5px;
   font-size: 11.5px;
   font-weight: 500;
   color: #0078d4;
   text-decoration: none;
-  padding: 4px 9px;
+  padding: 5px 6px;
   border-radius: 6px;
   background: rgba(0, 120, 212, 0.08);
   border: 1px solid rgba(0, 120, 212, 0.2);
   transition: all 0.15s ease;
+  white-space: nowrap;
 }
 
 .about-meta-link:hover {
@@ -823,12 +805,80 @@ html.theme-light .selected-badge,
   flex-shrink: 0;
 }
 
+.about-meta-link span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .about-meta-link .external-link-icon {
   opacity: 0.7;
   margin-left: 1px;
+  flex-shrink: 0;
 }
 
 .about-meta-link:hover .external-link-icon {
+  opacity: 1;
+}
+
+/* Рядок підтримки розробки (донат) */
+.about-donate-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 7px 10px;
+  margin-top: 2px;
+  border-radius: 6px;
+  background: rgba(239, 68, 68, 0.06);
+  border: 1px solid rgba(239, 68, 68, 0.18);
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.about-donate-info {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-primary);
+  min-width: 0;
+}
+
+.donate-icon {
+  color: #ef4444;
+  flex-shrink: 0;
+}
+
+.about-donate-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #ef4444;
+  text-decoration: none;
+  padding: 3px 9px;
+  border-radius: 5px;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.about-donate-btn:hover {
+  background: rgba(239, 68, 68, 0.18);
+  border-color: rgba(239, 68, 68, 0.4);
+  color: #dc2626;
+  text-decoration: none;
+}
+
+.about-donate-btn .external-link-icon {
+  opacity: 0.75;
+}
+
+.about-donate-btn:hover .external-link-icon {
   opacity: 1;
 }
 
@@ -904,6 +954,42 @@ html.theme-light .selected-badge,
 }
 
 /* Елементи оновлення застосунку у блоці About */
+.about-update-block {
+  margin-top: 4px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.about-update-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.about-update-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.about-update-title {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.about-status-row {
+  min-height: 18px;
+  line-height: 18px;
+  display: flex;
+  align-items: center;
+}
+
 .update-status-text {
   font-size: 11.5px;
   color: var(--text-muted);
@@ -912,6 +998,13 @@ html.theme-light .selected-badge,
   text-overflow: ellipsis;
   display: block;
   line-height: 18px;
+}
+
+.about-actions-col {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
 }
 
 .btn-update-action {
