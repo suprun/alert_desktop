@@ -1033,8 +1033,13 @@ function applyAlertsToVectorMap(alerts) {
       allDistrictPaths.forEach(p => {
         const distUid = p.getAttribute('data-uid');
         const distTitle = (p.getAttribute('data-title') || '').toLowerCase().trim();
+        const obTitle = (p.getAttribute('data-oblast-title') || '').toLowerCase().trim();
+        const obUid = p.getAttribute('data-oblast-uid');
 
-        if (distUid === locUid || (locTitle && distTitle.includes(locTitle))) {
+        const isExactUidMatch = distUid === locUid;
+        const isExactTitleMatch = locTitle && (distTitle === locTitle) && (!locOblast || obTitle.includes(locOblast) || (a.location_oblast_uid && obUid === String(a.location_oblast_uid)));
+
+        if (isExactUidMatch || isExactTitleMatch) {
           p.classList.remove('safe');
           if (alertType === 'artillery_shelling') p.classList.add('artillery');
           else if (alertLevel === 'yellow') p.classList.add('yellow');
@@ -1044,7 +1049,7 @@ function applyAlertsToVectorMap(alerts) {
           p.setAttribute('data-alert-level', alertLevel);
           p.setAttribute('data-started-at', startedAt);
           activeRaionUids.add(distUid);
-          activeOblastUids.add(p.getAttribute('data-oblast-uid') || '');
+          activeOblastUids.add(obUid || '');
         }
       });
       continue;
@@ -1465,6 +1470,27 @@ if (window.alertAPI) {
     window.alertAPI.getAllAlerts().then((alerts) => {
       if (Array.isArray(alerts) && alerts.length > 0) {
         applyAlertsToVectorMap(alerts);
+      }
+    }).catch(() => { });
+  }
+
+  // Завантаження довідника локацій для коректної прив'язки громад до районів
+  if (window.alertAPI.getLocations) {
+    window.alertAPI.getLocations().then((locs) => {
+      if (Array.isArray(locs) && locs.length > 0) {
+        allLocationsCache = locs;
+        hromadaToRaionMap.clear();
+        for (const l of locs) {
+          if (l.uid && l.raionUid) {
+            hromadaToRaionMap.set(String(l.uid), {
+              raionUid: String(l.raionUid),
+              oblastUid: String(l.oblastUid || '')
+            });
+          }
+        }
+        if (currentAlertsList && currentAlertsList.length > 0) {
+          applyAlertsToVectorMap(currentAlertsList);
+        }
       }
     }).catch(() => { });
   }

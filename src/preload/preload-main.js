@@ -34,6 +34,7 @@ contextBridge.exposeInMainWorld('alertAPI', {
     return () => ipcRenderer.removeListener('map-tab-changed', handler);
   },
   toggleTheme: (isDark) => ipcRenderer.send('toggle-app-theme', { isDark }),
+  getLocations: () => ipcRenderer.invoke('get-locations'),
   getAllAlerts: () => ipcRenderer.invoke('get-all-alerts'),
   onAllAlertsUpdate: (callback) => {
     const handler = (_event, data) => callback(data);

@@ -233,6 +233,15 @@ console.log('✔ Тест 24 пройдено (консолідація скла
 assert.ok(rendererJs.includes('alertsListClean.length === 1 && count > 1'), 'renderer.js повинен синхронізувати count при очищенні паралельних дублікатів активної тривоги');
 console.log('✔ Тест 25 пройдено (синхронізація картки статистики при дедуплікації паралельних активних тривог)');
 
+// Тест 26: Точний збіг районів без хибного захоплення підрядків та наявність getLocations у preload-main.js
+const currentPreloadMain = fs.readFileSync(path.join(__dirname, '..', 'src', 'preload', 'preload-main.js'), 'utf8');
+const currentRendererJs = fs.readFileSync(path.join(__dirname, '..', 'src', 'renderer', 'main', 'renderer.js'), 'utf8');
+assert.ok(currentPreloadMain.includes('getLocations: () => ipcRenderer.invoke(\'get-locations\')'), 'preload-main.js повинен надавати метод getLocations');
+assert.ok(currentRendererJs.includes('distTitle === locTitle'), 'renderer.js повинен використовувати точний збіг назви району замість includes');
+assert.ok(currentRendererJs.includes('isExactTitleMatch'), 'renderer.js повинен валідувати точний збіг назви та приналежність до області');
+assert.ok(!currentRendererJs.includes('distTitle.includes(locTitle)'), 'renderer.js не повинен використовувати distTitle.includes(locTitle)');
+console.log('✔ Тест 26 пройдено (точний збіг назв районів з перевіркою області усуває хибне зафарбовування суміжних районів)');
+
 console.log('🎉 Усі тести панелі вкладок, тем та векторної карти успішно виконано!');
 
 
