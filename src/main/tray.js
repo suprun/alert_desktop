@@ -63,7 +63,7 @@ class TrayManager {
     // Якщо оновлення завантажено — показуємо кнопку встановлення угорі меню
     if (this.updateInfo && this.updateInfo.downloaded) {
       items.push({
-        label: `🔄 Встановити оновлення v${this.updateInfo.version}`,
+        label: `Встановити оновлення v${this.updateInfo.version}`,
         click: () => this.callbacks.onInstallUpdate && this.callbacks.onInstallUpdate()
       });
       items.push({ type: 'separator' });
