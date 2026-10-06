@@ -62,6 +62,7 @@ let hromadaToRaionMap = new Map();
 let currentAlertsList = [];
 let activeDrawerDistrictUid = null;
 let drawerLiveRefreshTimer = null;
+let lastRenderedDrawerState = null;
 
 // Лінійні SVG іконки статусів (виключно векторні без емодзі)
 const icons = {
@@ -206,9 +207,26 @@ function initVectorMap() {
   if (selectedHighlightLayer) selectedHighlightLayer.innerHTML = '';
   if (oblastLabelsLayer) oblastLabelsLayer.innerHTML = '';
 
+  // Об'єднуємо складені контури районів (ексклави/острови) за UID в єдині геометрії
+  const consolidatedRegions = [];
+  const regionMap = new Map();
+
+  for (const reg of MAP_REGIONS) {
+    const uidStr = String(reg.uid);
+    if (!regionMap.has(uidStr)) {
+      const copy = { ...reg };
+      regionMap.set(uidStr, copy);
+      consolidatedRegions.push(copy);
+    } else {
+      const existing = regionMap.get(uidStr);
+      existing.d = `${existing.d} ${reg.d}`;
+      if (reg.mask && !existing.mask) existing.mask = reg.mask;
+    }
+  }
+
   // Створення елементів районів
   const fragment = document.createDocumentFragment();
-  for (const reg of MAP_REGIONS) {
+  for (const reg of consolidatedRegions) {
     const p = document.createElementNS('http://www.w3.org/2000/svg', 'path');
     p.setAttribute('class', 'map-district safe');
     p.setAttribute('id', `dist-${reg.uid}`);
@@ -351,6 +369,7 @@ function onDistrictClick(e) {
   const isAlert = el.classList.contains('alert') || el.classList.contains('yellow') || el.classList.contains('artillery');
 
   activeDrawerDistrictUid = uid;
+  lastRenderedDrawerState = null;
 
   // Виділення району на карті
   if (districtsLayer) {
@@ -358,9 +377,10 @@ function onDistrictClick(e) {
   }
   el.classList.add('selected');
 
-  // Неподільний шар підсвічування поверх меж та сусідніх районів
+  // Неподільний шар підсвічування поверх меж та сусідніх районів (малюється на поверхні всього SVG)
   if (selectedHighlightLayer) {
-    selectedHighlightLayer.innerHTML = `<use href="#dist-${uid}" class="map-district-highlight-outline" />`;
+    const d = el.getAttribute('d');
+    selectedHighlightLayer.innerHTML = `<path d="${d}" class="map-district-highlight-outline" />`;
   }
 
   // Приховуємо спливаючий тултіп, щоб не перекривав
@@ -421,6 +441,7 @@ function onDistrictClick(e) {
 
 function closeHistoryDrawer() {
   activeDrawerDistrictUid = null;
+  lastRenderedDrawerState = null;
   if (drawerLiveRefreshTimer) {
     clearInterval(drawerLiveRefreshTimer);
     drawerLiveRefreshTimer = null;
@@ -478,15 +499,6 @@ function renderRegionHistory(data, meta) {
     }
   }
 
-  const statusCardHtml = `
-    <div class="history-status-card ${statusCardClass} drawer-animate-in">
-      <span class="status-icon">${statusIconSvg}</span>
-      <div class="history-status-info">
-        <span class="history-status-title">${statusTitle}</span>
-        <span class="history-status-subtitle">${statusSubtitle}</span>
-      </div>
-    </div>
-  `;
 
   // 2. Статистика за сьогодні
   function pluralizeUa(n, one, few, many) {
@@ -668,12 +680,6 @@ function renderRegionHistory(data, meta) {
     statsValueHtml = durStr ? `${countText} · ${durStr}` : countText;
   }
 
-  const statsCardHtml = `
-    <div class="history-stats-card drawer-animate-in">
-      <span class="history-stats-heading">Сьогодні</span>
-      <span class="history-stats-values">${statsValueHtml}</span>
-    </div>
-  `;
 
   // Якщо тривога активна прямо зараз, синхронізуємо або додаємо її до списку без дублювання
   if (isAlert) {
@@ -796,8 +802,50 @@ function renderRegionHistory(data, meta) {
     `;
   }
 
+  // Визначаємо, чи відбулися суттєві зміни порівняно з попереднім відображенням
+  const firstAlert = alertsListClean[0];
+  const firstAlertId = firstAlert ? (firstAlert.id || firstAlert.startedAt) : null;
+  const currentCoreState = {
+    districtUid: activeDrawerDistrictUid,
+    isAlert: !!isAlert,
+    statusCardClass,
+    statusTitle,
+    count,
+    alertsCount: alertsListClean.length,
+    firstAlertId
+  };
+
+  const hasFundamentalChange = !lastRenderedDrawerState ||
+    lastRenderedDrawerState.districtUid !== currentCoreState.districtUid ||
+    lastRenderedDrawerState.isAlert !== currentCoreState.isAlert ||
+    lastRenderedDrawerState.statusCardClass !== currentCoreState.statusCardClass ||
+    lastRenderedDrawerState.statusTitle !== currentCoreState.statusTitle ||
+    lastRenderedDrawerState.count !== currentCoreState.count ||
+    lastRenderedDrawerState.alertsCount !== currentCoreState.alertsCount ||
+    lastRenderedDrawerState.firstAlertId !== currentCoreState.firstAlertId;
+
+  lastRenderedDrawerState = currentCoreState;
+  const animClass = hasFundamentalChange ? ' drawer-animate-in' : '';
+
+  const statusCardHtml = `
+    <div class="history-status-card ${statusCardClass}${animClass}">
+      <span class="status-icon">${statusIconSvg}</span>
+      <div class="history-status-info">
+        <span class="history-status-title">${statusTitle}</span>
+        <span class="history-status-subtitle">${statusSubtitle}</span>
+      </div>
+    </div>
+  `;
+
+  const statsCardHtml = `
+    <div class="history-stats-card${animClass}">
+      <span class="history-stats-heading">Сьогодні</span>
+      <span class="history-stats-values">${statsValueHtml}</span>
+    </div>
+  `;
+
   const timelineSectionHtml = `
-    <div class="history-timeline-section drawer-animate-in">
+    <div class="history-timeline-section${animClass}">
       <h4 class="history-section-title">Останні тривоги</h4>
       <div class="history-timeline-list">
         ${timelineItemsHtml}
@@ -805,7 +853,11 @@ function renderRegionHistory(data, meta) {
     </div>
   `;
 
+    const prevScrollTop = historyDrawerBody.scrollTop;
     historyDrawerBody.innerHTML = statusCardHtml + statsCardHtml + timelineSectionHtml;
+    if (!hasFundamentalChange) {
+      historyDrawerBody.scrollTop = prevScrollTop;
+    }
   } catch (renderErr) {
     console.error('[Renderer] Помилка рендерингу історії регіону:', renderErr);
     if (historyDrawerBody) {

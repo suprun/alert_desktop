@@ -220,6 +220,15 @@ assert.ok(styleCss.includes('.update-pill-toast'), 'style.css повинен м�
 assert.ok(rendererJs.includes('renderUpdatePillToast'), 'renderer.js повинен містити функцію renderUpdatePillToast');
 console.log('✔ Тест 23 пройдено (пігулковий тост оновлень валідний у розмітці, стилях та скриптах)');
 
+// Тест 24: Об'єднання складених районів, неподільний контур підсвічування та умовна анімація бічної панелі
+assert.ok(rendererJs.includes('consolidatedRegions'), 'renderer.js повинен об\'єднувати складені контури районів (ексклави/острови)');
+assert.ok(rendererJs.includes('existing.d = `${existing.d} ${reg.d}`'), 'renderer.js повинен об\'єднувати path data складених районів в єдиний контур');
+assert.ok(rendererJs.includes('selectedHighlightLayer.innerHTML = `<path d="${d}" class="map-district-highlight-outline" />`'), 'renderer.js повинен малювати повний контур виділення через прямий path поверх усіх районів та меж');
+assert.ok(rendererJs.includes('lastRenderedDrawerState'), 'renderer.js повинен відстежувати попередній стан відкритої панелі історії');
+assert.ok(rendererJs.includes('hasFundamentalChange'), 'renderer.js повинен перевіряти наявність суттєвих змін перед запуском анімації карток');
+assert.ok(rendererJs.includes('historyDrawerBody.scrollTop = prevScrollTop'), 'renderer.js повинен зберігати позицію скролу користувача при фоновому оновленні без суттєвих змін');
+console.log('✔ Тест 24 пройдено (консолідація складених районів, шар підсвічування поверх сусідів та розумна анімація карток)');
+
 console.log('🎉 Усі тести панелі вкладок, тем та векторної карти успішно виконано!');
 
 
