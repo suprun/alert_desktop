@@ -730,6 +730,14 @@ function renderRegionHistory(data, meta) {
       if (activeIndices.length > 1) {
         const removeSet = new Set(activeIndices.slice(1));
         alertsListClean = alertsListClean.filter((_, idx) => !removeSet.has(idx));
+        // Якщо всі активні записи виявились дублікатами однієї поточної тривоги
+        if (alertsListClean.length === 1 && count > 1) {
+          count = 1;
+          totalMin = currentElapsedMin > 0 ? currentElapsedMin : totalMin;
+          const countText = '1 тривога';
+          const durStr = formatDurationMinutes(totalMin);
+          statsValueHtml = durStr ? `${countText} · ${durStr}` : countText;
+        }
       }
     } else {
       alertsListClean.unshift({

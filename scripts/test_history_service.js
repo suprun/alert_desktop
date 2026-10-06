@@ -47,6 +47,7 @@ async function runTests() {
   console.log("✔ Тест 2 пройдено (форматування дати та часу)");
 
   // Тест 3: Формування відповіді з локального fallback-кешу
+  historyService._observedAlerts.clear();
   historyService._fallbackStats = [
     { luid: 100, ac: 3, d: 4800000, a: false }
   ];
@@ -255,6 +256,42 @@ async function runTests() {
   assert.strictEqual(activeRaionRes.todayStats.isActive, true, 'Район має бути позначений як активний');
   assert.strictEqual(activeRaionRes.recentAlerts[0].isActive, true);
   console.log("✔ Тест 12 пройдено (підтримка active.json, пошук за lruid громад для районів та обробка t: 'o')");
+
+  // Тест 13: Ієрархічна консолідація району, громади та міста (як в Олександрійському районі)
+  historyService._observedAlerts.clear();
+  historyService._fallbackAlerts = [];
+  historyService._fallbackEvents = [];
+  historyService._fallbackStats = [];
+  const sStart1 = sCommon - 1200; // Початок у громаді/місті
+  const sStart2 = sCommon;        // Розширення на весь район через 20 хв
+  historyService._fallbackActiveAlerts = [
+    { i: 101, luid: 5786, lruid: 80, lhuid: 786, loi: 14, s: sStart1, at: 4, t: 'c' }, // Світловодськ місто (дрони)
+    { i: 102, luid: 786,  lruid: 80, lhuid: 786, loi: 14, s: sStart1, at: 4, t: 'h' }, // Світловодськ громада (дрони)
+    { i: 103, luid: 80,   lruid: null, loi: 14,           s: sStart2, at: 1, t: 'r' }  // Олександрійський район
+  ];
+
+  const oleksandriiaRes = historyService._buildFallbackResponse('80', '14');
+  assert.strictEqual(oleksandriiaRes.recentAlerts.length, 1, 'Тривоги міста, громади та району мають об\'єднатися в 1 подію');
+  assert.strictEqual(oleksandriiaRes.todayStats.alertCount, 1, 'alertCount має бути 1, а не 3');
+  assert.strictEqual(oleksandriiaRes.recentAlerts[0].threatType, 4, 'Пріоритет загрози має бути за дронами (at: 4)');
+  assert.strictEqual(oleksandriiaRes.recentAlerts[0].startedAt, 1640000000 + sStart1, 'Час початку має бути за найранішим стартом у громаді');
+  assert.strictEqual(oleksandriiaRes.todayStats.totalDurationMin, Math.round((Math.floor(Date.now() / 1000) - (1640000000 + sStart1)) / 60), 'Тривалість має бути реальним астрономічним часом без множення');
+  console.log("✔ Тест 13 пройдено (ієрархічна консолідація району, громади та міста без множення тривалості)");
+
+  // Тест 14: Життєвий цикл активних тривог та фіксація завершення у recordActiveAlerts
+  historyService._observedAlerts.clear();
+  // Крок 1: надходить активна тривога
+  historyService.recordActiveAlerts([
+    { id: 7001, location_uid: 80, s: sCommon, started_at: new Date((1640000000 + sCommon) * 1000).toISOString() }
+  ]);
+  const alertInMap = historyService._observedAlerts.get(`80_${sCommon}`);
+  assert.ok(alertInMap, 'Тривога має бути записана у буфер');
+  assert.strictEqual(alertInMap.f, null, 'Тривога має бути активною (f === null)');
+
+  // Крок 2: тривога зникає з активного списку (відбій)
+  historyService.recordActiveAlerts([]);
+  assert.ok(alertInMap.f !== null, 'Для зниклої тривоги має бути автоматично проставлено timestamp завершення f');
+  console.log("✔ Тест 14 пройдено (автоматична фіксація завершення тривог у recordActiveAlerts)");
 
   console.log("🎉 Усі тести сервісу історії успішно пройдено!\n");
 }

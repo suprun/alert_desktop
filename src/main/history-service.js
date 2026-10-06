@@ -7,6 +7,9 @@
 
 const https = require('https');
 const http = require('http');
+const fs = require('fs');
+const path = require('path');
+const { app } = require('electron');
 const config = require('./config');
 const locationsData = require('./locations.json');
 
@@ -44,6 +47,49 @@ class HistoryService {
     // Накопичувальний буфер спостережуваних тривог (ліміт: 500 записів)
     this._observedAlerts = new Map();
     this._maxObservedAlerts = 500;
+    const userDir = (app && typeof app.getPath === 'function') ? app.getPath('userData') : process.cwd();
+    this._historyCacheFile = path.join(userDir, 'history_cache.json');
+    this._saveTimer = null;
+    this._loadObservedAlertsCache();
+  }
+
+  /**
+   * Завантажує збережений кеш спостережень з диска.
+   */
+  _loadObservedAlertsCache() {
+    try {
+      if (fs.existsSync(this._historyCacheFile)) {
+        const raw = fs.readFileSync(this._historyCacheFile, 'utf8');
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) {
+          for (const item of parsed) {
+            const luid = item.luid || item.location_uid;
+            const sRaw = item.s;
+            if (luid && sRaw) {
+              this._observedAlerts.set(`${luid}_${sRaw}`, item);
+            }
+          }
+        }
+      }
+    } catch (e) {
+      console.warn('[HistoryService] Не вдалося завантажити кеш історії з диска:', e.message);
+    }
+  }
+
+  /**
+   * Зберігає буфер спостережуваних тривог на диск (debounced 2s).
+   */
+  _scheduleSaveObservedAlerts() {
+    if (this._saveTimer) return;
+    this._saveTimer = setTimeout(() => {
+      this._saveTimer = null;
+      try {
+        const data = Array.from(this._observedAlerts.values());
+        fs.writeFileSync(this._historyCacheFile, JSON.stringify(data), 'utf8');
+      } catch (e) {
+        console.warn('[HistoryService] Не вдалося зберегти кеш історії на диск:', e.message);
+      }
+    }, 2000);
   }
 
   /**
@@ -64,10 +110,12 @@ class HistoryService {
       if (a.at && !existing.at) existing.at = a.at;
       if (a.m && !existing.m) existing.m = a.m;
       if (a.lruid && !existing.lruid) existing.lruid = a.lruid;
+      if (a.lhuid && !existing.lhuid) existing.lhuid = a.lhuid;
       if (a.t && !existing.t) existing.t = a.t;
       if (a.loi && !existing.loi) existing.loi = a.loi;
     }
     this._pruneObservedAlerts();
+    this._scheduleSaveObservedAlerts();
   }
 
   /**
@@ -113,6 +161,10 @@ class HistoryService {
    */
   recordActiveAlerts(alerts) {
     if (!Array.isArray(alerts)) return;
+    const nowSec = Math.floor(Date.now() / 1000);
+    const activeKeys = new Set();
+    const activeLuids = new Set();
+
     for (const a of alerts) {
       let s = a.s;
       if (!s && a.started_at) {
@@ -121,19 +173,40 @@ class HistoryService {
           s = startedSec - BASE_EPOCH_ALERTS_IN_UA;
         }
       }
+      const luid = a.location_uid || a.luid;
+      const key = `${luid}_${s}`;
+      activeKeys.add(key);
+      if (luid) activeLuids.add(String(luid));
+
       this._recordAlert({
         i: a.id || a.i,
         u: a.u,
         s,
         f: a.finished_at ? (Math.floor(new Date(a.finished_at).getTime() / 1000) - BASE_EPOCH_ALERTS_IN_UA) : (a.f || null),
         at: a.threat_type || a.at || 1,
-        luid: a.location_uid || a.luid,
+        luid,
         lruid: a.location_raion_uid || a.raion_uid || a.lruid || null,
+        lhuid: a.lhuid || null,
         loi: a.oblast_uid || a.loi,
         t: a.location_type || a.t,
         m: a.message || a.m || null,
         nt: a.notes || a.nt || null
       });
+    }
+
+    // Фіксуємо завершення раніше активних тривог, які зникли з активного списку
+    let hasFinished = false;
+    for (const [key, item] of this._observedAlerts.entries()) {
+      if (!item.f) {
+        const itemLuid = String(item.luid || item.location_uid || '');
+        if (!activeKeys.has(key) && !activeLuids.has(itemLuid)) {
+          item.f = nowSec - BASE_EPOCH_ALERTS_IN_UA;
+          hasFinished = true;
+        }
+      }
+    }
+    if (hasFinished) {
+      this._scheduleSaveObservedAlerts();
     }
   }
 
@@ -618,22 +691,40 @@ class HistoryService {
 
     // Якщо для локації немає прямої статистики (наприклад, обрано окремий район/громаду),
     // або якщо в todayStats 0 при наявних сьогоднішніх тривогах,
-    // або якщо відбулося об'єднання дублікатів («тривога —> загроза»):
+    // або якщо відбулося об'єднання дублікатів («тривога —> загроза» чи громада ↔ район):
     if ((!directStat || alertCount === 0 || hadConsolidation) && todayAlerts.length > 0) {
       alertCount = todayAlerts.length;
-      let computedDurationMin = 0;
-      for (const a of todayAlerts) {
-        if (typeof a.durationMin === 'number' && a.durationMin > 0) {
-          computedDurationMin += a.durationMin;
-        } else {
-          const aStart = Math.max(a.startedAt || startOfTodaySec, startOfTodaySec);
-          const aEnd = a.finishedAt ? a.finishedAt : nowSec;
-          if (aEnd > aStart) {
-            computedDurationMin += Math.round((aEnd - aStart) / 60);
+
+      // Об'єднуємо часові відрізки тривог за сьогодні (union інтервалів), щоб паралельні тривоги не множили час
+      const intervals = todayAlerts.map(a => {
+        const aStart = Math.max(a.startedAt || startOfTodaySec, startOfTodaySec);
+        const aEnd = a.finishedAt ? a.finishedAt : nowSec;
+        return [aStart, Math.max(aStart, aEnd)];
+      }).sort((x, y) => x[0] - y[0]);
+
+      let totalMergedSec = 0;
+      if (intervals.length > 0) {
+        let curStart = intervals[0][0];
+        let curEnd = intervals[0][1];
+        for (let i = 1; i < intervals.length; i++) {
+          const [nextStart, nextEnd] = intervals[i];
+          if (nextStart <= curEnd) {
+            curEnd = Math.max(curEnd, nextEnd);
+          } else {
+            totalMergedSec += (curEnd - curStart);
+            curStart = nextStart;
+            curEnd = nextEnd;
           }
         }
+        totalMergedSec += (curEnd - curStart);
       }
-      totalDurationMin = computedDurationMin;
+      totalDurationMin = Math.max(0, Math.round(totalMergedSec / 60));
+    }
+
+    // Захист від аномалій API: загальна тривалість за сьогодні не може перевищувати астрономічний час від початку доби
+    const elapsedTodayMin = Math.round((nowSec - startOfTodaySec) / 60);
+    if (totalDurationMin > elapsedTodayMin) {
+      totalDurationMin = elapsedTodayMin;
     }
 
     const isActive = todayStats.isActive || todayAlerts.some(a => a.isActive);
@@ -699,10 +790,22 @@ class HistoryService {
         // 3. Ієрархічний зв'язок (один запис - загальнообласний 'o'/'s', інший - районний або громади)
         const isOneOblast = item.locType === 'o' || item.locType === 's' || prev.locType === 'o' || prev.locType === 's';
 
-        // Не об'єднувати, якщо це дві окремі дочірні громади/райони з однаковим типом загрози
-        const areDifferentSiblings = item.luid && prev.luid && String(item.luid) !== String(prev.luid) && !isOneOblast && !threatConsolidation;
+        // 4. Ієрархічний зв'язок району та його громад або спільний район/громада
+        const iLruid = String(item.lruid || '');
+        const pLruid = String(prev.lruid || '');
+        const iLuid = String(item.luid || '');
+        const pLuid = String(prev.luid || '');
+        const isRaionParentAndChild = (iLruid && pLuid && iLruid === pLuid) || (pLruid && iLuid && pLruid === iLuid);
+        const isSameRaion = iLruid && pLruid && iLruid === pLruid;
+        const isSameHromadaCenter = (item.lhuid && prev.lhuid && String(item.lhuid) === String(prev.lhuid)) ||
+          (item.lhuid && pLuid && String(item.lhuid) === pLuid) ||
+          (prev.lhuid && iLuid && String(prev.lhuid) === iLuid);
+        const isHierarchicallyRelated = isOneOblast || isRaionParentAndChild || isSameRaion || isSameHromadaCenter;
 
-        if (!areDifferentSiblings && (sameLocation || threatConsolidation || isOneOblast)) {
+        // Не об'єднувати лише якщо це дійсно різні незалежні суб'єкти без ієрархічного чи просторового зв'язку:
+        const areDifferentSiblings = iLuid && pLuid && iLuid !== pLuid && !isHierarchicallyRelated && !threatConsolidation;
+
+        if (!areDifferentSiblings && (sameLocation || threatConsolidation || isHierarchicallyRelated)) {
           foundIndex = i;
           break;
         }
