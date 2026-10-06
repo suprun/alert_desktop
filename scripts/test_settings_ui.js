@@ -268,5 +268,30 @@ const settingsHtml = fs.readFileSync(settingsHtmlPath, 'utf8');
   console.log('✔ Тест 15 пройдено (автопрокручування до блоку About підтримується через IPC та status.updateDownloaded)');
 }
 
-console.log('🎉 Усі тести інтерфейсу налаштувань успішно пройдено!');
+// Тест 16: Перевірка UI та захисту збереження для API-токенів
+{
+  const settingsJsPath = path.join(__dirname, '..', 'src', 'renderer', 'settings', 'settings.js');
+  const settingsJs = fs.readFileSync(settingsJsPath, 'utf8');
+  const preloadPath = path.join(__dirname, '..', 'src', 'preload', 'preload-settings.js');
+  const preloadContent = fs.readFileSync(preloadPath, 'utf8');
+  const mainPath = path.join(__dirname, '..', 'src', 'main', 'main.js');
+  const mainContent = fs.readFileSync(mainPath, 'utf8');
+  const settingsCssPath = path.join(__dirname, '..', 'src', 'renderer', 'settings', 'settings.css');
+  const settingsCss = fs.readFileSync(settingsCssPath, 'utf8');
 
+  assert.ok(settingsHtml.includes('id="btnVerifyApiToken"'), 'settings.html має містити кнопку перевірки токена');
+  assert.ok(settingsHtml.includes('id="apiTokenStatus"'), 'settings.html має містити пояснення стану перевірки');
+  assert.ok(settingsHtml.includes('id="saveBlockedReason"'), 'footer має пояснювати блокування збереження');
+  assert.ok(settingsJs.includes('Введіть токен, щоб увімкнути перевірку.'), 'UI має пояснювати недоступність перевірки');
+  assert.ok(settingsJs.includes('Щоб зберегти, спочатку перевірте токен API.'), 'UI має пояснювати недоступність збереження');
+  assert.ok(settingsJs.includes("tokenVerificationState !== 'trusted'"), 'renderer має блокувати збереження неперевіреного токена');
+  assert.ok(preloadContent.includes("ipcRenderer.invoke('verify-api-token'"), 'preload має надавати обмежений verify-api-token IPC');
+  assert.ok(mainContent.includes('api.isApiTokenTrusted(newConfig)'), 'головний процес має захищати save-config від неперевіреного токена');
+  const legalCss = settingsCss.match(/\.about-legal-box\s*\{[^}]+\}/s);
+  const policiesCss = settingsCss.match(/\.about-policies-box\s*\{[^}]+\}/s);
+  assert.ok(legalCss && legalCss[0].includes('border-top: none;'), 'розділювач перед юридичним блоком має бути прибраний');
+  assert.ok(policiesCss && policiesCss[0].includes('border-top: none;'), 'розділювач перед політиками має бути прибраний');
+  console.log('✔ Тест 16 пройдено (стани токена, пояснення блокування та main-process guard присутні)');
+}
+
+console.log('🎉 Усі тести інтерфейсу налаштувань успішно пройдено!');

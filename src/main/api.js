@@ -1,4 +1,5 @@
 const { EventEmitter } = require('events');
+const crypto = require('crypto');
 const config = require('./config');
 const locationsData = require('./locations.json');
 const threatUtils = require('./threat-utils');
@@ -58,6 +59,7 @@ class AlertApiService extends EventEmitter {
     this.isInitialCheck = true;
     this.currentAlerts = [];
     this.currentWsUrl = null;
+    this.verifiedApiCredentials = new Set();
 
     this.lastState = {
       isAlert: false,
@@ -96,6 +98,125 @@ class AlertApiService extends EventEmitter {
         this.connectWebSocket();
       }
     });
+  }
+
+  requiresApiToken(providerName) {
+    return providerName === 'ukrainealarm' || providerName === 'alertsinua';
+  }
+
+  _credentialFingerprint(providerName, token) {
+    return crypto
+      .createHash('sha256')
+      .update(`${providerName}\0${token}`)
+      .digest('hex');
+  }
+
+  isApiTokenTrusted(newConfig = {}) {
+    if (!newConfig || typeof newConfig !== 'object') return false;
+    const providerName = newConfig.devMode === true ? newConfig.apiProvider : 'gateway';
+    if (!this.requiresApiToken(providerName)) return true;
+
+    const token = typeof newConfig.apiKey === 'string' ? newConfig.apiKey.trim() : '';
+    if (!token) return false;
+
+    const currentProvider = config.get('apiProvider');
+    const currentToken = String(config.get('apiKey') || '').trim();
+    if (providerName === currentProvider && token === currentToken) {
+      return true;
+    }
+
+    return this.verifiedApiCredentials.has(this._credentialFingerprint(providerName, token));
+  }
+
+  async verifyApiToken(providerName, rawToken, timeoutMs = 8000) {
+    const token = typeof rawToken === 'string' ? rawToken.trim() : '';
+    if (!this.requiresApiToken(providerName)) {
+      return {
+        success: false,
+        reason: 'unsupported_provider',
+        message: 'Обраний API не потребує перевірки токена.'
+      };
+    }
+    if (!token) {
+      return {
+        success: false,
+        reason: 'missing_token',
+        message: 'Введіть токен, щоб увімкнути перевірку.'
+      };
+    }
+    if (token.length > 2048) {
+      return {
+        success: false,
+        reason: 'invalid_token',
+        message: 'Токен не прийнято API. Перевірте його та спробуйте ще раз.'
+      };
+    }
+
+    const requestUrl = providerName === 'ukrainealarm'
+      ? 'https://api.ukrainealarm.com/api/v3/alerts'
+      : 'https://api.alerts.in.ua/v1/alerts/active.json';
+    const headers = {
+      'Accept': 'application/json',
+      'User-Agent': 'alert_desktop/2.0',
+      'Authorization': providerName === 'alertsinua' ? `Bearer ${token}` : token
+    };
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+    try {
+      const response = await fetch(requestUrl, {
+        method: 'GET',
+        headers,
+        signal: controller.signal
+      });
+
+      if (response.status === 401 || response.status === 403) {
+        return {
+          success: false,
+          reason: 'invalid_token',
+          message: 'Токен не прийнято API. Перевірте його та спробуйте ще раз.'
+        };
+      }
+      if (!response.ok) {
+        return {
+          success: false,
+          reason: 'server_error',
+          message: 'API тимчасово не може перевірити токен. Спробуйте пізніше.'
+        };
+      }
+
+      try {
+        await response.json();
+      } catch (_) {
+        return {
+          success: false,
+          reason: 'invalid_response',
+          message: 'API повернув некоректну відповідь. Спробуйте пізніше.'
+        };
+      }
+
+      this.verifiedApiCredentials.add(this._credentialFingerprint(providerName, token));
+      return {
+        success: true,
+        reason: 'verified',
+        message: 'Токен працює. Налаштування можна зберегти.'
+      };
+    } catch (err) {
+      if (err && err.name === 'AbortError') {
+        return {
+          success: false,
+          reason: 'timeout',
+          message: 'Час перевірки вичерпано. Перевірте інтернет і повторіть спробу.'
+        };
+      }
+      return {
+        success: false,
+        reason: 'network_error',
+        message: 'Не вдалося зв’язатися з API. Перевірте інтернет і повторіть спробу.'
+      };
+    } finally {
+      clearTimeout(timeoutId);
+    }
   }
 
   startPolling() {

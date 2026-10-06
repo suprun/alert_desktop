@@ -66,8 +66,19 @@ if (!gotTheLock) {
   });
 
   ipcMain.handle('save-config', (_event, newConfig) => {
+    if (!api.isApiTokenTrusted(newConfig)) {
+      return {
+        success: false,
+        error: 'token_not_verified',
+        message: 'Щоб зберегти, спочатку перевірте токен API.'
+      };
+    }
     const result = config.saveConfig(newConfig);
     return result;
+  });
+
+  ipcMain.handle('verify-api-token', async (_event, providerName, token) => {
+    return api.verifyApiToken(providerName, token);
   });
 
   ipcMain.handle('get-locations', () => {

@@ -20,7 +20,7 @@ const icons = {
   'bell': `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>`,
   'bell-off': `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.7 3A6 6 0 0 1 18 8a21.3 21.3 0 0 0 .6 5"/><path d="M17 17H3s3-2 3-9a4.67 4.67 0 0 1 .3-1.7"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/><line x1="1" y1="1" x2="23" y2="23"/></svg>`,
   'volume': `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>`,
-  'wrench': `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 10h3V7L6.5 3.5a6 6 0 0 1 8 8L17 14h-3v3l3.5 3.5a6 6 0 0 1-8-8L7 10z"/></svg>`
+  'wrench': `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.2 15.8 15.8 8.2"/><path d="m15.8 8.2-1.6-3.4L17 2"/><path d="m15.8 8.2 3.4 1.6L22 7"/><path d="m8.2 15.8 1.6 3.4L7 22"/><path d="m8.2 15.8-3.4-1.6L2 17"/></svg>`
 };
 
 const tabIcons = {
@@ -36,7 +36,6 @@ for (const [name, svg] of Object.entries(icons)) {
 
 for (const [name, svg] of Object.entries(tabIcons)) {
   fs.writeFileSync(path.join(tabsDir, `${name}.svg`), svg.trim());
-  fs.writeFileSync(path.join(uiDir, `${name}.svg`), svg.trim());
 }
 
 console.log('UI and Tab icons generated successfully.');

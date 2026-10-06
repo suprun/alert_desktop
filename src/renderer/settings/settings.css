@@ -511,6 +511,127 @@ html.theme-light .selected-badge,
   gap: 4px;
 }
 
+.api-token-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.api-token-row .form-input {
+  flex: 1;
+  min-width: 0;
+}
+
+.btn-verify-token {
+  width: 132px;
+  min-width: 132px;
+  height: 36px;
+  padding: 0 12px;
+  gap: 7px;
+  overflow: hidden;
+  white-space: nowrap;
+  transition: width 0.22s ease, min-width 0.22s ease, padding 0.22s ease,
+    color 0.18s ease, background-color 0.18s ease, border-color 0.18s ease;
+}
+
+.btn-verify-token:disabled,
+.btn-primary:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+  transform: none;
+}
+
+.token-verify-spinner,
+.token-verify-check,
+.token-verify-error {
+  display: none;
+  flex-shrink: 0;
+}
+
+.token-verify-spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: spinTokenVerification 0.7s linear infinite;
+}
+
+.btn-verify-token.is-checking .token-verify-spinner,
+.btn-verify-token.is-success .token-verify-check,
+.btn-verify-token.is-error .token-verify-error {
+  display: block;
+}
+
+.btn-verify-token.is-success,
+.btn-verify-token.is-error {
+  width: 36px;
+  min-width: 36px;
+  padding: 0;
+}
+
+.btn-verify-token.is-success {
+  color: #ffffff;
+  background-color: #16a34a;
+  border-color: #16a34a;
+}
+
+.btn-verify-token.is-error {
+  color: #ffffff;
+  background-color: #dc2626;
+  border-color: #dc2626;
+}
+
+.btn-secondary.btn-verify-token.is-success:hover {
+  color: #ffffff;
+  background-color: #15803d;
+  border-color: #15803d;
+}
+
+.btn-secondary.btn-verify-token.is-error:hover {
+  color: #ffffff;
+  background-color: #b91c1c;
+  border-color: #b91c1c;
+}
+
+.btn-verify-token.is-success .token-verify-label,
+.btn-verify-token.is-error .token-verify-label {
+  display: none;
+}
+
+.api-token-status {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  min-height: 18px;
+  margin-top: 2px;
+  font-size: 11px;
+  line-height: 1.45;
+  color: var(--text-secondary);
+}
+
+.api-token-status-icon {
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.api-token-status.is-success {
+  color: #16a34a;
+}
+
+.api-token-status.is-error {
+  color: #dc2626;
+}
+
+@keyframes spinTokenVerification {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .field-label {
   font-size: 12px;
   color: var(--text-secondary);
@@ -555,9 +676,24 @@ html.theme-light .selected-badge,
   background-color: var(--bg-card);
   display: flex;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: space-between;
   gap: 10px;
   transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.settings-footer-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.save-blocked-reason {
+  flex: 1;
+  min-width: 0;
+  font-size: 11px;
+  line-height: 1.35;
+  color: #dc2626;
 }
 
 .btn-primary, .btn-secondary {
@@ -886,9 +1022,9 @@ html.theme-light .selected-badge,
   display: flex;
   flex-direction: column;
   gap: 7px;
-  margin-top: 6px;
-  padding-top: 10px;
-  border-top: 1px solid var(--border-color);
+  margin-top: 8px;
+  padding-top: 2px;
+  border-top: none;
 }
 
 .about-legal-item {
@@ -907,10 +1043,10 @@ html.theme-light .selected-badge,
 }
 
 .about-policies-box {
-  margin-top: 6px;
+  margin-top: 4px;
   margin-bottom: 2px;
-  padding-top: 10px;
-  border-top: 1px dashed var(--border-color);
+  padding-top: 2px;
+  border-top: none;
 }
 
 .about-policies-title {
@@ -1031,6 +1167,17 @@ html.theme-light .selected-badge,
 
 .btn-update-action.checking .update-icon {
   animation: spinUpdate 0.8s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn-verify-token {
+    transition: none;
+  }
+
+  .token-verify-spinner,
+  .btn-update-action.checking .update-icon {
+    animation-duration: 1.4s;
+  }
 }
 
 .update-progress-wrapper {

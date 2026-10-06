@@ -453,7 +453,28 @@
           </div>
           <div class="form-field" id="fieldApiKey">
             <label for="inputApiKey" class="field-label">API ключ / токен доступу</label>
-            <input type="password" id="inputApiKey" class="form-input" placeholder="Токен не потрібен для вбудованого шлюзу" disabled>
+            <div class="api-token-row">
+              <input type="password" id="inputApiKey" class="form-input" aria-describedby="apiTokenStatus" placeholder="Токен не потрібен для вбудованого шлюзу" disabled>
+              <button type="button" id="btnVerifyApiToken" class="btn-secondary btn-verify-token" aria-describedby="apiTokenStatus" style="display: none;">
+                <span class="token-verify-spinner" aria-hidden="true"></span>
+                <svg class="token-verify-check" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <polyline points="20 6 9 17 4 12"/>
+                </svg>
+                <svg class="token-verify-error" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <line x1="18" y1="6" x2="6" y2="18"/>
+                  <line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+                <span class="token-verify-label">Перевірити</span>
+              </button>
+            </div>
+            <div id="apiTokenStatus" class="api-token-status" role="status" aria-live="polite" style="display: none;">
+              <svg class="api-token-status-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <circle cx="12" cy="12" r="10"/>
+                <line x1="12" y1="16" x2="12" y2="12"/>
+                <line x1="12" y1="8" x2="12.01" y2="8"/>
+              </svg>
+              <span id="apiTokenStatusText">Введіть токен, щоб увімкнути перевірку.</span>
+            </div>
           </div>
 
           <!-- Автоматичний перехід на резервні джерела (Fallback) -->
@@ -471,8 +492,11 @@
     </main>
 
     <footer class="settings-footer">
-      <button type="button" id="btnCancel" class="btn-secondary">Скасувати</button>
-      <button type="button" id="btnSave" class="btn-primary">Зберегти</button>
+      <span id="saveBlockedReason" class="save-blocked-reason" role="status" aria-live="polite"></span>
+      <div class="settings-footer-actions">
+        <button type="button" id="btnCancel" class="btn-secondary">Скасувати</button>
+        <button type="button" id="btnSave" class="btn-primary" aria-describedby="saveBlockedReason">Зберегти</button>
+      </div>
     </footer>
   </div>
 

@@ -3,6 +3,7 @@ const { contextBridge, ipcRenderer } = require('electron');
 contextBridge.exposeInMainWorld('settingsAPI', {
   getConfig: () => ipcRenderer.invoke('get-config'),
   saveConfig: (newConfig) => ipcRenderer.invoke('save-config', newConfig),
+  verifyApiToken: (providerName, token) => ipcRenderer.invoke('verify-api-token', providerName, token),
   getLocations: () => ipcRenderer.invoke('get-locations'),
   getTheme: () => ipcRenderer.invoke('get-theme'),
   getAppVersion: () => ipcRenderer.invoke('get-app-version'),

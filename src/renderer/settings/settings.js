@@ -33,9 +33,16 @@ const radioProviderJaam = document.getElementById('radioProviderJaam');
 const apiProviderRadios = document.querySelectorAll('input[name="apiProviderRadio"]');
 const inputServerUrl = document.getElementById('inputServerUrl');
 const inputApiKey = document.getElementById('inputApiKey');
+const btnVerifyApiToken = document.getElementById('btnVerifyApiToken');
+const tokenVerifyLabel = btnVerifyApiToken
+  ? btnVerifyApiToken.querySelector('.token-verify-label')
+  : null;
+const apiTokenStatus = document.getElementById('apiTokenStatus');
+const apiTokenStatusText = document.getElementById('apiTokenStatusText');
 const chkEnableFallback = document.getElementById('chkEnableFallback');
 const btnCancel = document.getElementById('btnCancel');
 const btnSave = document.getElementById('btnSave');
+const saveBlockedReason = document.getElementById('saveBlockedReason');
 const audioTest = document.getElementById('audioTest');
 
 // Елементи блоку "Оновлення"
@@ -73,6 +80,11 @@ let allLocations = [];
 let selectedUid = '31';
 let selectedTitle = 'м. Київ';
 let selectedType = 'Місто з спеціальним статусом';
+let initialApiProvider = 'gateway';
+let initialApiKey = '';
+let verifiedApiProvider = '';
+let verifiedApiKey = '';
+let tokenVerificationState = 'not-required';
 
 function stopAudioTest() {
   if (audioTest) {
@@ -122,6 +134,88 @@ chkSoundAllClearEnabled.addEventListener('change', updateSoundControlsState);
 function getSelectedApiProvider() {
   const checked = document.querySelector('input[name="apiProviderRadio"]:checked');
   return checked ? checked.value : 'gateway';
+}
+
+function providerRequiresToken(provider) {
+  return provider === 'ukrainealarm' || provider === 'alertsinua';
+}
+
+function updateTokenVerificationUI(state, customMessage = '') {
+  tokenVerificationState = state;
+
+  const stateMessages = {
+    empty: 'Введіть токен, щоб увімкнути перевірку.',
+    unverified: 'Перевірте токен, щоб зберегти налаштування.',
+    checking: 'Перевіряємо токен…',
+    trusted: 'Збережений токен не змінено. Повторна перевірка не потрібна.',
+    success: 'Токен працює. Налаштування можна зберегти.',
+    error: 'Токен не прийнято API. Перевірте його та спробуйте ще раз.'
+  };
+  const message = customMessage || stateMessages[state] || '';
+  const provider = getSelectedApiProvider();
+  const tokenRequired = Boolean(chkDevMode && chkDevMode.checked && providerRequiresToken(provider));
+  const saveBlocked = tokenRequired && state !== 'trusted' && state !== 'success';
+
+  if (apiTokenStatus) {
+    apiTokenStatus.style.display = tokenRequired ? 'flex' : 'none';
+    apiTokenStatus.classList.toggle('is-success', state === 'success' || state === 'trusted');
+    apiTokenStatus.classList.toggle('is-error', state === 'error');
+  }
+  if (apiTokenStatusText) {
+    apiTokenStatusText.textContent = message;
+  }
+
+  if (btnVerifyApiToken) {
+    btnVerifyApiToken.style.display = tokenRequired ? 'inline-flex' : 'none';
+    btnVerifyApiToken.classList.toggle('is-checking', state === 'checking');
+    btnVerifyApiToken.classList.toggle('is-success', state === 'success');
+    btnVerifyApiToken.classList.toggle('is-error', state === 'error');
+    btnVerifyApiToken.disabled = state === 'empty' || state === 'checking';
+    if (tokenVerifyLabel) {
+      tokenVerifyLabel.textContent = state === 'checking' ? 'Перевіряємо…' : 'Перевірити';
+    }
+
+    if (state === 'empty') {
+      btnVerifyApiToken.title = 'Спочатку введіть токен API';
+    } else if (state === 'checking') {
+      btnVerifyApiToken.title = 'Триває перевірка токена';
+    } else if (state === 'success') {
+      btnVerifyApiToken.title = 'Токен перевірено успішно';
+    } else if (state === 'error') {
+      btnVerifyApiToken.title = 'Повторити перевірку токена';
+    } else {
+      btnVerifyApiToken.title = 'Перевірити токен API';
+    }
+  }
+
+  if (btnSave) {
+    btnSave.disabled = saveBlocked;
+    btnSave.title = saveBlocked
+      ? 'Щоб зберегти, спочатку перевірте токен API'
+      : 'Зберегти налаштування';
+  }
+  if (saveBlockedReason) {
+    saveBlockedReason.textContent = saveBlocked
+      ? 'Щоб зберегти, спочатку перевірте токен API.'
+      : '';
+  }
+}
+
+function syncTokenVerificationState() {
+  const provider = getSelectedApiProvider();
+  const token = inputApiKey ? inputApiKey.value.trim() : '';
+
+  if (!chkDevMode || !chkDevMode.checked || !providerRequiresToken(provider)) {
+    updateTokenVerificationUI('not-required');
+  } else if (!token) {
+    updateTokenVerificationUI('empty');
+  } else if (provider === verifiedApiProvider && token === verifiedApiKey) {
+    updateTokenVerificationUI('success');
+  } else if (provider === initialApiProvider && token === initialApiKey) {
+    updateTokenVerificationUI('trusted');
+  } else {
+    updateTokenVerificationUI('unverified');
+  }
 }
 
 function updateApiProviderState() {
@@ -190,6 +284,8 @@ function updateApiProviderState() {
       inputApiKey.placeholder = 'Токен не потрібен для JAAM API';
     }
   }
+
+  syncTokenVerificationState();
 }
 
 // Перемикання режиму розробника
@@ -199,6 +295,8 @@ function updateDevModeState() {
   devSettingsControls.style.display = isDev ? 'flex' : 'none';
   if (isDev) {
     updateApiProviderState();
+  } else {
+    syncTokenVerificationState();
   }
 }
 
@@ -209,6 +307,49 @@ if (chkDevMode) {
 apiProviderRadios.forEach(radio => {
   radio.addEventListener('change', updateApiProviderState);
 });
+
+if (inputApiKey) {
+  inputApiKey.addEventListener('input', syncTokenVerificationState);
+}
+
+if (btnVerifyApiToken) {
+  btnVerifyApiToken.addEventListener('click', async () => {
+    if (!window.settingsAPI || typeof window.settingsAPI.verifyApiToken !== 'function') return;
+
+    const provider = getSelectedApiProvider();
+    const token = inputApiKey ? inputApiKey.value.trim() : '';
+    if (!providerRequiresToken(provider) || !token || tokenVerificationState === 'checking') {
+      syncTokenVerificationState();
+      return;
+    }
+
+    updateTokenVerificationUI('checking');
+    try {
+      const result = await window.settingsAPI.verifyApiToken(provider, token);
+      if (inputApiKey.value.trim() !== token || getSelectedApiProvider() !== provider) {
+        syncTokenVerificationState();
+        return;
+      }
+
+      if (result && result.success) {
+        verifiedApiProvider = provider;
+        verifiedApiKey = token;
+        updateTokenVerificationUI('success', result.message);
+      } else {
+        verifiedApiProvider = '';
+        verifiedApiKey = '';
+        updateTokenVerificationUI('error', result && result.message);
+      }
+    } catch (_) {
+      verifiedApiProvider = '';
+      verifiedApiKey = '';
+      updateTokenVerificationUI(
+        'error',
+        'Не вдалося зв’язатися з API. Перевірте інтернет і повторіть спробу.'
+      );
+    }
+  });
+}
 
 // Безпечне відкриття зовнішніх посилань на документацію API, репозиторій та політики
 document.querySelectorAll('.external-api-link, .about-link, .about-meta-link').forEach(link => {
@@ -464,6 +605,8 @@ async function init() {
 
     // 2. Завантаження поточної конфігурації
     const cfg = await window.settingsAPI.getConfig();
+    initialApiProvider = cfg.apiProvider || (cfg.devMode ? 'ukrainealarm' : 'gateway');
+    initialApiKey = String(cfg.apiKey || '').trim();
 
     if (cfg.locationUid) {
       selectedUid = String(cfg.locationUid);
@@ -636,6 +779,12 @@ btnSave.addEventListener('click', async () => {
   const isDevMode = chkDevMode ? chkDevMode.checked : false;
   const currentProvider = isDevMode ? getSelectedApiProvider() : 'gateway';
 
+  if (isDevMode && providerRequiresToken(currentProvider)
+      && tokenVerificationState !== 'trusted' && tokenVerificationState !== 'success') {
+    syncTokenVerificationState();
+    return;
+  }
+
   let finalServerUrl = DEFAULT_PROXY_URL;
   let finalApiKey = '';
 
@@ -679,7 +828,15 @@ btnSave.addEventListener('click', async () => {
     apiKey: finalApiKey
   };
 
-  await window.settingsAPI.saveConfig(newConfig);
+  const result = await window.settingsAPI.saveConfig(newConfig);
+  if (!result || result.success !== true) {
+    if (saveBlockedReason) {
+      saveBlockedReason.textContent = result && result.message
+        ? result.message
+        : 'Не вдалося зберегти налаштування.';
+    }
+    return;
+  }
   window.settingsAPI.closeSettings();
 });
 

@@ -62,6 +62,13 @@ for (const tab of requiredTabs) {
 }
 console.log('✔ Тест 5 пройдено (усі 4 вкладки present з векторизованими favicons сайтів та файлами в assets/icons/tabs)');
 
+const uiAssetDir = path.join(__dirname, '..', 'assets', 'icons', 'ui');
+for (const tab of requiredTabs) {
+  const duplicatePath = path.join(uiAssetDir, `tab-${tab}.svg`);
+  assert.ok(!fs.existsSync(duplicatePath), `Дублікат ${duplicatePath} не повинен існувати в assets/icons/ui/`);
+}
+console.log('✔ Іконки вкладок мають єдине канонічне розташування в assets/icons/tabs');
+
 // 6. Перевірка методів WindowManager
 const windowManager = require('../src/main/window');
 assert.strictEqual(typeof windowManager.switchMapTab, 'function');
@@ -245,7 +252,8 @@ console.log('✔ Тест 26 пройдено (точний збіг назв р
 // Тест 27: Двосторонній гайковий ключ на кнопці налаштувань та індикатор сповіщення про оновлення
 const currentIndexHtml = fs.readFileSync(path.join(__dirname, '..', 'src', 'renderer', 'main', 'index.html'), 'utf8');
 const currentStyleCss = fs.readFileSync(path.join(__dirname, '..', 'src', 'renderer', 'main', 'style.css'), 'utf8');
-assert.ok(currentIndexHtml.includes('M7 10h3V7L6.5 3.5a6 6 0 0 1 8 8L17 14h-3v3l3.5 3.5a6 6 0 0 1-8-8L7 10z'), 'btnSettings повинен містити SVG двостороннього гайкового ключа');
+assert.ok(currentIndexHtml.includes('M8.2 15.8 15.8 8.2'), 'btnSettings повинен містити руків’я двостороннього гайкового ключа');
+assert.ok(currentIndexHtml.includes('m15.8 8.2-1.6-3.4L17 2') && currentIndexHtml.includes('m8.2 15.8-3.4-1.6L2 17'), 'btnSettings повинен містити два відкриті ріжкові кінці ключа');
 assert.ok(currentIndexHtml.includes('id="settingsUpdateBadge" class="btn-badge-dot"'), 'btnSettings повинен містити елемент settingsUpdateBadge');
 assert.ok(currentStyleCss.includes('.btn-badge-dot'), 'style.css повинен містити стилі індикатора .btn-badge-dot');
 assert.ok(currentStyleCss.includes('badgePulse'), 'style.css повинен містити анімацію badgePulse');
@@ -254,6 +262,5 @@ assert.ok(currentRendererJs.includes('openSettings({ scrollTo:'), 'renderer.js �
 console.log('✔ Тест 27 пройдено (двосторонній гайковий ключ, зелений індикатор сповіщення та автопрокрутка налаштувань)');
 
 console.log('🎉 Усі тести панелі вкладок, тем та векторної карти успішно виконано!');
-
 
 
