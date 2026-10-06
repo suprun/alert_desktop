@@ -1,0 +1,74 @@
+.ui-icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  flex: 0 0 auto;
+  background-color: currentColor;
+  -webkit-mask-image: var(--icon-source);
+  mask-image: var(--icon-source);
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+  -webkit-mask-size: contain;
+  mask-size: contain;
+}
+
+.icon-size-10 { width: 10px; height: 10px; }
+.icon-size-11 { width: 11px; height: 11px; }
+.icon-size-12 { width: 12px; height: 12px; }
+.icon-size-13 { width: 13px; height: 13px; }
+.icon-size-14 { width: 14px; height: 14px; }
+.icon-size-15 { width: 15px; height: 15px; }
+.icon-size-16 { width: 16px; height: 16px; }
+.icon-size-18 { width: 18px; height: 18px; }
+.icon-size-20 { width: 20px; height: 20px; }
+.icon-size-22 { width: 22px; height: 22px; }
+.icon-size-24 { width: 24px; height: 24px; }
+.icon-size-28 { width: 28px; height: 28px; }
+
+.icon-aviation { --icon-source: url('../../../assets/icons/ui/aviation.svg'); }
+.icon-ballistic { --icon-source: url('../../../assets/icons/ui/ballistic.svg'); }
+.icon-bell { --icon-source: url('../../../assets/icons/ui/bell.svg'); }
+.icon-bell-off { --icon-source: url('../../../assets/icons/ui/bell-off.svg'); }
+.icon-check { --icon-source: url('../../../assets/icons/ui/check.svg'); }
+.icon-chevron-down { --icon-source: url('../../../assets/icons/ui/chevron-down.svg'); }
+.icon-circle-alert { --icon-source: url('../../../assets/icons/ui/circle-alert.svg'); }
+.icon-close { --icon-source: url('../../../assets/icons/ui/close.svg'); }
+.icon-download { --icon-source: url('../../../assets/icons/ui/download.svg'); }
+.icon-drone { --icon-source: url('../../../assets/icons/ui/drone.svg'); }
+.icon-edit { --icon-source: url('../../../assets/icons/ui/edit.svg'); }
+.icon-external-link { --icon-source: url('../../../assets/icons/ui/external-link.svg'); }
+.icon-file-text { --icon-source: url('../../../assets/icons/ui/file-text.svg'); }
+.icon-flask { --icon-source: url('../../../assets/icons/ui/flask.svg'); }
+.icon-gear { --icon-source: url('../../../assets/icons/ui/gear.svg'); }
+.icon-github { --icon-source: url('../../../assets/icons/ui/github.svg'); }
+.icon-heart { --icon-source: url('../../../assets/icons/ui/heart.svg'); }
+.icon-info { --icon-source: url('../../../assets/icons/ui/info.svg'); }
+.icon-location-pin { --icon-source: url('../../../assets/icons/ui/location-pin.svg'); }
+.icon-map { --icon-source: url('../../../assets/icons/ui/map.svg'); }
+.icon-menu { --icon-source: url('../../../assets/icons/ui/menu.svg'); }
+.icon-missile { --icon-source: url('../../../assets/icons/ui/missile.svg'); }
+.icon-moon { --icon-source: url('../../../assets/icons/ui/moon.svg'); }
+.icon-pause { --icon-source: url('../../../assets/icons/ui/pause.svg'); }
+.icon-play { --icon-source: url('../../../assets/icons/ui/play.svg'); }
+.icon-power { --icon-source: url('../../../assets/icons/ui/power.svg'); }
+.icon-radiation { --icon-source: url('../../../assets/icons/ui/radiation.svg'); }
+.icon-refresh { --icon-source: url('../../../assets/icons/ui/refresh.svg'); }
+.icon-refresh-cw { --icon-source: url('../../../assets/icons/ui/refresh-cw.svg'); }
+.icon-shield { --icon-source: url('../../../assets/icons/ui/shield.svg'); }
+.icon-shield-alert { --icon-source: url('../../../assets/icons/ui/shield-alert.svg'); }
+.icon-shield-check { --icon-source: url('../../../assets/icons/ui/shield-check.svg'); }
+.icon-siren { --icon-source: url('../../../assets/icons/ui/siren.svg'); }
+.icon-sun { --icon-source: url('../../../assets/icons/ui/sun.svg'); }
+.icon-target { --icon-source: url('../../../assets/icons/ui/target.svg'); }
+.icon-triangle-alert { --icon-source: url('../../../assets/icons/ui/triangle-alert.svg'); }
+.icon-user { --icon-source: url('../../../assets/icons/ui/user.svg'); }
+.icon-volume { --icon-source: url('../../../assets/icons/ui/volume.svg'); }
+.icon-wifi { --icon-source: url('../../../assets/icons/ui/wifi.svg'); }
+.icon-wifi-off { --icon-source: url('../../../assets/icons/ui/wifi-off.svg'); }
+
+.icon-tab-internal { --icon-source: url('../../../assets/icons/tabs/tab-internal.svg'); }
+.icon-tab-alertsinua { --icon-source: url('../../../assets/icons/tabs/tab-alertsinua.svg'); }
+.icon-tab-ukrainealarm { --icon-source: url('../../../assets/icons/tabs/tab-ukrainealarm.svg'); }
+.icon-tab-neptun { --icon-source: url('../../../assets/icons/tabs/tab-neptun.svg'); }

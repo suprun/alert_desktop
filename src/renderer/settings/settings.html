@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="color-scheme" content="light dark">
   <title>Налаштування — Повітряні тривоги</title>
+  <link rel="stylesheet" href="../shared/icons.css">
   <link rel="stylesheet" href="settings.css">
 </head>
 <body>
@@ -23,12 +24,7 @@
         <div id="selectedLocationBadge" class="selected-badge" style="display: none;">
           <div class="selected-badge-header">
             <div class="selected-badge-label-group">
-              <span class="selected-badge-pin" aria-hidden="true">
-                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
-                  <circle cx="12" cy="10" r="3"/>
-                </svg>
-              </span>
+              <span class="selected-badge-pin ui-icon icon-location-pin icon-size-13" aria-hidden="true"></span>
               <span class="selected-badge-label">Поточна місцевість:</span>
             </div>
             <span id="selectedBadgeType" class="location-item-type selected-badge-type"></span>
@@ -42,16 +38,19 @@
             <select id="selectOblast" class="form-select hierarchy-select" title="Оберіть область чи місто">
               <option value="">(Оберіть область / місто)</option>
             </select>
+            <span class="select-chevron ui-icon icon-chevron-down icon-size-12" aria-hidden="true"></span>
           </div>
           <div class="hierarchy-field">
             <select id="selectRaion" class="form-select hierarchy-select" title="Оберіть район" disabled>
               <option value="">(Оберіть район)</option>
             </select>
+            <span class="select-chevron ui-icon icon-chevron-down icon-size-12" aria-hidden="true"></span>
           </div>
           <div class="hierarchy-field">
             <select id="selectHromada" class="form-select hierarchy-select" title="Оберіть громаду" disabled>
               <option value="">(Оберіть громаду)</option>
             </select>
+            <span class="select-chevron ui-icon icon-chevron-down icon-size-12" aria-hidden="true"></span>
           </div>
         </div>
       </section>
@@ -68,18 +67,17 @@
           </div>
           <div id="alertSoundControls" class="sound-item-controls">
             <div class="sound-select-row">
-              <select id="selectAlertSound" class="form-select sound-select">
-                <option value="siren">Класична сирена</option>
-                <option value="pulse">Електронний пульс</option>
-                <option value="chime">М'який сигнал</option>
-                <option value="radar">Радарний імпульс</option>
-              </select>
+              <span class="select-control sound-select">
+                <select id="selectAlertSound" class="form-select">
+                  <option value="siren">Класична сирена</option>
+                  <option value="pulse">Електронний пульс</option>
+                  <option value="chime">М'який сигнал</option>
+                  <option value="radar">Радарний імпульс</option>
+                </select>
+                <span class="select-chevron ui-icon icon-chevron-down icon-size-12" aria-hidden="true"></span>
+              </span>
               <button type="button" id="btnPlayAlertTest" class="btn-secondary btn-test-sound" title="Прослухати сигнал тривоги">
-                <span id="playAlertIcon" class="btn-icon-inner">
-                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <polygon points="5 3 19 12 5 21 5 3"/>
-                  </svg>
-                </span>
+                <span id="playAlertIcon" class="btn-icon-inner ui-icon icon-play icon-size-14" aria-hidden="true"></span>
                 <span id="playAlertText">Перевірити</span>
               </button>
             </div>
@@ -94,18 +92,17 @@
           </div>
           <div id="allClearSoundControls" class="sound-item-controls">
             <div class="sound-select-row">
-              <select id="selectAllClearSound" class="form-select sound-select">
-                <option value="chime">Гармонійний передзвін</option>
-                <option value="bell">Подвійний дзвіночок</option>
-                <option value="marimba">Висхідна марімба</option>
-                <option value="gong">Спокійний гонг</option>
-              </select>
+              <span class="select-control sound-select">
+                <select id="selectAllClearSound" class="form-select">
+                  <option value="chime">Гармонійний передзвін</option>
+                  <option value="bell">Подвійний дзвіночок</option>
+                  <option value="marimba">Висхідна марімба</option>
+                  <option value="gong">Спокійний гонг</option>
+                </select>
+                <span class="select-chevron ui-icon icon-chevron-down icon-size-12" aria-hidden="true"></span>
+              </span>
               <button type="button" id="btnPlayAllClearTest" class="btn-secondary btn-test-sound" title="Прослухати сигнал відбою">
-                <span id="playAllClearIcon" class="btn-icon-inner">
-                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <polygon points="5 3 19 12 5 21 5 3"/>
-                  </svg>
-                </span>
+                <span id="playAllClearIcon" class="btn-icon-inner ui-icon icon-play icon-size-14" aria-hidden="true"></span>
                 <span id="playAllClearText">Перевірити</span>
               </button>
             </div>
@@ -115,13 +112,7 @@
         <!-- Регулювання гучності -->
         <div id="volumeControls" class="volume-container">
           <div class="volume-row">
-            <span class="control-icon" aria-hidden="true">
-              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
-                <path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>
-                <path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>
-              </svg>
-            </span>
+            <span class="control-icon ui-icon icon-volume icon-size-18" aria-hidden="true"></span>
             <input type="range" id="volumeSlider" class="form-range" min="0" max="100" value="80">
             <span id="volumeValue" class="volume-val">80%</span>
           </div>
@@ -141,10 +132,7 @@
             <span id="quitAppDescription" class="field-hint">Повністю закриє застосунок і припинить моніторинг тривог.</span>
           </div>
           <button type="button" id="btnQuitApp" class="btn-danger-outline" aria-describedby="quitAppDescription">
-            <svg class="btn-danger-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <path d="M18.36 6.64a9 9 0 1 1-12.73 0"/>
-              <line x1="12" y1="2" x2="12" y2="12"/>
-            </svg>
+            <span class="btn-danger-icon ui-icon icon-power icon-size-16" aria-hidden="true"></span>
             <span>Завершити роботу</span>
           </button>
         </div>
@@ -165,60 +153,31 @@
           <!-- Мета-посилання проєкту (репозиторій, ліцензія, автор) — в 1 рядок -->
           <div class="about-links-row">
             <a href="https://github.com/suprun/alert_desktop" target="_blank" class="about-meta-link" title="Перейти до репозиторію на GitHub">
-              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path>
-              </svg>
+              <span class="ui-icon icon-github icon-size-13" aria-hidden="true"></span>
               <span>Репозиторій</span>
-              <svg class="external-link-icon" viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
-                <polyline points="15 3 21 3 21 9"/>
-                <line x1="10" y1="14" x2="21" y2="3"/>
-              </svg>
+              <span class="external-link-icon ui-icon icon-external-link icon-size-11" aria-hidden="true"></span>
             </a>
             <a href="https://github.com/suprun/alert_desktop/blob/main/LICENSE" target="_blank" class="about-meta-link" title="Переглянути ліцензію Apache-2.0">
-              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                <polyline points="14 2 14 8 20 8"></polyline>
-                <line x1="16" y1="13" x2="8" y2="13"></line>
-                <line x1="16" y1="17" x2="8" y2="17"></line>
-                <polyline points="10 9 9 9 8 9"></polyline>
-              </svg>
+              <span class="ui-icon icon-file-text icon-size-13" aria-hidden="true"></span>
               <span>Ліцензія</span>
-              <svg class="external-link-icon" viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
-                <polyline points="15 3 21 3 21 9"/>
-                <line x1="10" y1="14" x2="21" y2="3"/>
-              </svg>
+              <span class="external-link-icon ui-icon icon-external-link icon-size-11" aria-hidden="true"></span>
             </a>
             <a href="https://github.com/suprun" target="_blank" class="about-meta-link" title="Перейти до профілю автора">
-              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                <circle cx="12" cy="7" r="4"></circle>
-              </svg>
+              <span class="ui-icon icon-user icon-size-13" aria-hidden="true"></span>
               <span>Автор: suprun</span>
-              <svg class="external-link-icon" viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
-                <polyline points="15 3 21 3 21 9"/>
-                <line x1="10" y1="14" x2="21" y2="3"/>
-              </svg>
+              <span class="external-link-icon ui-icon icon-external-link icon-size-11" aria-hidden="true"></span>
             </a>
           </div>
 
           <!-- Рядок підтримки розробки (донат) -->
           <div class="about-donate-row">
             <div class="about-donate-info">
-              <svg class="donate-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-              </svg>
+              <span class="donate-icon ui-icon icon-heart icon-size-14" aria-hidden="true"></span>
               <span>Підтримати розвиток проєкту:</span>
             </div>
             <a href="https://send.monobank.ua/jar/alert_desktop" target="_blank" class="about-donate-btn" title="Підтримати розробку через Monobank Банку">
               <span>Донат (mono)</span>
-              <svg class="external-link-icon" viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
-                <polyline points="15 3 21 3 21 9"/>
-                <line x1="10" y1="14" x2="21" y2="3"/>
-              </svg>
+              <span class="external-link-icon ui-icon icon-external-link icon-size-10" aria-hidden="true"></span>
             </a>
           </div>
 
@@ -228,24 +187,15 @@
               <span class="about-update-title">Оновлення застосунку</span>
               <div class="about-actions-col">
                 <button type="button" id="btnCheckUpdate" class="btn-secondary btn-update-action" title="Перевірити наявність нових версій">
-                  <svg class="update-icon" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <polyline points="23 4 23 10 17 10"/>
-                    <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
-                  </svg>
+                  <span class="update-icon ui-icon icon-refresh icon-size-13" aria-hidden="true"></span>
                   <span>Перевірити оновлення</span>
                 </button>
                 <button type="button" id="btnDownloadUpdate" class="btn-primary btn-update-action" style="display: none;" title="Завантажити доступне оновлення">
-                  <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                    <polyline points="7 10 12 15 17 10"/>
-                    <line x1="12" y1="15" x2="12" y2="3"/>
-                  </svg>
+                  <span class="ui-icon icon-download icon-size-13" aria-hidden="true"></span>
                   <span>Завантажити</span>
                 </button>
                 <button type="button" id="btnInstallUpdate" class="btn-primary btn-update-action" style="display: none;" title="Перезапустити застосунок та встановити оновлення">
-                  <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
-                  </svg>
+                  <span class="ui-icon icon-refresh-cw icon-size-13" aria-hidden="true"></span>
                   <span>Оновити</span>
                 </button>
               </div>
@@ -288,21 +238,11 @@
         <!-- Юридичні застереження та правова інформація -->
         <div class="about-legal-box">
             <div class="about-legal-item">
-              <span class="about-legal-icon" aria-hidden="true">
-                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <circle cx="12" cy="12" r="10"/>
-                  <line x1="12" y1="16" x2="12" y2="12"/>
-                  <line x1="12" y1="8" x2="12.01" y2="8"/>
-                </svg>
-              </span>
+              <span class="about-legal-icon ui-icon icon-info icon-size-14" aria-hidden="true"></span>
               <span><strong>Неофіційний клієнт:</strong> Веб-мапи надаються сторонніми сервісами. Клієнт зберігає налаштування виключно локально і не збирає персональні дані користувача.</span>
             </div>
             <div class="about-legal-item">
-              <span class="about-legal-icon" aria-hidden="true">
-                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-                </svg>
-              </span>
+              <span class="about-legal-icon ui-icon icon-shield icon-size-14" aria-hidden="true"></span>
               <span>Застосунок надається за принципом «ЯК Є» для інформування. Завжди орієнтуйтеся на офіційні сповіщення ДСНС та Повітряних Сил ЗСУ.</span>
             </div>
         </div>
@@ -315,33 +255,21 @@
                 <strong>Alerts.in.ua:</strong>
                 <a href="https://alerts.in.ua/privacy-policy" target="_blank" class="about-link" title="Політика конфіденційності alerts.in.ua">
                   <span>Політика конфіденційності alerts.in.ua</span>
-                  <svg class="external-link-icon" viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
-                    <polyline points="15 3 21 3 21 9"/>
-                    <line x1="10" y1="14" x2="21" y2="3"/>
-                  </svg>
+                  <span class="external-link-icon ui-icon icon-external-link icon-size-10" aria-hidden="true"></span>
                 </a>
               </li>
               <li>
                 <strong>UkraineAlarm:</strong>
                 <a href="https://map.ukrainealarm.com/confidentiality" target="_blank" class="about-link" title="Політика конфіденційності map.ukrainealarm.com">
                   <span>Політика конфіденційності map.ukrainealarm.com</span>
-                  <svg class="external-link-icon" viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
-                    <polyline points="15 3 21 3 21 9"/>
-                    <line x1="10" y1="14" x2="21" y2="3"/>
-                  </svg>
+                  <span class="external-link-icon ui-icon icon-external-link icon-size-10" aria-hidden="true"></span>
                 </a>
               </li>
               <li>
                 <strong>Neptun:</strong>
                 <a href="https://neptun.in.ua/" target="_blank" class="about-link" title="Офіційний сайт та документація neptun.in.ua">
                   <span>Офіційний сайт та документація neptun.in.ua</span>
-                  <svg class="external-link-icon" viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
-                    <polyline points="15 3 21 3 21 9"/>
-                    <line x1="10" y1="14" x2="21" y2="3"/>
-                  </svg>
+                  <span class="external-link-icon ui-icon icon-external-link icon-size-10" aria-hidden="true"></span>
                 </a>
               </li>
             </ul>
@@ -376,11 +304,7 @@
                   <span class="radio-title">API UkraineAlarm</span>
                   <a href="https://api.ukrainealarm.com/" target="_blank" class="external-api-link" title="Відкрити документацію api.ukrainealarm.com">
                     <span>api.ukrainealarm.com</span>
-                    <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                      <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
-                      <polyline points="15 3 21 3 21 9"/>
-                      <line x1="10" y1="14" x2="21" y2="3"/>
-                    </svg>
+                    <span class="ui-icon icon-external-link icon-size-11" aria-hidden="true"></span>
                   </a>
                 </div>
                 <span class="radio-desc">Офіційне API системи UkraineAlarm (потрібен власний токен доступу).</span>
@@ -395,11 +319,7 @@
                   <span class="radio-title">API Alerts.in.ua</span>
                   <a href="https://alerts.in.ua/api" target="_blank" class="external-api-link" title="Відкрити документацію alerts.in.ua/api">
                     <span>alerts.in.ua/api</span>
-                    <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                      <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
-                      <polyline points="15 3 21 3 21 9"/>
-                      <line x1="10" y1="14" x2="21" y2="3"/>
-                    </svg>
+                    <span class="ui-icon icon-external-link icon-size-11" aria-hidden="true"></span>
                   </a>
                 </div>
                 <span class="radio-desc">API мапи alerts.in.ua із деталізацією загроз (потрібен власний токен доступу).</span>
@@ -414,11 +334,7 @@
                   <span class="radio-title">API Ubilling (Vadym Klymenko)</span>
                   <a href="https://wiki.ubilling.net.ua/doku.php?id=aerialalertsapi" target="_blank" class="external-api-link" title="Відкрити документацію wiki.ubilling.net.ua">
                     <span>wiki.ubilling.net.ua</span>
-                    <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                      <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
-                      <polyline points="15 3 21 3 21 9"/>
-                      <line x1="10" y1="14" x2="21" y2="3"/>
-                    </svg>
+                    <span class="ui-icon icon-external-link icon-size-11" aria-hidden="true"></span>
                   </a>
                 </div>
                 <span class="radio-desc">Кешоване публічне API без токена. Деталізація лише на рівні областей.</span>
@@ -433,11 +349,7 @@
                   <span class="radio-title">API NEPTUN</span>
                   <a href="https://neptun.in.ua/developers" target="_blank" class="external-api-link" title="Відкрити документацію neptun.in.ua/developers">
                     <span>neptun.in.ua</span>
-                    <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                      <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
-                      <polyline points="15 3 21 3 21 9"/>
-                      <line x1="10" y1="14" x2="21" y2="3"/>
-                    </svg>
+                    <span class="ui-icon icon-external-link icon-size-11" aria-hidden="true"></span>
                   </a>
                 </div>
                 <span class="radio-desc">Офіційні тривоги по районах та областях (0s WebSocket + загрози, без токена).</span>
@@ -452,11 +364,7 @@
                   <span class="radio-title">API JAAM</span>
                   <a href="https://jaam.net.ua/api" target="_blank" class="external-api-link" title="Відкрити документацію jaam.net.ua/api">
                     <span>jaam.net.ua</span>
-                    <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                      <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
-                      <polyline points="15 3 21 3 21 9"/>
-                      <line x1="10" y1="14" x2="21" y2="3"/>
-                    </svg>
+                    <span class="ui-icon icon-external-link icon-size-11" aria-hidden="true"></span>
                   </a>
                 </div>
                 <span class="radio-desc">Легковажна булева карта тривог v3 (без токена, рівень областей та великих міст).</span>
@@ -475,22 +383,13 @@
               <input type="password" id="inputApiKey" class="form-input" aria-describedby="apiTokenStatus" aria-invalid="false" placeholder="Токен не потрібен для вбудованого шлюзу" disabled>
               <button type="button" id="btnVerifyApiToken" class="btn-secondary btn-verify-token" aria-describedby="apiTokenStatus" style="display: none;">
                 <span class="token-verify-spinner" aria-hidden="true"></span>
-                <svg class="token-verify-check" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                  <polyline points="20 6 9 17 4 12"/>
-                </svg>
-                <svg class="token-verify-error" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                  <line x1="18" y1="6" x2="6" y2="18"/>
-                  <line x1="6" y1="6" x2="18" y2="18"/>
-                </svg>
+                <span class="token-verify-check ui-icon icon-check icon-size-16" aria-hidden="true"></span>
+                <span class="token-verify-error ui-icon icon-close icon-size-16" aria-hidden="true"></span>
                 <span class="token-verify-label">Перевірити</span>
               </button>
             </div>
             <div id="apiTokenStatus" class="api-token-status" role="status" aria-live="polite" style="display: none;">
-              <svg class="api-token-status-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <circle cx="12" cy="12" r="10"/>
-                <line x1="12" y1="16" x2="12" y2="12"/>
-                <line x1="12" y1="8" x2="12.01" y2="8"/>
-              </svg>
+              <span class="api-token-status-icon ui-icon icon-info icon-size-14" aria-hidden="true"></span>
               <span id="apiTokenStatusText">Введіть токен, щоб увімкнути перевірку.</span>
             </div>
           </div>

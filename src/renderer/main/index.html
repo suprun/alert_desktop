@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="color-scheme" content="light dark">
   <title>Повітряні тривоги</title>
+  <link rel="stylesheet" href="../shared/icons.css">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -13,29 +14,14 @@
     <div class="status-section">
       <!-- Окремий інтерактивний елемент місцевості -->
       <div id="statusLocationWrapper" class="location-item" title="Змінити місцевість (Налаштування)">
-        <span class="location-pin-icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
-            <circle cx="12" cy="10" r="3"/>
-          </svg>
-        </span>
+        <span class="location-pin-icon ui-icon icon-location-pin icon-size-14" aria-hidden="true"></span>
         <span id="statusLocation" class="location-title">Україна</span>
-        <span class="location-edit-icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/>
-          </svg>
-        </span>
+        <span class="location-edit-icon ui-icon icon-edit icon-size-12" aria-hidden="true"></span>
       </div>
 
       <!-- Єдиний об'єднаний статус-бейдж (стан + причина загрози) -->
       <div id="statusBadge" class="status-badge safe">
-        <span id="statusIcon" class="status-icon">
-          <!-- Linear Shield Check Icon -->
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-            <path d="m9 12 2 2 4-4"/>
-          </svg>
-        </span>
+        <span id="statusIcon" class="status-icon"><span class="ui-icon icon-shield-check icon-size-16" aria-hidden="true"></span></span>
         <span id="statusText" class="status-text">Немає тривоги</span>
       </div>
     </div>
@@ -43,14 +29,7 @@
     <div class="actions-section">
       <!-- Нейтральна іконка статусу підключення зі швидким кастомним тултіпом -->
       <div id="connectionStatus" class="connection-status" tabindex="0" role="status" aria-label="Статус підключення">
-        <span id="connectionIcon" class="connection-icon">
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M5 12.55a11 11 0 0 1 14.08 0"/>
-            <path d="M1.42 9a16 16 0 0 1 21.16 0"/>
-            <path d="M8.53 16.11a6 6 0 0 1 6.95 0"/>
-            <circle cx="12" cy="20" r="1"/>
-          </svg>
-        </span>
+        <span id="connectionIcon" class="connection-icon"><span class="ui-icon icon-wifi icon-size-16" aria-hidden="true"></span></span>
         <div id="fastTooltip" class="fast-tooltip" role="tooltip">
           <span id="fastTooltipDot" class="tooltip-dot"></span>
           <span id="fastTooltipText">Підключення...</span>
@@ -59,34 +38,12 @@
 
       <!-- Кнопка швидкого перемикання теми інтерфейсу (Сонце / Місяць без емодзі) -->
       <button type="button" id="btnThemeToggle" class="btn-icon" title="Перемкнути тему оформлення (Світла / Темна)" aria-label="Перемкнути тему">
-        <span id="themeSunIcon" class="theme-icon sun-icon">
-          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="5"/>
-            <line x1="12" y1="1" x2="12" y2="3"/>
-            <line x1="12" y1="21" x2="12" y2="23"/>
-            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
-            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
-            <line x1="1" y1="12" x2="3" y2="12"/>
-            <line x1="21" y1="12" x2="23" y2="12"/>
-            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
-            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
-          </svg>
-        </span>
-        <span id="themeMoonIcon" class="theme-icon moon-icon">
-          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
-          </svg>
-        </span>
+        <span id="themeSunIcon" class="theme-icon sun-icon ui-icon icon-sun icon-size-18" aria-hidden="true"></span>
+        <span id="themeMoonIcon" class="theme-icon moon-icon ui-icon icon-moon icon-size-18" aria-hidden="true"></span>
       </button>
 
       <button id="btnSettings" class="btn-icon" title="Налаштування" aria-label="Налаштування">
-        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M8.2 15.8 15.8 8.2"/>
-          <path d="m15.8 8.2-1.6-3.4L17 2"/>
-          <path d="m15.8 8.2 3.4 1.6L22 7"/>
-          <path d="m8.2 15.8 1.6 3.4L7 22"/>
-          <path d="m8.2 15.8-3.4-1.6L2 17"/>
-        </svg>
+        <span class="ui-icon icon-menu icon-size-18" aria-hidden="true"></span>
         <span id="settingsUpdateBadge" class="btn-badge-dot" style="display: none;" aria-hidden="true"></span>
       </button>
     </div>
@@ -97,21 +54,12 @@
 
   <!-- Пігулковий Toast зі статусом оновлення програми -->
   <div id="updatePillToast" class="update-pill-toast" role="alert" style="display: none;">
-    <span class="update-pill-icon" aria-hidden="true">
-      <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-        <polyline points="7 10 12 15 17 10"/>
-        <line x1="12" y1="15" x2="12" y2="3"/>
-      </svg>
-    </span>
+    <span class="update-pill-icon ui-icon icon-download icon-size-15" aria-hidden="true"></span>
     <span id="updatePillMessage" class="update-pill-message">Доступне оновлення</span>
     <button type="button" id="btnPillDownload" class="update-pill-btn btn-pill-download" style="display: none;">Завантажити</button>
     <button type="button" id="btnPillInstall" class="update-pill-btn btn-pill-install" style="display: none;">Оновити</button>
     <button type="button" id="btnPillDismiss" class="update-pill-close" title="Приховати сповіщення" aria-label="Приховати">
-      <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-        <line x1="18" y1="6" x2="6" y2="18"/>
-        <line x1="6" y1="6" x2="18" y2="18"/>
-      </svg>
+      <span class="ui-icon icon-close icon-size-13" aria-hidden="true"></span>
     </button>
   </div>
 
@@ -171,10 +119,7 @@
             <span id="historyOblastTitle" class="drawer-subtitle">Область</span>
           </div>
           <button type="button" id="btnHistoryClose" class="btn-icon drawer-close-btn" title="Закрити панель" aria-label="Закрити">
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <line x1="18" y1="6" x2="6" y2="18"/>
-              <line x1="6" y1="6" x2="18" y2="18"/>
-            </svg>
+            <span class="ui-icon icon-close icon-size-16" aria-hidden="true"></span>
           </button>
         </div>
 
@@ -206,13 +151,7 @@
       <div id="mapLoadingState" class="map-state-box loading">
         <div class="loader-spinner">
           <div class="spinner-ring"></div>
-          <div class="spinner-icon">
-            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/>
-              <line x1="8" y1="2" x2="8" y2="18"/>
-              <line x1="16" y1="6" x2="16" y2="22"/>
-            </svg>
-          </div>
+          <div class="spinner-icon"><span class="ui-icon icon-map icon-size-22" aria-hidden="true"></span></div>
         </div>
         <h2 class="map-state-title">Завантаження карти...</h2>
         <p class="map-state-subtitle">Підключення до обраної інтерактивної мапи</p>
@@ -220,20 +159,11 @@
 
       <!-- Стан помилки підключення -->
       <div id="mapErrorState" class="map-state-box error" style="display: none;">
-        <div class="error-icon-box">
-          <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="10"/>
-            <line x1="12" y1="8" x2="12" y2="12"/>
-            <line x1="12" y1="16" x2="12.01" y2="16"/>
-          </svg>
-        </div>
+        <div class="error-icon-box"><span class="ui-icon icon-circle-alert icon-size-28" aria-hidden="true"></span></div>
         <h2 class="map-state-title">Не вдалося завантажити карту</h2>
         <p id="mapErrorDescription" class="map-state-subtitle">Перевірте інтернет-з’єднання або доступність сервера</p>
         <button type="button" id="btnRetryMap" class="btn-retry-map">
-          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="23 4 23 10 17 10"/>
-            <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
-          </svg>
+          <span class="ui-icon icon-refresh icon-size-14" aria-hidden="true"></span>
           <span>Спробувати знову</span>
         </button>
       </div>
@@ -245,52 +175,26 @@
     <div class="tabs-track">
       <!-- 1. Вбудована -->
       <button type="button" class="tab-btn" data-tab="internal" title="Автономна вбудована векторна карта">
-        <span class="tab-btn-icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <polygon points="12 2 2 7 12 12 22 7 12 2"/>
-            <polyline points="2 17 12 22 22 17"/>
-            <polyline points="2 12 12 17 22 12"/>
-          </svg>
-        </span>
+        <span class="tab-btn-icon ui-icon icon-tab-internal icon-size-16" aria-hidden="true"></span>
         <span class="tab-btn-label">Вбудована</span>
         <span id="tabInternalAlertBadge" class="tab-alert-badge" style="display: none;">0</span>
       </button>
 
       <!-- 2. Alerts.in.ua -->
       <button type="button" class="tab-btn" data-tab="alertsinua" title="Мапа alerts.in.ua">
-        <span class="tab-btn-icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="5" y="17" width="14" height="4" rx="1.5" stroke-width="1.8"/>
-            <path d="M6.5 17c0-3.5 2-8.5 5.5-8.5s5.5 5 5.5 8.5" stroke-width="1.8"/>
-            <path d="M10 13a2 2 0 0 1 2-2" stroke-width="1.5"/>
-            <line x1="12" y1="2" x2="12" y2="4.5"/>
-            <line x1="4.5" y1="6" x2="6.5" y2="8"/>
-            <line x1="19.5" y1="6" x2="17.5" y2="8"/>
-            <line x1="2" y1="13.5" x2="4.5" y2="13.5"/>
-            <line x1="19.5" y1="13.5" x2="22" y2="13.5"/>
-          </svg>
-        </span>
+        <span class="tab-btn-icon ui-icon icon-tab-alertsinua icon-size-16" aria-hidden="true"></span>
         <span class="tab-btn-label">Alerts.in.ua</span>
       </button>
 
       <!-- 3. UkraineAlarm -->
       <button type="button" class="tab-btn" data-tab="ukrainealarm" title="Офіційна мапа map.ukrainealarm.com">
-        <span class="tab-btn-icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="9.5" stroke-width="1.8"/>
-            <path d="M19.97 10.85L19.86 10.24L19.47 10.34L18.16 9.89L18.08 10.12L17.42 9.44L16.84 9.8L15.83 9.74L15.3 8.64L14.59 8.7L14.42 8.14L14.69 8.05L14.04 7.21L12.95 7.34L12.74 7.74L11.77 7.81L11.36 8.86L11.11 8.58L10.43 8.76L10.27 8.44L9.94 8.74L9.5 8.38L9.06 8.66L8.54 8.27L6.95 7.93L6.17 8.02L6.13 8.29L5.5 8.51L5.85 9.78L4.6 11.07L4.72 11.84L4.48 11.73L4.0 12.61L4.59 13.19L6.17 13.36L6.48 13.71L7.69 13.36L8.28 12.8L8.98 12.72L9.74 13.26L10.05 13.18L10.47 13.53L10.41 14.14L10.75 14.21L10.79 14.77L11.38 15.45L10.28 15.39L10.27 16.06L9.59 16.77L9.72 17.01L9.99 17.15L10.66 16.85L10.99 17.13L10.87 16.42L11.01 16.66L11.66 15.94L11.36 15.54L11.7 15.88L12.24 15.18L12.06 14.54L12.4 15.21L12.67 14.88L12.54 15.17L12.9 15.16L12.96 14.63L13.04 15.14L13.43 15.25L12.59 15.25L13.09 15.43L12.83 15.63L13.55 15.86L14.55 15.67L14.68 16.07L14.17 16.18L13.56 16.75L14.53 17.04L14.52 17.81L15.07 18.04L16.5 16.91L17.35 16.88L17.48 16.37L16.37 16.61L15.7 15.58L15.74 16.01L16.38 16.7L15.93 16.63L16.04 16.4L15.63 15.92L15.37 16.12L15.54 15.86L15.08 15.91L14.68 15.54L15.42 15.54L15.39 15.86L15.97 15.08L16.13 15.35L16.1 14.78L16.28 15.11L17.11 14.62L17.43 14.74L18.11 14.03L18.6 14.03L18.75 13.21L19.12 12.8L19.96 12.69L19.72 11.45L19.93 11.3L19.62 11.15L19.97 10.85Z" fill="currentColor" stroke="none"/>
-          </svg>
-        </span>
+        <span class="tab-btn-icon ui-icon icon-tab-ukrainealarm icon-size-16" aria-hidden="true"></span>
         <span class="tab-btn-label">UkraineAlarm</span>
       </button>
 
       <!-- 4. Neptun -->
       <button type="button" class="tab-btn" data-tab="neptun" title="Мапа neptun.in.ua">
-        <span class="tab-btn-icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
-            <path d="M12 2.5L13.7 5.8L13.3 15.5L15.8 15.5L15.8 8.4L18.5 5.8L18.5 14.1C18.5 16.6 16.5 18.5 13.5 18.5L13.5 21L10.5 21L10.5 18.5C7.5 18.5 5.5 16.6 5.5 14.1L5.5 5.8L8.2 8.4L8.2 15.5L10.7 15.5L10.3 5.8Z"/>
-          </svg>
-        </span>
+        <span class="tab-btn-icon ui-icon icon-tab-neptun icon-size-16" aria-hidden="true"></span>
         <span class="tab-btn-label">Neptun</span>
       </button>
     </div>

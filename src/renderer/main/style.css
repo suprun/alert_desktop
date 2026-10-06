@@ -290,7 +290,7 @@ html.theme-light .app-header.has-alert.artillery,
   gap: 5px;
 }
 
-#statusIcon svg {
+#statusIcon .ui-icon {
   flex-shrink: 0;
 }
 
@@ -982,7 +982,7 @@ html.theme-light #themeMoonIcon {
   height: 20px;
 }
 
-.history-status-card .status-icon svg {
+.history-status-card .status-icon .ui-icon {
   width: 18px;
   height: 18px;
   display: block;
@@ -1148,7 +1148,7 @@ html.theme-light #themeMoonIcon {
   margin-bottom: 2px;
 }
 
-.empty-history-icon svg {
+.empty-history-icon .ui-icon {
   width: 24px;
   height: 24px;
 }

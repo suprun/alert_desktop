@@ -65,16 +65,11 @@ const URL_UBILLING = 'https://ubilling.net.ua/aerialalerts/';
 const URL_NEPTUN = 'https://neptun.in.ua/api/v1/alerts';
 const URL_JAAM = 'https://jaam.net.ua/alerts_statuses_v3.json';
 
-const playSvg = `
-  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-    <polygon points="5 3 19 12 5 21 5 3"/>
-  </svg>`;
-
-const pauseSvg = `
-  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-    <rect x="6" y="4" width="4" height="16"/>
-    <rect x="14" y="4" width="4" height="16"/>
-  </svg>`;
+function setAudioTestIcon(element, iconName) {
+  if (!element) return;
+  element.classList.remove('icon-play', 'icon-pause');
+  element.classList.add(`icon-${iconName}`);
+}
 
 let activeTestType = null; // 'alert' | 'all-clear' | null
 let allLocations = [];
@@ -93,9 +88,9 @@ function stopAudioTest() {
     audioTest.currentTime = 0;
   }
   activeTestType = null;
-  if (playAlertIcon) playAlertIcon.innerHTML = playSvg;
+  setAudioTestIcon(playAlertIcon, 'play');
   if (playAlertText) playAlertText.textContent = 'Перевірити';
-  if (playAllClearIcon) playAllClearIcon.innerHTML = playSvg;
+  setAudioTestIcon(playAllClearIcon, 'play');
   if (playAllClearText) playAllClearText.textContent = 'Перевірити';
 }
 
@@ -392,7 +387,7 @@ btnPlayAlertTest.addEventListener('click', () => {
     audioTest.currentTime = 0;
     audioTest.play().then(() => {
       activeTestType = 'alert';
-      playAlertIcon.innerHTML = pauseSvg;
+      setAudioTestIcon(playAlertIcon, 'pause');
       playAlertText.textContent = 'Зупинити';
     }).catch((err) => {
       console.warn('Не вдалося відтворити тестовий звук тривоги:', err.message);
@@ -413,7 +408,7 @@ btnPlayAllClearTest.addEventListener('click', () => {
     audioTest.currentTime = 0;
     audioTest.play().then(() => {
       activeTestType = 'all-clear';
-      playAllClearIcon.innerHTML = pauseSvg;
+      setAudioTestIcon(playAllClearIcon, 'pause');
       playAllClearText.textContent = 'Зупинити';
     }).catch((err) => {
       console.warn('Не вдалося відтворити тестовий звук відбою:', err.message);

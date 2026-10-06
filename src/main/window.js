@@ -1,6 +1,19 @@
 const { BrowserWindow, WebContentsView, BrowserView, shell, nativeTheme, session, screen } = require('electron');
+const fs = require('fs');
 const path = require('path');
 const config = require('./config');
+
+function loadUiIconDataUrl(fileName) {
+  try {
+    const iconPath = path.join(__dirname, '..', '..', 'assets', 'icons', 'ui', fileName);
+    const iconSvg = fs.readFileSync(iconPath, 'utf8');
+    return `data:image/svg+xml;base64,${Buffer.from(iconSvg).toString('base64')}`;
+  } catch (_err) {
+    return '';
+  }
+}
+
+const externalLinkIconDataUrl = loadUiIconDataUrl('external-link.svg');
 
 class WindowManager {
   constructor() {
@@ -246,7 +259,10 @@ class WindowManager {
       partition: cfg.partition,
       contextIsolation: true,
       nodeIntegration: false,
-      preload: mapPreloadPath
+      preload: mapPreloadPath,
+      additionalArguments: externalLinkIconDataUrl
+        ? [`--alert-desktop-external-link-icon=${externalLinkIconDataUrl}`]
+        : []
     };
 
     if (WebContentsView && this.mainWindow.contentView && this.mainWindow.contentView.addChildView) {

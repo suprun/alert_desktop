@@ -1,10 +1,19 @@
 const { webFrame, ipcRenderer } = require('electron');
+const externalLinkIconArgument = '--alert-desktop-external-link-icon=';
+const externalLinkIconValue = process.argv
+  .find(argument => argument.startsWith(externalLinkIconArgument))
+  ?.slice(externalLinkIconArgument.length);
+const externalLinkMask = externalLinkIconValue?.startsWith('data:image/svg+xml;base64,')
+  ? `url("${externalLinkIconValue}")`
+  : 'none';
 
 // 1. Код у контексті головного світу (world 0) для блокування PiP,
 // очищення зайвих банерів/меню та створення плаваючої пігулки-посилання
 try {
   webFrame.executeJavaScript(`
     (() => {
+      const externalLinkMask = ${JSON.stringify(externalLinkMask)};
+
       // 1. Повідомляємо веб-додаток, що Picture-in-Picture не підтримується
       try {
         Object.defineProperty(document, 'pictureInPictureEnabled', {
@@ -157,8 +166,8 @@ try {
               vertical-align: middle !important;
               flex-shrink: 0 !important;
               background-color: currentColor !important;
-              -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6'/%3E%3Cpolyline points='15 3 21 3 21 9'/%3E%3Cline x1='10' y1='14' x2='21' y2='3'/%3E%3C/svg%3E") no-repeat center / contain !important;
-              mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6'/%3E%3Cpolyline points='15 3 21 3 21 9'/%3E%3Cline x1='10' y1='14' x2='21' y2='3'/%3E%3C/svg%3E") no-repeat center / contain !important;
+              -webkit-mask: \${externalLinkMask} no-repeat center / contain !important;
+              mask: \${externalLinkMask} no-repeat center / contain !important;
               pointer-events: none !important;
             }
 

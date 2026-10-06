@@ -66,108 +66,42 @@ let activeDrawerDistrictUid = null;
 let drawerLiveRefreshTimer = null;
 let lastRenderedDrawerState = null;
 
-// Лінійні SVG іконки статусів (виключно векторні без емодзі)
-const icons = {
-  safe: `
-    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-      <path d="m9 12 2 2 4-4"/>
-    </svg>`,
-  alert: `
-    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M7 18v-6a5 5 0 1 1 10 0v6"/>
-      <path d="M5 21h14"/>
-      <path d="M2 12h2"/>
-      <path d="M20 12h2"/>
-      <path d="m4.9 4.9 1.4 1.4"/>
-      <path d="m17.7 6.3 1.4-1.4"/>
-      <line x1="12" y1="2" x2="12" y2="4"/>
-    </svg>`,
-  artillery: `
-    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <circle cx="12" cy="12" r="10"/>
-      <line x1="12" y1="8" x2="12" y2="12"/>
-      <line x1="12" y1="16" x2="12.01" y2="16"/>
-    </svg>`,
-  yellow: `
-    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-      <line x1="12" y1="8" x2="12" y2="12"/>
-      <line x1="12" y1="16" x2="12.01" y2="16"/>
-    </svg>`,
-  offline: `
-    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <line x1="1" y1="1" x2="23" y2="23"/>
-      <path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55"/>
-      <path d="M5 12.55a10.94 10.94 0 0 1 5.17-2.39"/>
-      <path d="M10.71 5.05A16 16 0 0 1 22.58 9"/>
-      <path d="M1.42 9a15.91 15.91 0 0 1 4.7-2.88"/>
-      <path d="M8.53 16.11a6 6 0 0 1 6.95 0"/>
-      <line x1="12" y1="20" x2="12.01" y2="20"/>
-    </svg>`
+const statusIconNames = {
+  safe: 'shield-check',
+  alert: 'siren',
+  artillery: 'circle-alert',
+  yellow: 'shield-alert',
+  offline: 'wifi-off'
 };
 
-// Лінійні SVG піктограми типів загроз (Threat Icons)
-const threatIcons = {
-  drone: `
-    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M12 8v8M8 12h8"/>
-      <circle cx="12" cy="12" r="2"/>
-      <circle cx="5" cy="5" r="2"/>
-      <circle cx="19" cy="5" r="2"/>
-      <circle cx="5" cy="19" r="2"/>
-      <circle cx="19" cy="19" r="2"/>
-      <line x1="6.5" y1="6.5" x2="10.5" y2="10.5"/>
-      <line x1="17.5" y1="6.5" x2="13.5" y2="10.5"/>
-      <line x1="6.5" y1="17.5" x2="10.5" y2="13.5"/>
-      <line x1="17.5" y1="17.5" x2="13.5" y2="13.5"/>
-    </svg>`,
-  missile: `
-    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/>
-      <path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/>
-      <path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/>
-      <path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/>
-    </svg>`,
-  ballistic: `
-    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M4 20C8 10 14 4 20 4"/>
-      <polyline points="15 4 20 4 20 9"/>
-      <line x1="19" y1="5" x2="13" y2="11"/>
-      <circle cx="4" cy="20" r="1.5"/>
-    </svg>`,
-  aviation: `
-    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3.5c-.5-.5-2.5 0-4 1.5L13.5 8.5 5.3 6.7c-.8-.2-1.5.1-1.8.8l-.5 1 5 3.5-3.5 3.5-2-.5c-.5-.1-1 .1-1.2.6l-.3.7 2.5 1.5 1.5 2.5.7-.3c.5-.2.7-.7.6-1.2l-.5-2 3.5-3.5 3.5 5 1-.5c.7-.3 1-1 .8-1.8z"/>
-    </svg>`,
-  artillery: `
-    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <circle cx="12" cy="12" r="9"/>
-      <line x1="12" y1="3" x2="12" y2="7"/>
-      <line x1="12" y1="17" x2="12" y2="21"/>
-      <line x1="3" y1="12" x2="7" y2="12"/>
-      <line x1="17" y1="12" x2="21" y2="12"/>
-      <circle cx="12" cy="12" r="2"/>
-    </svg>`,
-  general: `
-    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/>
-      <line x1="12" y1="9" x2="12" y2="13"/>
-      <line x1="12" y1="17" x2="12.01" y2="17"/>
-    </svg>`,
-  chemical: `
-    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M10 2v7.31L4.15 19.1A2 2 0 0 0 6 22h12a2 2 0 0 0 1.85-2.9L14 9.31V2"/>
-      <line x1="8.5" y1="2" x2="15.5" y2="2"/>
-    </svg>`,
-  nuclear: `
-    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <circle cx="12" cy="12" r="2"/>
-      <path d="M12 2a10 10 0 0 1 8.66 5l-4.33 2.5A5 5 0 0 0 12 7V2z"/>
-      <path d="M22 17a10 10 0 0 1-10 5v-5a5 5 0 0 0 4.33-2.5L22 17z"/>
-      <path d="M2 17l5.67-2.5A5 5 0 0 0 12 17v5a10 10 0 0 1-10-5z"/>
-    </svg>`
+const threatIconNames = {
+  drone: 'drone',
+  missile: 'missile',
+  ballistic: 'ballistic',
+  aviation: 'aviation',
+  artillery: 'target',
+  general: 'triangle-alert',
+  chemical: 'flask',
+  nuclear: 'radiation'
 };
+
+function createUiIcon(iconName, size = 14) {
+  const icon = document.createElement('span');
+  icon.className = `ui-icon icon-${iconName} icon-size-${size}`;
+  icon.setAttribute('aria-hidden', 'true');
+  return icon;
+}
+
+function renderUiIcons(container, iconNames, size = 18) {
+  if (!container) return;
+  const names = Array.isArray(iconNames) ? iconNames : [iconNames];
+  const iconsToRender = names.filter(Boolean).map(name => createUiIcon(name, size));
+  container.replaceChildren(...iconsToRender);
+}
+
+function iconMarkup(iconName, size = 14) {
+  return `<span class="ui-icon icon-${iconName} icon-size-${size}" aria-hidden="true"></span>`;
+}
 
 function applyTheme(isDark) {
   currentThemeIsDark = Boolean(isDark);
@@ -469,29 +403,29 @@ function renderRegionHistory(data, meta) {
   let statusCardClass = 'safe';
   let statusTitle = 'Немає тривоги';
   let statusSubtitle = 'Наразі загрози не зафіксовано';
-  let statusIconSvg = icons.safe;
+  let statusIconName = statusIconNames.safe;
 
   if (isAlert) {
     if (alertType === 'artillery_shelling') {
       statusCardClass = 'artillery';
       statusTitle = 'Загроза артобстрілу';
-      statusIconSvg = threatIcons.artillery;
+      statusIconName = threatIconNames.artillery;
     } else if (alertLevel === 'yellow' || alertType === 'drone') {
       statusCardClass = 'yellow';
       statusTitle = 'Дронова загроза';
-      statusIconSvg = threatIcons.drone;
+      statusIconName = threatIconNames.drone;
     } else if (alertType === 'missile') {
       statusCardClass = 'alert';
       statusTitle = 'Ракетна загроза';
-      statusIconSvg = threatIcons.missile;
+      statusIconName = threatIconNames.missile;
     } else if (alertType === 'aviation') {
       statusCardClass = 'alert';
       statusTitle = 'Загроза тактичної авіації';
-      statusIconSvg = threatIcons.aviation;
+      statusIconName = threatIconNames.aviation;
     } else {
       statusCardClass = 'alert';
       statusTitle = 'Повітряна тривога';
-      statusIconSvg = icons.alert;
+      statusIconName = statusIconNames.alert;
     }
     if (startedAt) {
       const timeStr = new Date(startedAt).toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit' });
@@ -762,19 +696,19 @@ function renderRegionHistory(data, meta) {
     timelineItemsHtml = alertsListClean.map(a => {
       const threatLabel = a.threatLabel || a.threat_label || 'Повітряна тривога';
       let threatClass = 'alert';
-      let icon = icons.alert;
+      let iconName = statusIconNames.alert;
 
       const tType = a.threatType || a.threat_type;
       if (tType === 2 || String(tType).includes('artillery')) {
         threatClass = 'artillery';
-        icon = threatIcons.artillery;
+        iconName = threatIconNames.artillery;
       } else if (tType === 4 || String(tType).includes('drone')) {
         threatClass = 'yellow';
-        icon = threatIcons.drone;
+        iconName = threatIconNames.drone;
       } else if (tType === 3 || String(tType).includes('missile')) {
-        icon = threatIcons.missile;
+        iconName = threatIconNames.missile;
       } else if (tType === 5 || String(tType).includes('aviation')) {
-        icon = threatIcons.aviation;
+        iconName = threatIconNames.aviation;
       }
 
       const startedStr = a.startedText || a.started_text || (a.startedAt ? formatDateTime(a.startedAt) : '');
@@ -792,7 +726,7 @@ function renderRegionHistory(data, meta) {
         <div class="history-item">
           <div class="history-item-header">
             <span class="history-item-threat ${threatClass}">
-              ${icon}
+              ${iconMarkup(iconName)}
               <span>${escapeHtml(threatLabel)}</span>
             </span>
             ${durationStr ? `<span class="history-item-duration">${durationStr}</span>` : ''}
@@ -805,7 +739,7 @@ function renderRegionHistory(data, meta) {
   } else {
     timelineItemsHtml = `
       <div class="history-empty-state">
-        <span class="empty-history-icon">${icons.safe}</span>
+        <span class="empty-history-icon">${iconMarkup(statusIconNames.safe, 24)}</span>
         <span class="empty-history-title">Спокійна обстановка</span>
         <span class="empty-history-desc">За останній період тривог не надходило.</span>
       </div>
@@ -839,7 +773,7 @@ function renderRegionHistory(data, meta) {
 
   const statusCardHtml = `
     <div class="history-status-card ${statusCardClass}${animClass}">
-      <span class="status-icon">${statusIconSvg}</span>
+      <span class="status-icon">${iconMarkup(statusIconName, 18)}</span>
       <div class="history-status-info">
         <span class="history-status-title">${statusTitle}</span>
         <span class="history-status-subtitle">${statusSubtitle}</span>
@@ -873,7 +807,7 @@ function renderRegionHistory(data, meta) {
     if (historyDrawerBody) {
       historyDrawerBody.innerHTML = `
         <div class="history-status-card ${meta && meta.isAlert ? 'alert' : 'safe'} drawer-animate-in">
-          <span class="status-icon">${meta && meta.isAlert ? icons.alert : icons.safe}</span>
+          <span class="status-icon">${iconMarkup(meta && meta.isAlert ? statusIconNames.alert : statusIconNames.safe, 18)}</span>
           <div class="history-status-info">
             <span class="history-status-title">${meta && meta.isAlert ? 'Повітряна тривога' : 'Немає тривоги'}</span>
             <span class="history-status-subtitle">${meta && meta.isAlert ? 'Активна тривога' : 'Наразі загрози не зафіксовано'}</span>
@@ -914,15 +848,15 @@ function showDistrictTooltip(targetEl, e) {
   if (targetEl.classList.contains('alert') || targetEl.classList.contains('yellow') || targetEl.classList.contains('artillery')) {
     if (targetEl.classList.contains('artillery')) {
       tooltipStatusBadge.classList.add('artillery');
-      tooltipStatusIcon.innerHTML = threatIcons.artillery;
+      renderUiIcons(tooltipStatusIcon, threatIconNames.artillery, 14);
       tooltipStatusText.textContent = 'Загроза артобстрілу';
     } else if (targetEl.classList.contains('yellow') || alertLevel === 'yellow') {
       tooltipStatusBadge.classList.add('yellow');
-      tooltipStatusIcon.innerHTML = threatIcons.drone;
+      renderUiIcons(tooltipStatusIcon, threatIconNames.drone, 14);
       tooltipStatusText.textContent = 'Дронова загроза';
     } else {
       tooltipStatusBadge.classList.add('alert');
-      tooltipStatusIcon.innerHTML = icons.alert;
+      renderUiIcons(tooltipStatusIcon, statusIconNames.alert, 18);
       tooltipStatusText.textContent = 'Повітряна тривога';
     }
 
@@ -952,7 +886,7 @@ function showDistrictTooltip(targetEl, e) {
     }
   } else {
     tooltipStatusBadge.classList.add('safe');
-    tooltipStatusIcon.innerHTML = icons.safe;
+    renderUiIcons(tooltipStatusIcon, statusIconNames.safe, 18);
     tooltipStatusText.textContent = 'Немає тривоги';
     tooltipHromadasList.style.display = 'none';
     tooltipTimeStarted.style.display = 'none';
@@ -1208,7 +1142,7 @@ function updateUI(status) {
 
   if (status.isOffline) {
     statusBadge.classList.add('offline');
-    statusIcon.innerHTML = icons.offline;
+    renderUiIcons(statusIcon, statusIconNames.offline, 18);
     if (status.offlineReason === 'no_internet') {
       statusText.textContent = 'Офлайн (немає інтернету)';
     } else {
@@ -1247,17 +1181,17 @@ function updateUI(status) {
     }
 
     if (threatInfo?.iconTypes && threatInfo.iconTypes.length > 1) {
-      statusIcon.innerHTML = threatInfo.iconTypes
-        .map(key => threatIcons[key] || icons[key] || '')
-        .filter(Boolean)
-        .join('');
+      const combinedIconNames = threatInfo.iconTypes
+        .map(key => threatIconNames[key] || statusIconNames[key])
+        .filter(Boolean);
+      renderUiIcons(statusIcon, combinedIconNames, 14);
     } else {
-      statusIcon.innerHTML = threatIcons[iconKey] || icons[iconKey] || icons.alert;
+      renderUiIcons(statusIcon, threatIconNames[iconKey] || statusIconNames[iconKey] || statusIconNames.alert, 18);
     }
     statusText.textContent = `${threatName}${scopeNote}${timeSuffix}`;
   } else {
     statusBadge.classList.add('safe');
-    statusIcon.innerHTML = icons.safe;
+    renderUiIcons(statusIcon, statusIconNames.safe, 18);
     statusText.textContent = 'Немає тривоги';
   }
 

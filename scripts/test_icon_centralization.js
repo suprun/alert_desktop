@@ -1,0 +1,79 @@
+const assert = require('assert');
+const crypto = require('crypto');
+const fs = require('fs');
+const path = require('path');
+
+const rootDir = path.join(__dirname, '..');
+const read = (...parts) => fs.readFileSync(path.join(rootDir, ...parts), 'utf8');
+
+const mainHtml = read('src', 'renderer', 'main', 'index.html');
+const settingsHtml = read('src', 'renderer', 'settings', 'settings.html');
+const mainRenderer = read('src', 'renderer', 'main', 'renderer.js');
+const settingsRenderer = read('src', 'renderer', 'settings', 'settings.js');
+const settingsCss = read('src', 'renderer', 'settings', 'settings.css');
+const iconsCss = read('src', 'renderer', 'shared', 'icons.css');
+const preloadMap = read('src', 'preload', 'preload-map.js');
+const windowManager = read('src', 'main', 'window.js');
+
+assert.strictEqual((mainHtml.match(/<svg\b/g) || []).length, 1, 'У головному HTML дозволено лише кореневий SVG інтерактивної карти');
+assert.ok(mainHtml.includes('<svg id="ukraineVectorSvg"'), 'Єдиний inline SVG має бути інтерактивною картою України');
+assert.ok(!/<svg\b/.test(settingsHtml), 'У settings.html не повинно бути inline SVG');
+
+for (const [name, content] of [
+  ['main renderer', mainRenderer],
+  ['settings renderer', settingsRenderer],
+  ['settings CSS', settingsCss]
+]) {
+  assert.ok(!/<svg\b/i.test(content), `${name} не повинен містити SVG-розмітку`);
+  assert.ok(!/data:image\/svg\+xml[^;]*,%3Csvg/i.test(content), `${name} не повинен містити жорстко записаний SVG data URI`);
+}
+
+assert.ok(!preloadMap.includes('%3Csvg'), 'preload-map не повинен містити закодовану SVG-геометрію');
+assert.ok(!preloadMap.includes("require('fs')"), 'sandbox preload не повинен напряму читати файлову систему');
+assert.ok(windowManager.includes("loadUiIconDataUrl('external-link.svg')"), 'main process має читати канонічний external-link.svg');
+assert.ok(windowManager.includes('additionalArguments: externalLinkIconDataUrl'), 'main process має передавати ресурс іконки sandbox preload');
+assert.ok(mainHtml.includes('../shared/icons.css') && settingsHtml.includes('../shared/icons.css'), 'Обидва локальні вікна мають підключати спільний icons.css');
+assert.ok(mainRenderer.includes('container.replaceChildren(...iconsToRender)'), 'Динамічні статусні іконки мають оновлюватися через replaceChildren');
+assert.ok(settingsRenderer.includes("classList.remove('icon-play', 'icon-pause')"), 'Play/pause мають перемикатися CSS-класами');
+
+const cssDir = path.join(rootDir, 'src', 'renderer', 'shared');
+const iconRules = [...iconsCss.matchAll(/\.icon-([a-z0-9-]+)\s*\{\s*--icon-source:\s*url\('([^']+)'\);\s*\}/g)];
+assert.ok(iconRules.length >= 40, 'Спільний реєстр повинен містити повний набір UI та tab-іконок');
+for (const [, iconName, relativePath] of iconRules) {
+  const assetPath = path.resolve(cssDir, relativePath);
+  assert.ok(fs.existsSync(assetPath), `Для .icon-${iconName} відсутній ресурс ${assetPath}`);
+  assert.ok(read(path.relative(rootDir, assetPath)).includes('<svg'), `${assetPath} має бути SVG-файлом`);
+}
+
+const requiredDynamicIcons = [
+  'shield-check', 'siren', 'circle-alert', 'shield-alert', 'wifi-off',
+  'drone', 'missile', 'ballistic', 'aviation', 'target', 'triangle-alert', 'flask', 'radiation'
+];
+const registeredNames = new Set(iconRules.map(([, name]) => name));
+for (const iconName of requiredDynamicIcons) {
+  assert.ok(registeredNames.has(iconName), `Динамічна іконка ${iconName} має бути зареєстрована`);
+}
+
+const uiDir = path.join(rootDir, 'assets', 'icons', 'ui');
+const tabsDir = path.join(rootDir, 'assets', 'icons', 'tabs');
+assert.ok(fs.existsSync(path.join(uiDir, 'menu.svg')), 'Burger/menu-іконка має бути в assets/icons/ui');
+assert.ok(!fs.existsSync(path.join(uiDir, 'wrench.svg')), 'Застаріла wrench.svg має бути видалена');
+assert.ok(!fs.existsSync(path.join(rootDir, 'scripts', 'generate_ui_icons.js')), 'Генератор із дубльованою SVG-геометрією має бути видалений');
+assert.ok(mainHtml.includes('icon-menu'), 'Кнопка налаштувань має використовувати burger/menu-іконку');
+
+const menuSvg = read('assets', 'icons', 'ui', 'menu.svg');
+assert.strictEqual((menuSvg.match(/<line\b/g) || []).length, 3, 'Burger/menu-іконка має складатися з трьох ліній');
+assert.strictEqual((settingsHtml.match(/class="select-chevron ui-icon icon-chevron-down/g) || []).length, 5, 'Кожен select має використовувати канонічний chevron-down');
+assert.ok(!settingsCss.includes('background-image:'), 'Select не повинен містити inline background SVG');
+
+const hashes = new Map();
+for (const dir of [uiDir, tabsDir]) {
+  for (const file of fs.readdirSync(dir).filter(name => name.endsWith('.svg'))) {
+    const filePath = path.join(dir, file);
+    const hash = crypto.createHash('sha256').update(fs.readFileSync(filePath)).digest('hex');
+    assert.ok(!hashes.has(hash), `Знайдено точний дублікат SVG: ${filePath} і ${hashes.get(hash)}`);
+    hashes.set(hash, filePath);
+  }
+}
+
+console.log('✔ Централізація UI-іконок валідна; інтерактивна карта залишилася inline');

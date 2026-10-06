@@ -38,28 +38,28 @@ assert.ok(!emojiRegex.test(indexHtml), 'В index.html не повинно бут
 assert.ok(!emojiRegex.test(rendererJs), 'В renderer.js не повинно бути емодзі');
 console.log('✔ Тест 4 пройдено (в інтерфейсі повністю відсутні емодзі — виключно векторні SVG)');
 
-// 5. Перевірка наявності всіх 4 вкладок у розмітці та векторизованих favicons сайтів
+// 5. Перевірка наявності всіх 4 вкладок і канонічних ресурсів їхніх іконок
 const requiredTabs = ['internal', 'alertsinua', 'ukrainealarm', 'neptun'];
 for (const tab of requiredTabs) {
   assert.ok(indexHtml.includes(`data-tab="${tab}"`), `Вкладка ${tab} має бути присутня в index.html`);
+  assert.ok(indexHtml.includes(`icon-tab-${tab}`), `Вкладка ${tab} має використовувати централізовану mask-іконку`);
 }
-// Векторизований маячок Alerts.in.ua (промені, купол, основа)
-assert.ok(indexHtml.includes('rect x="5" y="17" width="14" height="4"'), 'Вкладка alertsinua має містити векторизований маячок Alerts.in.ua');
-// Детальний векторизований силует карти України UkraineAlarm у колі
-assert.ok(indexHtml.includes('circle cx="12" cy="12" r="9.5"'), 'Вкладка ukrainealarm має містити коло-бейдж');
-assert.ok(indexHtml.includes('M19.97 10.85L19.86 10.24'), 'Вкладка ukrainealarm має містити детальний векторизований силует карти України');
-// Векторизований тризуб Neptun без щита зі збільшеним розміром
-assert.ok(indexHtml.includes('M12 2.5L13.7 5.8'), 'Вкладка neptun має містити векторизований тризуб');
-assert.ok(!indexHtml.includes('fill-rule="evenodd"'), 'Вкладка neptun не повинна містити контур щита');
 
 // Перевірка наявності файлів іконок вкладок у assets/icons/tabs/
 const tabsAssetDir = path.join(__dirname, '..', 'assets', 'icons', 'tabs');
+const tabIconContents = {};
 for (const tab of requiredTabs) {
   const filePath = path.join(tabsAssetDir, `tab-${tab}.svg`);
   assert.ok(fs.existsSync(filePath), `Файл ${filePath} має існувати в assets/icons/tabs/`);
   const content = fs.readFileSync(filePath, 'utf8');
   assert.ok(content.length > 50, `Файл ${filePath} не повинен бути порожнім`);
+  tabIconContents[tab] = content;
 }
+assert.ok(tabIconContents.alertsinua.includes('rect x="5" y="17" width="14" height="4"'), 'Ресурс alertsinua має містити векторизований маячок');
+assert.ok(tabIconContents.ukrainealarm.includes('circle cx="12" cy="12" r="9.5"'), 'Ресурс ukrainealarm має містити коло-бейдж');
+assert.ok(tabIconContents.ukrainealarm.includes('M19.97 10.85L19.86 10.24'), 'Ресурс ukrainealarm має містити силует карти України');
+assert.ok(tabIconContents.neptun.includes('M12 2.5L13.7 5.8'), 'Ресурс neptun має містити векторизований тризуб');
+assert.ok(!tabIconContents.neptun.includes('fill-rule="evenodd"'), 'Ресурс neptun не повинен містити контур щита');
 console.log('✔ Тест 5 пройдено (усі 4 вкладки present з векторизованими favicons сайтів та файлами в assets/icons/tabs)');
 
 const uiAssetDir = path.join(__dirname, '..', 'assets', 'icons', 'ui');
@@ -210,7 +210,7 @@ console.log('✔ Тест 20 пройдено (рекламні банери, п
 assert.ok(styleCss.includes('drawerCardFadeIn'), 'style.css повинен містити анімацію drawerCardFadeIn для карток');
 assert.ok(styleCss.includes('.drawer-animate-in'), 'style.css повинен містити клас .drawer-animate-in');
 assert.ok(styleCss.includes('.drawer-loading.fade-out'), 'style.css повинен містити плавний fade-out лоадера');
-assert.ok(rendererJs.includes('threatIcons.drone'), 'renderer.js повинен використовувати threatIcons.drone для картки статусу');
+assert.ok(rendererJs.includes("drone: 'drone'") && rendererJs.includes('threatIconNames.drone'), 'renderer.js повинен використовувати централізовану drone-іконку для картки статусу');
 assert.ok(windowJs.includes('windowBounds'), 'window.js повинен відновлювати та зберігати windowBounds');
 console.log('✔ Тест 21 пройдено (анімації карток, плавний лоадер, іконки загроз та збереження розміру вікна)');
 
@@ -249,18 +249,18 @@ assert.ok(currentRendererJs.includes('isExactTitleMatch'), 'renderer.js пови
 assert.ok(!currentRendererJs.includes('distTitle.includes(locTitle)'), 'renderer.js не повинен використовувати distTitle.includes(locTitle)');
 console.log('✔ Тест 26 пройдено (точний збіг назв районів з перевіркою області усуває хибне зафарбовування суміжних районів)');
 
-// Тест 27: Двосторонній гайковий ключ на кнопці налаштувань та індикатор сповіщення про оновлення
+// Тест 27: Burger/menu-іконка на кнопці налаштувань та індикатор сповіщення про оновлення
 const currentIndexHtml = fs.readFileSync(path.join(__dirname, '..', 'src', 'renderer', 'main', 'index.html'), 'utf8');
 const currentStyleCss = fs.readFileSync(path.join(__dirname, '..', 'src', 'renderer', 'main', 'style.css'), 'utf8');
-assert.ok(currentIndexHtml.includes('M8.2 15.8 15.8 8.2'), 'btnSettings повинен містити руків’я двостороннього гайкового ключа');
-assert.ok(currentIndexHtml.includes('m15.8 8.2-1.6-3.4L17 2') && currentIndexHtml.includes('m8.2 15.8-3.4-1.6L2 17'), 'btnSettings повинен містити два відкриті ріжкові кінці ключа');
+const menuIconSvg = fs.readFileSync(path.join(__dirname, '..', 'assets', 'icons', 'ui', 'menu.svg'), 'utf8');
+assert.ok(currentIndexHtml.includes('ui-icon icon-menu icon-size-18'), 'btnSettings повинен використовувати централізовану burger/menu-іконку');
+assert.strictEqual((menuIconSvg.match(/<line\b/g) || []).length, 3, 'menu.svg повинен містити три горизонтальні лінії');
+assert.ok(!fs.existsSync(path.join(__dirname, '..', 'assets', 'icons', 'ui', 'wrench.svg')), 'застаріла wrench.svg має бути видалена');
 assert.ok(currentIndexHtml.includes('id="settingsUpdateBadge" class="btn-badge-dot"'), 'btnSettings повинен містити елемент settingsUpdateBadge');
 assert.ok(currentStyleCss.includes('.btn-badge-dot'), 'style.css повинен містити стилі індикатора .btn-badge-dot');
 assert.ok(currentStyleCss.includes('badgePulse'), 'style.css повинен містити анімацію badgePulse');
 assert.ok(currentRendererJs.includes('updateSettingsBadge'), 'renderer.js повинен містити функцію updateSettingsBadge');
 assert.ok(currentRendererJs.includes('openSettings({ scrollTo:'), 'renderer.js повинен передавати scrollTo при кліку на btnSettings');
-console.log('✔ Тест 27 пройдено (двосторонній гайковий ключ, зелений індикатор сповіщення та автопрокрутка налаштувань)');
+console.log('✔ Тест 27 пройдено (burger/menu-іконка, зелений індикатор сповіщення та автопрокрутка налаштувань)');
 
 console.log('🎉 Усі тести панелі вкладок, тем та векторної карти успішно виконано!');
-
-

@@ -65,9 +65,10 @@ const settingsHtml = fs.readFileSync(settingsHtmlPath, 'utf8');
   const emojiRegex = /[\u{1F300}-\u{1F6FF}\u{1F900}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/u;
   assert.ok(
     !emojiRegex.test(settingsHtml),
-    'В settings.html суворо заборонені емодзі — дозволені лише векторні SVG'
+    'В settings.html суворо заборонені емодзі — дозволені лише централізовані векторні іконки'
   );
-  console.log('✔ Тест 5 пройдено (в settings.html повністю відсутні емодзі, використовуються векторні SVG)');
+  assert.ok(!settingsHtml.includes('<svg'), 'settings.html не повинен містити inline SVG');
+  console.log('✔ Тест 5 пройдено (в settings.html відсутні емодзі та inline SVG)');
 }
 
 // Тест 6: Перевірка наявності notifyReady в preload-settings.js
@@ -87,12 +88,12 @@ const settingsHtml = fs.readFileSync(settingsHtmlPath, 'utf8');
 
 // Тест 7: Перевірка іконок зовнішнього переходу (external-link) на 3 кнопках About
 {
-  const occurrences = (settingsHtml.match(/class="external-link-icon"/g) || []).length;
+  const occurrences = (settingsHtml.match(/\bexternal-link-icon\b/g) || []).length;
   assert.ok(
     occurrences >= 3,
     `В блоці About на кнопках Репозиторій, Ліцензія, Автор мають бути значки зовнішнього переходу (знайдено: ${occurrences})`
   );
-  console.log('✔ Тест 7 пройдено (кнопки Репозиторій, Ліцензія, Автор містять векторні SVG значки зовнішнього переходу)');
+  console.log('✔ Тест 7 пройдено (кнопки Репозиторій, Ліцензія, Автор містять централізовані значки зовнішнього переходу)');
 }
 
 // Тест 8: Перевірка відсутності подвійної плашки (плашка в плашці) у блоці About
@@ -138,13 +139,13 @@ const settingsHtml = fs.readFileSync(settingsHtmlPath, 'utf8');
 
 // Тест 11: Перевірка іконок зовнішнього переходу для 3 посилань на політики конфіденційності, 3 кнопок About та кнопки донату
 {
-  const totalExternalIcons = (settingsHtml.match(/class="external-link-icon"/g) || []).length;
+  const totalExternalIcons = (settingsHtml.match(/\bexternal-link-icon\b/g) || []).length;
   assert.strictEqual(
     totalExternalIcons,
     7,
     `Має бути рівно 7 іконок external-link (3 на кнопках About + 1 на кнопці донату + 3 на посиланнях політик), знайдено: ${totalExternalIcons}`
   );
-  console.log('✔ Тест 11 пройдено (усі посилання на зовнішні ресурси, донат та політики містять векторний SVG значок зовнішнього переходу)');
+  console.log('✔ Тест 11 пройдено (посилання About, донату та політик містять централізований значок зовнішнього переходу)');
 }
 
 // Тест 12: Перевірка збільшених шрифтів блоку About
@@ -336,7 +337,9 @@ const settingsHtml = fs.readFileSync(settingsHtmlPath, 'utf8');
   assert.ok(settingsHtml.includes('id="btnQuitApp"'), 'секція Система має містити кнопку завершення роботи');
   assert.ok(settingsHtml.includes('Повністю закриє застосунок і припинить моніторинг тривог.'), 'користувач має бачити наслідок завершення роботи');
   assert.ok(settingsHtml.includes('aria-describedby="quitAppDescription"'), 'кнопка завершення має бути пов’язана з поясненням');
-  assert.ok(settingsHtml.includes('M18.36 6.64a9 9 0 1 1-12.73 0'), 'кнопка завершення має містити лінійну SVG-іконку живлення');
+  assert.ok(settingsHtml.includes('btn-danger-icon ui-icon icon-power'), 'кнопка завершення має використовувати централізовану іконку живлення');
+  const powerIcon = fs.readFileSync(path.join(__dirname, '..', 'assets', 'icons', 'ui', 'power.svg'), 'utf8');
+  assert.ok(powerIcon.includes('M18.36 6.64a9 9 0 1 1-12.73 0'), 'канонічний power.svg має містити лінійну іконку живлення');
 
   assert.ok(settingsCss.includes('.btn-danger-outline'), 'CSS має містити danger-стиль кнопки завершення');
   assert.ok(settingsCss.includes('.btn-danger-outline:hover:not(:disabled)'), 'danger-кнопка має видимий hover-стан');
