@@ -40,5 +40,18 @@ contextBridge.exposeInMainWorld('alertAPI', {
     ipcRenderer.on('all-alerts-update', handler);
     return () => ipcRenderer.removeListener('all-alerts-update', handler);
   },
-  getRegionHistory: (params) => ipcRenderer.invoke('get-region-history', params)
+  getRegionHistory: (params) => ipcRenderer.invoke('get-region-history', params),
+  getUpdateStatus: () => ipcRenderer.invoke('get-update-status'),
+  downloadUpdate: () => ipcRenderer.invoke('download-update'),
+  installUpdate: () => ipcRenderer.invoke('install-update'),
+  onUpdateStatusChanged: (callback) => {
+    const handler = (_event, data) => callback(data);
+    ipcRenderer.on('update-status-changed', handler);
+    return () => ipcRenderer.removeListener('update-status-changed', handler);
+  },
+  onUpdateDownloadProgress: (callback) => {
+    const handler = (_event, data) => callback(data);
+    ipcRenderer.on('update-download-progress', handler);
+    return () => ipcRenderer.removeListener('update-download-progress', handler);
+  }
 });

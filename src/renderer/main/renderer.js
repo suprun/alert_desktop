@@ -45,6 +45,15 @@ const historyDrawerBody = document.getElementById('historyDrawerBody');
 const tabButtons = document.querySelectorAll('.tab-btn');
 const tabInternalAlertBadge = document.getElementById('tabInternalAlertBadge');
 
+// Елементи пігулкового тосту оновлень
+const updatePillToast = document.getElementById('updatePillToast');
+const updatePillMessage = document.getElementById('updatePillMessage');
+const btnPillDownload = document.getElementById('btnPillDownload');
+const btnPillInstall = document.getElementById('btnPillInstall');
+const btnPillDismiss = document.getElementById('btnPillDismiss');
+let isPillToastDismissed = false;
+let lastPillVersion = null;
+
 // Поточний стан
 let currentActiveTab = 'internal';
 let currentThemeIsDark = true;
@@ -1399,4 +1408,102 @@ if (window.alertAPI) {
       }
     }).catch(() => { });
   }
+
+  // Ініціалізація та відстеження статусу оновлень
+  if (window.alertAPI && typeof window.alertAPI.getUpdateStatus === 'function') {
+    window.alertAPI.getUpdateStatus().then((status) => {
+      renderUpdatePillToast(status);
+    }).catch(() => {});
+  }
+
+  if (window.alertAPI && typeof window.alertAPI.onUpdateStatusChanged === 'function') {
+    window.alertAPI.onUpdateStatusChanged((status) => {
+      renderUpdatePillToast(status);
+    });
+  }
+
+  if (window.alertAPI && typeof window.alertAPI.onUpdateDownloadProgress === 'function') {
+    window.alertAPI.onUpdateDownloadProgress((progressObj) => {
+      if (updatePillToast && !isPillToastDismissed) {
+        updatePillToast.style.display = 'inline-flex';
+        const pct = Math.round(progressObj.percent || 0);
+        if (updatePillMessage) updatePillMessage.textContent = `Завантаження оновлення... ${pct}%`;
+        if (btnPillDownload) btnPillDownload.style.display = 'none';
+        if (btnPillInstall) btnPillInstall.style.display = 'none';
+      }
+    });
+  }
+}
+
+// Функція відображення пігулкового тосту оновлень
+function renderUpdatePillToast(status) {
+  if (!updatePillToast || !status) return;
+
+  const version = status.availableVersion || status.downloadedVersion;
+  if (version && version !== lastPillVersion) {
+    lastPillVersion = version;
+    isPillToastDismissed = false;
+  }
+
+  if (isPillToastDismissed) {
+    updatePillToast.style.display = 'none';
+    return;
+  }
+
+  if (status.updateDownloaded) {
+    updatePillToast.style.display = 'inline-flex';
+    if (updatePillMessage) updatePillMessage.textContent = `Оновлення v${status.downloadedVersion} готове до встановлення`;
+    if (btnPillDownload) btnPillDownload.style.display = 'none';
+    if (btnPillInstall) {
+      btnPillInstall.style.display = 'inline-block';
+      btnPillInstall.disabled = false;
+    }
+  } else if (status.isDownloading) {
+    updatePillToast.style.display = 'inline-flex';
+    const pct = Math.round(status.downloadPercent || 0);
+    if (updatePillMessage) updatePillMessage.textContent = `Завантаження оновлення... ${pct}%`;
+    if (btnPillDownload) btnPillDownload.style.display = 'none';
+    if (btnPillInstall) btnPillInstall.style.display = 'none';
+  } else if (status.needsManualDownload) {
+    updatePillToast.style.display = 'inline-flex';
+    if (updatePillMessage) updatePillMessage.textContent = `Доступне оновлення v${status.availableVersion}`;
+    if (btnPillDownload) {
+      btnPillDownload.style.display = 'inline-block';
+      btnPillDownload.disabled = false;
+    }
+    if (btnPillInstall) btnPillInstall.style.display = 'none';
+  } else {
+    updatePillToast.style.display = 'none';
+  }
+}
+
+if (btnPillDownload) {
+  btnPillDownload.addEventListener('click', async () => {
+    btnPillDownload.disabled = true;
+    if (updatePillMessage) updatePillMessage.textContent = 'Початок завантаження...';
+    try {
+      if (window.alertAPI && typeof window.alertAPI.downloadUpdate === 'function') {
+        const res = await window.alertAPI.downloadUpdate();
+        renderUpdatePillToast(res);
+      }
+    } catch (_) {
+      btnPillDownload.disabled = false;
+    }
+  });
+}
+
+if (btnPillInstall) {
+  btnPillInstall.addEventListener('click', () => {
+    btnPillInstall.disabled = true;
+    if (window.alertAPI && typeof window.alertAPI.installUpdate === 'function') {
+      window.alertAPI.installUpdate();
+    }
+  });
+}
+
+if (btnPillDismiss) {
+  btnPillDismiss.addEventListener('click', () => {
+    isPillToastDismissed = true;
+    if (updatePillToast) updatePillToast.style.display = 'none';
+  });
 }

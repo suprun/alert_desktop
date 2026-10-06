@@ -38,6 +38,18 @@ const btnCancel = document.getElementById('btnCancel');
 const btnSave = document.getElementById('btnSave');
 const audioTest = document.getElementById('audioTest');
 
+// Елементи блоку "Оновлення"
+const updateCurrentVersion = document.getElementById('updateCurrentVersion');
+const updateStatusText = document.getElementById('updateStatusText');
+const btnCheckUpdate = document.getElementById('btnCheckUpdate');
+const btnDownloadUpdate = document.getElementById('btnDownloadUpdate');
+const btnInstallUpdate = document.getElementById('btnInstallUpdate');
+const updateProgressWrapper = document.getElementById('updateProgressWrapper');
+const updateProgressLabel = document.getElementById('updateProgressLabel');
+const updateProgressPercent = document.getElementById('updateProgressPercent');
+const updateProgressBar = document.getElementById('updateProgressBar');
+const chkAutoDownloadMetered = document.getElementById('chkAutoDownloadMetered');
+
 const DEFAULT_PROXY_URL = 'https://api.applink.pp.ua/v1/alerts/active.json';
 const URL_UKRAINE_ALARM = 'https://api.ukrainealarm.com/api/v3/alerts';
 const URL_ALERTS_IN_UA = 'https://api.alerts.in.ua/v1/alerts/active.json';
@@ -487,6 +499,9 @@ async function init() {
     volumeValue.textContent = `${volumeSlider.value}%`;
     chkAutoStart.checked = Boolean(cfg.autoStart);
     chkDevMode.checked = Boolean(cfg.devMode);
+    if (chkAutoDownloadMetered) {
+      chkAutoDownloadMetered.checked = cfg.autoDownloadMetered === true;
+    }
     if (chkEnableFallback) {
       chkEnableFallback.checked = cfg.enableFallback !== false;
     }
@@ -516,6 +531,40 @@ async function init() {
     updateSoundControlsState();
     updateDevModeState();
     updateApiProviderState();
+
+    // Завантаження статусу оновлень та версії
+    if (window.settingsAPI) {
+      if (typeof window.settingsAPI.getAppVersion === 'function') {
+        try {
+          const ver = await window.settingsAPI.getAppVersion();
+          if (ver && updateCurrentVersion) {
+            updateCurrentVersion.textContent = `v${ver}`;
+          }
+        } catch (_) {}
+      }
+
+      if (typeof window.settingsAPI.getUpdateStatus === 'function') {
+        try {
+          const status = await window.settingsAPI.getUpdateStatus();
+          applyUpdateStatusUI(status);
+        } catch (_) {}
+      }
+
+      if (typeof window.settingsAPI.onUpdateStatusChanged === 'function') {
+        window.settingsAPI.onUpdateStatusChanged((status) => {
+          applyUpdateStatusUI(status);
+        });
+      }
+
+      if (typeof window.settingsAPI.onUpdateDownloadProgress === 'function') {
+        window.settingsAPI.onUpdateDownloadProgress((progressObj) => {
+          if (updateProgressWrapper) updateProgressWrapper.style.display = 'flex';
+          const pct = Math.round(progressObj.percent || 0);
+          if (updateProgressPercent) updateProgressPercent.textContent = `${pct}%`;
+          if (updateProgressBar) updateProgressBar.style.width = `${pct}%`;
+        });
+      }
+    }
 
     // 3. Синхронізація теми оформлення
     if (window.settingsAPI.onThemeUpdated) {
@@ -603,6 +652,7 @@ btnSave.addEventListener('click', async () => {
     volume: parseInt(volumeSlider.value, 10),
     autoStart: chkAutoStart.checked,
     devMode: isDevMode,
+    autoDownloadMetered: chkAutoDownloadMetered ? chkAutoDownloadMetered.checked : false,
     apiProvider: currentProvider,
     enableFallback: chkEnableFallback ? chkEnableFallback.checked : true,
     serverUrl: finalServerUrl,
@@ -620,5 +670,112 @@ btnCancel.addEventListener('click', () => {
     window.settingsAPI.closeSettings();
   }
 });
+
+// Керування станом UI оновлень
+function applyUpdateStatusUI(status) {
+  if (!status) return;
+
+  if (status.currentVersion && updateCurrentVersion) {
+    updateCurrentVersion.textContent = `v${status.currentVersion}`;
+  }
+
+  if (status.isChecking) {
+    if (updateStatusText) updateStatusText.textContent = 'Перевірка наявності оновлень...';
+    if (btnCheckUpdate) {
+      btnCheckUpdate.disabled = true;
+      btnCheckUpdate.style.display = 'inline-flex';
+    }
+    if (btnDownloadUpdate) btnDownloadUpdate.style.display = 'none';
+    if (btnInstallUpdate) btnInstallUpdate.style.display = 'none';
+    if (updateProgressWrapper) updateProgressWrapper.style.display = 'none';
+  } else if (status.updateDownloaded) {
+    if (updateStatusText) updateStatusText.textContent = `Оновлення v${status.downloadedVersion} завантажено та готове до встановлення`;
+    if (btnCheckUpdate) btnCheckUpdate.style.display = 'none';
+    if (btnDownloadUpdate) btnDownloadUpdate.style.display = 'none';
+    if (btnInstallUpdate) {
+      btnInstallUpdate.style.display = 'inline-flex';
+      btnInstallUpdate.disabled = false;
+    }
+    if (updateProgressWrapper) updateProgressWrapper.style.display = 'none';
+  } else if (status.isDownloading) {
+    if (updateStatusText) updateStatusText.textContent = `Завантаження нової версії v${status.availableVersion || ''}...`;
+    if (btnCheckUpdate) btnCheckUpdate.style.display = 'none';
+    if (btnDownloadUpdate) btnDownloadUpdate.style.display = 'none';
+    if (btnInstallUpdate) btnInstallUpdate.style.display = 'none';
+    if (updateProgressWrapper) {
+      updateProgressWrapper.style.display = 'flex';
+      const pct = Math.round(status.downloadPercent || 0);
+      if (updateProgressPercent) updateProgressPercent.textContent = `${pct}%`;
+      if (updateProgressBar) updateProgressBar.style.width = `${pct}%`;
+    }
+  } else if (status.needsManualDownload) {
+    if (updateStatusText) updateStatusText.textContent = `Доступне оновлення v${status.availableVersion} (лімітоване з'єднання)`;
+    if (btnCheckUpdate) btnCheckUpdate.style.display = 'none';
+    if (btnDownloadUpdate) {
+      btnDownloadUpdate.style.display = 'inline-flex';
+      btnDownloadUpdate.disabled = false;
+    }
+    if (btnInstallUpdate) btnInstallUpdate.style.display = 'none';
+    if (updateProgressWrapper) updateProgressWrapper.style.display = 'none';
+  } else if (status.updateAvailable) {
+    if (updateStatusText) updateStatusText.textContent = `Доступне оновлення v${status.availableVersion}. Початок завантаження...`;
+    if (btnCheckUpdate) btnCheckUpdate.style.display = 'none';
+    if (btnDownloadUpdate) btnDownloadUpdate.style.display = 'none';
+    if (btnInstallUpdate) btnInstallUpdate.style.display = 'none';
+  } else {
+    if (updateStatusText) {
+      if (status.lastError) {
+        updateStatusText.textContent = `Помилка перевірки оновлення: ${status.lastError}`;
+      } else {
+        updateStatusText.textContent = 'Встановлено останню актуальну версію';
+      }
+    }
+    if (btnCheckUpdate) {
+      btnCheckUpdate.disabled = false;
+      btnCheckUpdate.style.display = 'inline-flex';
+    }
+    if (btnDownloadUpdate) btnDownloadUpdate.style.display = 'none';
+    if (btnInstallUpdate) btnInstallUpdate.style.display = 'none';
+    if (updateProgressWrapper) updateProgressWrapper.style.display = 'none';
+  }
+}
+
+if (btnCheckUpdate) {
+  btnCheckUpdate.addEventListener('click', async () => {
+    btnCheckUpdate.disabled = true;
+    if (updateStatusText) updateStatusText.textContent = 'Перевірка...';
+    try {
+      const status = await window.settingsAPI.checkForUpdates();
+      applyUpdateStatusUI(status);
+    } catch (_) {
+      if (updateStatusText) updateStatusText.textContent = 'Не вдалося перевірити оновлення';
+      btnCheckUpdate.disabled = false;
+    }
+  });
+}
+
+if (btnDownloadUpdate) {
+  btnDownloadUpdate.addEventListener('click', async () => {
+    btnDownloadUpdate.disabled = true;
+    if (updateProgressWrapper) {
+      updateProgressWrapper.style.display = 'flex';
+      if (updateProgressPercent) updateProgressPercent.textContent = '0%';
+      if (updateProgressBar) updateProgressBar.style.width = '0%';
+    }
+    try {
+      const status = await window.settingsAPI.downloadUpdate();
+      applyUpdateStatusUI(status);
+    } catch (_) {
+      btnDownloadUpdate.disabled = false;
+    }
+  });
+}
+
+if (btnInstallUpdate) {
+  btnInstallUpdate.addEventListener('click', () => {
+    btnInstallUpdate.disabled = true;
+    window.settingsAPI.installUpdate();
+  });
+}
 
 init();

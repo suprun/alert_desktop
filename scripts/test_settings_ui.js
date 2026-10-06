@@ -157,4 +157,18 @@ const settingsHtml = fs.readFileSync(settingsHtmlPath, 'utf8');
   console.log('✔ Тест 12 пройдено (шрифти блоку About збільшено для комфортної читабельності)');
 }
 
+// Тест 13: Перевірка блоку "Оновлення застосунку" перед блоком "Про застосунок"
+{
+  const updateIndex = settingsHtml.indexOf('class="settings-group update-group"');
+  const aboutIndex = settingsHtml.indexOf('class="settings-group about-group"');
+  assert.ok(updateIndex !== -1, 'Секція update-group має бути знайдена');
+  assert.ok(updateIndex < aboutIndex, 'Блок оновлень має розташовуватися ПЕРЕД блоком "Про застосунок"');
+  assert.ok(settingsHtml.includes('id="btnCheckUpdate"'), 'Кнопка btnCheckUpdate має бути присутня');
+  assert.ok(settingsHtml.includes('id="btnDownloadUpdate"'), 'Кнопка btnDownloadUpdate має бути присутня');
+  assert.ok(settingsHtml.includes('id="btnInstallUpdate"'), 'Кнопка btnInstallUpdate має бути присутня');
+  assert.ok(settingsHtml.includes('id="chkAutoDownloadMetered"'), 'Чекбокс chkAutoDownloadMetered має бути присутній');
+  console.log('✔ Тест 13 пройдено (блок "Оновлення" розташований перед блоком "Про застосунок" з усіма елементами)');
+}
+
 console.log('🎉 Усі тести інтерфейсу налаштувань успішно пройдено!');
+

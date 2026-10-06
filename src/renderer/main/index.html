@@ -91,6 +91,26 @@
   <!-- Тонкий індикатор активності підключення до карти -->
   <div id="mapProgressBar" class="map-progress-bar active"></div>
 
+  <!-- Пігулковий Toast зі статусом оновлення програми -->
+  <div id="updatePillToast" class="update-pill-toast" role="alert" style="display: none;">
+    <span class="update-pill-icon" aria-hidden="true">
+      <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+        <polyline points="7 10 12 15 17 10"/>
+        <line x1="12" y1="15" x2="12" y2="3"/>
+      </svg>
+    </span>
+    <span id="updatePillMessage" class="update-pill-message">Доступне оновлення</span>
+    <button type="button" id="btnPillDownload" class="update-pill-btn btn-pill-download" style="display: none;">Завантажити</button>
+    <button type="button" id="btnPillInstall" class="update-pill-btn btn-pill-install" style="display: none;">Оновити</button>
+    <button type="button" id="btnPillDismiss" class="update-pill-close" title="Приховати сповіщення" aria-label="Приховати">
+      <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="18" y1="6" x2="6" y2="18"/>
+        <line x1="6" y1="6" x2="18" y2="18"/>
+      </svg>
+    </button>
+  </div>
+
   <!-- Основна область перегляду: Вбудована карта або Плейсхолдер веб-карт -->
   <main id="mainContainer" class="main-content-container">
     

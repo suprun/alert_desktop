@@ -110,9 +110,22 @@ if (!gotTheLock) {
     settingsWindowManager.setTheme(isDark, true);
   });
 
-  ipcMain.handle('check-for-updates', () => {
-    updater.checkForUpdates(true);
+  ipcMain.handle('check-for-updates', async () => {
+    return updater.checkForUpdates(true);
+  });
+
+  ipcMain.handle('get-update-status', () => {
     return updater.getStatus();
+  });
+
+  ipcMain.handle('download-update', () => {
+    updater.downloadUpdate();
+    return updater.getStatus();
+  });
+
+  ipcMain.handle('install-update', () => {
+    updater.quitAndInstall();
+    return true;
   });
 
   ipcMain.handle('select-map-tab', (_event, tabId) => {
@@ -169,8 +182,33 @@ if (!gotTheLock) {
       onInstallUpdate: () => updater.quitAndInstall()
     });
 
+    // Функції трансляції подій оновлення у вікна
+    const broadcastUpdateStatus = (status) => {
+      if (windowManager && windowManager.mainWindow && !windowManager.mainWindow.isDestroyed()) {
+        windowManager.mainWindow.webContents.send('update-status-changed', status);
+      }
+      if (settingsWindowManager && settingsWindowManager.settingsWindow && !settingsWindowManager.settingsWindow.isDestroyed()) {
+        settingsWindowManager.settingsWindow.webContents.send('update-status-changed', status);
+      }
+    };
+
+    const broadcastUpdateProgress = (progress) => {
+      if (windowManager && windowManager.mainWindow && !windowManager.mainWindow.isDestroyed()) {
+        windowManager.mainWindow.webContents.send('update-download-progress', progress);
+      }
+      if (settingsWindowManager && settingsWindowManager.settingsWindow && !settingsWindowManager.settingsWindow.isDestroyed()) {
+        settingsWindowManager.settingsWindow.webContents.send('update-download-progress', progress);
+      }
+    };
+
     // Ініціалізація сервісу автооновлень
-    updater.init({ trayManager: tray, notifier });
+    updater.init({
+      trayManager: tray,
+      notifier,
+      configManager: config,
+      onStatusChange: broadcastUpdateStatus,
+      onProgress: broadcastUpdateProgress
+    });
 
     // Встановлюємо актуальний початковий статус
     tray.updateStatus(api.getCurrentState());

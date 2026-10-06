@@ -211,8 +211,16 @@ console.log('✔ Тест 21 пройдено (анімації карток, п
 assert.ok(rendererJs.includes('alertsListClean.length <= 1'), 'renderer.js повинен коректно перевіряти alertsListClean замість неоголошеної alertsList');
 assert.ok(rendererJs.includes('catch (renderErr)'), 'renderer.js повинен мати try...catch обробник рендерингу історії');
 assert.ok(rendererJs.includes('Не вдалося завантажити деталі історії'), 'renderer.js повинен мати fallback UI при непередбачених помилках рендерингу');
-console.log('✔ Тест 22 пройдено (безпека рендерингу історії та усунення ReferenceError)');
+// Тест 23: Перевірка плаваючого пігулкового тосту оновлень у головному вікні
+assert.ok(indexHtml.includes('id="updatePillToast" class="update-pill-toast"'), 'index.html повинен містити updatePillToast');
+assert.ok(indexHtml.includes('id="btnPillDownload"'), 'index.html повинен містити btnPillDownload');
+assert.ok(indexHtml.includes('id="btnPillInstall"'), 'index.html повинен містити btnPillInstall');
+assert.ok(indexHtml.includes('id="btnPillDismiss"'), 'index.html повинен містити btnPillDismiss');
+assert.ok(styleCss.includes('.update-pill-toast'), 'style.css повинен містити стилі для .update-pill-toast');
+assert.ok(rendererJs.includes('renderUpdatePillToast'), 'renderer.js повинен містити функцію renderUpdatePillToast');
+console.log('✔ Тест 23 пройдено (пігулковий тост оновлень валідний у розмітці, стилях та скриптах)');
 
 console.log('🎉 Усі тести панелі вкладок, тем та векторної карти успішно виконано!');
+
 
 

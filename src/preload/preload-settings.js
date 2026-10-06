@@ -11,6 +11,20 @@ contextBridge.exposeInMainWorld('settingsAPI', {
     ipcRenderer.on('theme-updated', handler);
     return () => ipcRenderer.removeListener('theme-updated', handler);
   },
+  checkForUpdates: () => ipcRenderer.invoke('check-for-updates'),
+  getUpdateStatus: () => ipcRenderer.invoke('get-update-status'),
+  downloadUpdate: () => ipcRenderer.invoke('download-update'),
+  installUpdate: () => ipcRenderer.invoke('install-update'),
+  onUpdateStatusChanged: (callback) => {
+    const handler = (_event, data) => callback(data);
+    ipcRenderer.on('update-status-changed', handler);
+    return () => ipcRenderer.removeListener('update-status-changed', handler);
+  },
+  onUpdateDownloadProgress: (callback) => {
+    const handler = (_event, data) => callback(data);
+    ipcRenderer.on('update-download-progress', handler);
+    return () => ipcRenderer.removeListener('update-download-progress', handler);
+  },
   closeSettings: () => ipcRenderer.send('close-settings'),
   openExternal: (url) => ipcRenderer.send('open-external', url),
   notifyReady: () => ipcRenderer.send('settings-window-ready')

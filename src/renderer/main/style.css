@@ -1429,3 +1429,125 @@ html.theme-light #themeMoonIcon {
   color: #ffffff;
   line-height: 1;
 }
+
+/* ==========================================================================
+   4. ПІГУЛКОВИЙ TOAST ОНОВЛЕННЯ ПРОГРАМИ (PILL TOAST)
+   ========================================================================== */
+.update-pill-toast {
+  position: fixed;
+  top: 66px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 14px 6px 12px;
+  border-radius: 9999px;
+  background-color: rgba(30, 41, 59, 0.9);
+  border: 1px solid rgba(59, 130, 246, 0.4);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35), 0 2px 6px rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  color: #f8fafc;
+  font-size: 12.5px;
+  animation: slideDownPill 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  -webkit-app-region: no-drag;
+}
+
+html.theme-light .update-pill-toast {
+  background-color: rgba(255, 255, 255, 0.94);
+  border: 1px solid rgba(59, 130, 246, 0.35);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12), 0 2px 6px rgba(0, 0, 0, 0.08);
+  color: #0f172a;
+}
+
+@keyframes slideDownPill {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -10px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
+.update-pill-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #3b82f6;
+  flex-shrink: 0;
+}
+
+.update-pill-message {
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.update-pill-btn {
+  padding: 4px 11px;
+  font-size: 11.5px;
+  font-weight: 600;
+  border-radius: 9999px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.btn-pill-download {
+  background-color: #3b82f6;
+  color: #ffffff;
+}
+
+.btn-pill-download:hover {
+  background-color: #2563eb;
+}
+
+.btn-pill-download:active {
+  transform: scale(0.96);
+}
+
+.btn-pill-install {
+  background-color: #10b981;
+  color: #ffffff;
+}
+
+.btn-pill-install:hover {
+  background-color: #059669;
+}
+
+.btn-pill-install:active {
+  transform: scale(0.96);
+}
+
+.update-pill-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  padding: 2px;
+  border-radius: 50%;
+  margin-left: 2px;
+  transition: color 0.15s ease, background-color 0.15s ease;
+}
+
+.update-pill-close:hover {
+  color: #f8fafc;
+  background-color: rgba(255, 255, 255, 0.15);
+}
+
+html.theme-light .update-pill-close {
+  color: #64748b;
+}
+
+html.theme-light .update-pill-close:hover {
+  color: #0f172a;
+  background-color: rgba(0, 0, 0, 0.08);
+}
+

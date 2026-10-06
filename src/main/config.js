@@ -24,6 +24,7 @@ class ConfigManager extends EventEmitter {
       volume: 80,
       autoStart: false,
       devMode: false,
+      autoDownloadMetered: false,
       apiProvider: 'gateway',
       enableFallback: true,
       activeMapTab: 'internal',

@@ -80,11 +80,6 @@ class TrayManager {
       },
       { type: 'separator' },
       {
-        label: 'Перевірити оновлення...',
-        click: () => this.callbacks.onCheckForUpdates && this.callbacks.onCheckForUpdates()
-      },
-      { type: 'separator' },
-      {
         label: 'Вихід',
         click: () => app.quit()
       }
