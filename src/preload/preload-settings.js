@@ -27,5 +27,10 @@ contextBridge.exposeInMainWorld('settingsAPI', {
   },
   closeSettings: () => ipcRenderer.send('close-settings'),
   openExternal: (url) => ipcRenderer.send('open-external', url),
+  onScrollToSection: (callback) => {
+    const handler = (_event, sectionId) => callback(sectionId);
+    ipcRenderer.on('scroll-to-section', handler);
+    return () => ipcRenderer.removeListener('scroll-to-section', handler);
+  },
   notifyReady: () => ipcRenderer.send('settings-window-ready')
 });

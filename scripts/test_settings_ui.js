@@ -168,8 +168,12 @@ const settingsHtml = fs.readFileSync(settingsHtmlPath, 'utf8');
     'Внутрішню підкартку update-card має бути витягнуто (ліквідовано подвійні рамки)'
   );
   assert.ok(
-    settingsHtml.includes('Про застосунок та оновлення'),
-    'Заголовок секції має бути "Про застосунок та оновлення"'
+    !settingsHtml.includes('>Про застосунок та оновлення<'),
+    'Зайвий дублюючий заголовок group-label має бути видалено з секції about-group'
+  );
+  assert.ok(
+    settingsHtml.includes('class="settings-group about-group"'),
+    'Секція about-group має бути присутня'
   );
   assert.ok(
     settingsHtml.includes('class="about-donate-row"') && settingsHtml.includes('https://send.monobank.ua/jar/alert_desktop'),
@@ -223,7 +227,7 @@ const settingsHtml = fs.readFileSync(settingsHtmlPath, 'utf8');
     'settings.css не повинен містити стилів застарілої плашки .update-card'
   );
 
-  console.log('✔ Тест 13 пройдено (кнопки About в 1 рядок, блок донату додано, блок оновлень перенесено після них без layout shift)');
+  console.log('✔ Тест 13 пройдено (кнопки About в 1 рядок, блок донату додано, заголовок About прибрано)');
 }
 
 // Тест 14: Перевірка рокіровки блоків About (Legal перед Policies) та просторого layout оновлень
@@ -249,6 +253,19 @@ const settingsHtml = fs.readFileSync(settingsHtmlPath, 'utf8');
   );
 
   console.log('✔ Тест 14 пройдено (рокіровка About-блоків та повноширинний просторий layout статусу оновлень)');
+}
+
+// Тест 15: Перевірка підтримки автопрокручування до блоку About
+{
+  const preloadSettingsPath = path.join(__dirname, '..', 'src', 'preload', 'preload-settings.js');
+  const preloadSettings = fs.readFileSync(preloadSettingsPath, 'utf8');
+  assert.ok(preloadSettings.includes('onScrollToSection'), 'preload-settings.js повинен надавати метод onScrollToSection');
+
+  const settingsJsPath = path.join(__dirname, '..', 'src', 'renderer', 'settings', 'settings.js');
+  const settingsJs = fs.readFileSync(settingsJsPath, 'utf8');
+  assert.ok(settingsJs.includes('scrollToAboutSection'), 'settings.js повинен містити функцію scrollToAboutSection');
+  assert.ok(settingsJs.includes('scrollIntoView'), 'settings.js повинен використовувати scrollIntoView для плавного прокручування');
+  console.log('✔ Тест 15 пройдено (автопрокручування до блоку About підтримується через IPC та status.updateDownloaded)');
 }
 
 console.log('🎉 Усі тести інтерфейсу налаштувань успішно пройдено!');

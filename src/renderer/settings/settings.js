@@ -547,7 +547,18 @@ async function init() {
         try {
           const status = await window.settingsAPI.getUpdateStatus();
           applyUpdateStatusUI(status);
+          if (status && status.updateDownloaded) {
+            scrollToAboutSection();
+          }
         } catch (_) {}
+      }
+
+      if (typeof window.settingsAPI.onScrollToSection === 'function') {
+        window.settingsAPI.onScrollToSection((sectionId) => {
+          if (sectionId === 'about') {
+            scrollToAboutSection();
+          }
+        });
       }
 
       if (typeof window.settingsAPI.onUpdateStatusChanged === 'function') {
@@ -604,6 +615,15 @@ function applyTheme(isDark) {
   } else {
     document.documentElement.classList.remove('theme-dark');
     document.documentElement.classList.add('theme-light');
+  }
+}
+
+function scrollToAboutSection() {
+  const aboutGroup = document.querySelector('.about-group');
+  if (aboutGroup) {
+    setTimeout(() => {
+      aboutGroup.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 120);
   }
 }
 

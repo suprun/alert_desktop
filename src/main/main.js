@@ -81,8 +81,8 @@ if (!gotTheLock) {
     }
   });
 
-  ipcMain.on('open-settings', () => {
-    settingsWindowManager.showSettingsWindow(windowManager.mainWindow);
+  ipcMain.on('open-settings', (_event, options) => {
+    settingsWindowManager.showSettingsWindow(windowManager.mainWindow, options);
   });
 
   ipcMain.on('close-settings', () => {

@@ -27,11 +27,16 @@ class SettingsWindowManager {
     }
   }
 
-  showSettingsWindow(parentWindow = null) {
+  showSettingsWindow(parentWindow = null, options = null) {
+    const targetScroll = options && options.scrollTo ? options.scrollTo : null;
+
     if (this.settingsWindow && !this.settingsWindow.isDestroyed()) {
       if (this.settingsWindow.isMinimized()) this.settingsWindow.restore();
       this.settingsWindow.show();
       this.settingsWindow.focus();
+      if (targetScroll) {
+        this.settingsWindow.webContents.send('scroll-to-section', targetScroll);
+      }
       return this.settingsWindow;
     }
 
@@ -84,6 +89,13 @@ class SettingsWindowManager {
       if (this.settingsWindow && !this.settingsWindow.isDestroyed()) {
         this.settingsWindow.show();
         this.settingsWindow.focus();
+        if (targetScroll) {
+          setTimeout(() => {
+            if (this.settingsWindow && !this.settingsWindow.isDestroyed()) {
+              this.settingsWindow.webContents.send('scroll-to-section', targetScroll);
+            }
+          }, 80);
+        }
       }
     };
 

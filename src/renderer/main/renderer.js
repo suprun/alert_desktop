@@ -53,6 +53,8 @@ const btnPillInstall = document.getElementById('btnPillInstall');
 const btnPillDismiss = document.getElementById('btnPillDismiss');
 let isPillToastDismissed = false;
 let lastPillVersion = null;
+const settingsUpdateBadge = document.getElementById('settingsUpdateBadge');
+let lastUpdateStatus = null;
 
 // Поточний стан
 let currentActiveTab = 'internal';
@@ -1318,7 +1320,8 @@ function playAudio(soundType, soundId, volume = 80) {
 // ==========================================================================
 btnSettings.addEventListener('click', () => {
   if (window.alertAPI && window.alertAPI.openSettings) {
-    window.alertAPI.openSettings();
+    const shouldScrollToAbout = Boolean(lastUpdateStatus && lastUpdateStatus.updateDownloaded);
+    window.alertAPI.openSettings({ scrollTo: shouldScrollToAbout ? 'about' : null });
   }
 });
 
@@ -1523,6 +1526,7 @@ if (window.alertAPI) {
 
 // Функція відображення пігулкового тосту оновлень
 function renderUpdatePillToast(status) {
+  updateSettingsBadge(status);
   if (!updatePillToast || !status) return;
 
   const version = status.availableVersion || status.downloadedVersion;
@@ -1560,6 +1564,20 @@ function renderUpdatePillToast(status) {
     if (btnPillInstall) btnPillInstall.style.display = 'none';
   } else {
     updatePillToast.style.display = 'none';
+  }
+}
+
+// Функція оновлення зеленого індикатора сповіщення на кнопці налаштувань
+function updateSettingsBadge(status) {
+  lastUpdateStatus = status;
+  const badge = document.getElementById('settingsUpdateBadge');
+  if (!btnSettings || !badge) return;
+  const hasUpdateToInstall = Boolean(status && status.updateDownloaded);
+  badge.style.display = hasUpdateToInstall ? 'block' : 'none';
+  if (hasUpdateToInstall) {
+    btnSettings.setAttribute('title', `Налаштування (доступне оновлення v${status.downloadedVersion} для встановлення)`);
+  } else {
+    btnSettings.setAttribute('title', 'Налаштування');
   }
 }
 

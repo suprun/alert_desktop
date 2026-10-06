@@ -242,6 +242,17 @@ assert.ok(currentRendererJs.includes('isExactTitleMatch'), 'renderer.js пови
 assert.ok(!currentRendererJs.includes('distTitle.includes(locTitle)'), 'renderer.js не повинен використовувати distTitle.includes(locTitle)');
 console.log('✔ Тест 26 пройдено (точний збіг назв районів з перевіркою області усуває хибне зафарбовування суміжних районів)');
 
+// Тест 27: Двосторонній гайковий ключ на кнопці налаштувань та індикатор сповіщення про оновлення
+const currentIndexHtml = fs.readFileSync(path.join(__dirname, '..', 'src', 'renderer', 'main', 'index.html'), 'utf8');
+const currentStyleCss = fs.readFileSync(path.join(__dirname, '..', 'src', 'renderer', 'main', 'style.css'), 'utf8');
+assert.ok(currentIndexHtml.includes('M7 10h3V7L6.5 3.5a6 6 0 0 1 8 8L17 14h-3v3l3.5 3.5a6 6 0 0 1-8-8L7 10z'), 'btnSettings повинен містити SVG двостороннього гайкового ключа');
+assert.ok(currentIndexHtml.includes('id="settingsUpdateBadge" class="btn-badge-dot"'), 'btnSettings повинен містити елемент settingsUpdateBadge');
+assert.ok(currentStyleCss.includes('.btn-badge-dot'), 'style.css повинен містити стилі індикатора .btn-badge-dot');
+assert.ok(currentStyleCss.includes('badgePulse'), 'style.css повинен містити анімацію badgePulse');
+assert.ok(currentRendererJs.includes('updateSettingsBadge'), 'renderer.js повинен містити функцію updateSettingsBadge');
+assert.ok(currentRendererJs.includes('openSettings({ scrollTo:'), 'renderer.js повинен передавати scrollTo при кліку на btnSettings');
+console.log('✔ Тест 27 пройдено (двосторонній гайковий ключ, зелений індикатор сповіщення та автопрокрутка налаштувань)');
+
 console.log('🎉 Усі тести панелі вкладок, тем та векторної карти успішно виконано!');
 
 
