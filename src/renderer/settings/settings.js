@@ -40,6 +40,7 @@ const tokenVerifyLabel = btnVerifyApiToken
 const apiTokenStatus = document.getElementById('apiTokenStatus');
 const apiTokenStatusText = document.getElementById('apiTokenStatusText');
 const chkEnableFallback = document.getElementById('chkEnableFallback');
+const btnQuitApp = document.getElementById('btnQuitApp');
 const btnCancel = document.getElementById('btnCancel');
 const btnSave = document.getElementById('btnSave');
 const saveBlockedReason = document.getElementById('saveBlockedReason');
@@ -855,6 +856,25 @@ btnCancel.addEventListener('click', () => {
     window.settingsAPI.closeSettings();
   }
 });
+
+if (btnQuitApp) {
+  btnQuitApp.addEventListener('click', async () => {
+    if (!window.settingsAPI || typeof window.settingsAPI.requestQuitApp !== 'function') return;
+
+    stopAudioTest();
+    btnQuitApp.disabled = true;
+
+    try {
+      const result = await window.settingsAPI.requestQuitApp();
+      if (!result || result.confirmed !== true) {
+        btnQuitApp.disabled = false;
+      }
+    } catch (err) {
+      console.error('Не вдалося відкрити підтвердження завершення роботи:', err);
+      btnQuitApp.disabled = false;
+    }
+  });
+}
 
 // Керування станом UI оновлень
 function applyUpdateStatusUI(status) {

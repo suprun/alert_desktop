@@ -129,11 +129,24 @@
       </section>
 
       <!-- Розділ системи -->
-      <section class="settings-group">
+      <section class="settings-group system-group">
         <span class="group-label">Система</span>
         <div class="checkbox-control">
           <input type="checkbox" id="chkAutoStart" class="form-checkbox">
           <label for="chkAutoStart" class="checkbox-label">Запускати при старті системи</label>
+        </div>
+        <div class="system-quit-row">
+          <div class="system-quit-copy">
+            <span class="system-action-title">Завершення роботи</span>
+            <span id="quitAppDescription" class="field-hint">Повністю закриє застосунок і припинить моніторинг тривог.</span>
+          </div>
+          <button type="button" id="btnQuitApp" class="btn-danger-outline" aria-describedby="quitAppDescription">
+            <svg class="btn-danger-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M18.36 6.64a9 9 0 1 1-12.73 0"/>
+              <line x1="12" y1="2" x2="12" y2="12"/>
+            </svg>
+            <span>Завершити роботу</span>
+          </button>
         </div>
       </section>
 

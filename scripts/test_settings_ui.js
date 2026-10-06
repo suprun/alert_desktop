@@ -321,4 +321,48 @@ const settingsHtml = fs.readFileSync(settingsHtmlPath, 'utf8');
   console.log('✔ Тест 16 пройдено (контури токена, вирівнювання пояснень та main-process guard присутні)');
 }
 
+// Тест 17: Контрольоване завершення роботи із секції Система
+{
+  const settingsJsPath = path.join(__dirname, '..', 'src', 'renderer', 'settings', 'settings.js');
+  const settingsJs = fs.readFileSync(settingsJsPath, 'utf8');
+  const settingsCssPath = path.join(__dirname, '..', 'src', 'renderer', 'settings', 'settings.css');
+  const settingsCss = fs.readFileSync(settingsCssPath, 'utf8');
+  const preloadPath = path.join(__dirname, '..', 'src', 'preload', 'preload-settings.js');
+  const preloadContent = fs.readFileSync(preloadPath, 'utf8');
+  const mainPath = path.join(__dirname, '..', 'src', 'main', 'main.js');
+  const mainContent = fs.readFileSync(mainPath, 'utf8');
+
+  assert.ok(settingsHtml.includes('class="settings-group system-group"'), 'секція Система має окремий клас для системних дій');
+  assert.ok(settingsHtml.includes('id="btnQuitApp"'), 'секція Система має містити кнопку завершення роботи');
+  assert.ok(settingsHtml.includes('Повністю закриє застосунок і припинить моніторинг тривог.'), 'користувач має бачити наслідок завершення роботи');
+  assert.ok(settingsHtml.includes('aria-describedby="quitAppDescription"'), 'кнопка завершення має бути пов’язана з поясненням');
+  assert.ok(settingsHtml.includes('M18.36 6.64a9 9 0 1 1-12.73 0'), 'кнопка завершення має містити лінійну SVG-іконку живлення');
+
+  assert.ok(settingsCss.includes('.btn-danger-outline'), 'CSS має містити danger-стиль кнопки завершення');
+  assert.ok(settingsCss.includes('.btn-danger-outline:hover:not(:disabled)'), 'danger-кнопка має видимий hover-стан');
+  assert.ok(settingsCss.includes('.btn-danger-outline:focus-visible'), 'danger-кнопка має доступний focus-стан');
+  assert.ok(settingsCss.includes('.btn-danger-outline:disabled'), 'danger-кнопка має disabled-стан під час підтвердження');
+
+  const quitHandlerStart = settingsJs.indexOf("btnQuitApp.addEventListener('click'");
+  const quitHandlerEnd = settingsJs.indexOf('// Керування станом UI оновлень', quitHandlerStart);
+  const quitHandler = settingsJs.slice(quitHandlerStart, quitHandlerEnd);
+  assert.ok(quitHandlerStart > 0 && quitHandlerEnd > quitHandlerStart, 'renderer має містити окремий обробник завершення роботи');
+  assert.ok(quitHandler.includes('stopAudioTest()'), 'перед завершенням має зупинятися тестовий звук');
+  assert.ok(quitHandler.includes('requestQuitApp()'), 'renderer має викликати лише обмежений preload-метод');
+  assert.ok(quitHandler.includes('btnQuitApp.disabled = true'), 'кнопка має блокуватися на час підтвердження');
+  assert.ok(!quitHandler.includes('saveConfig'), 'завершення роботи не повинно намагатися зберегти форму');
+  assert.ok(!quitHandler.includes('tokenVerificationState'), 'валідація токена не повинна блокувати завершення роботи');
+
+  assert.ok(preloadContent.includes("requestQuitApp: () => ipcRenderer.invoke('request-quit-app')"), 'preload має експонувати requestQuitApp без параметрів');
+  assert.ok(mainContent.includes("ipcMain.handle('request-quit-app'"), 'головний процес має обробляти request-quit-app');
+  assert.ok(mainContent.includes("message: 'Завершити роботу AlertDesktop?'"), 'нативний діалог має містити чітке питання');
+  assert.ok(mainContent.includes("buttons: ['Скасувати', 'Завершити роботу']"), 'нативний діалог має безпечний і руйнівний варіанти');
+  assert.ok(mainContent.includes('defaultId: 0') && mainContent.includes('cancelId: 0'), 'Скасувати має бути типовою та Esc-дією');
+  assert.ok(mainContent.includes('if (result.response !== 1)'), 'скасування не повинно завершувати застосунок');
+  assert.ok(mainContent.includes('setImmediate(() => app.quit())'), 'підтвердження має запускати штатний app.quit');
+  assert.ok(mainContent.includes("app.on('before-quit'") && mainContent.includes('api.stopPolling()'), 'штатне очищення має виконуватися перед виходом');
+
+  console.log('✔ Тест 17 пройдено (безпечне завершення роботи через нативне підтвердження)');
+}
+
 console.log('🎉 Усі тести інтерфейсу налаштувань успішно пройдено!');

@@ -16,6 +16,7 @@ contextBridge.exposeInMainWorld('settingsAPI', {
   getUpdateStatus: () => ipcRenderer.invoke('get-update-status'),
   downloadUpdate: () => ipcRenderer.invoke('download-update'),
   installUpdate: () => ipcRenderer.invoke('install-update'),
+  requestQuitApp: () => ipcRenderer.invoke('request-quit-app'),
   onUpdateStatusChanged: (callback) => {
     const handler = (_event, data) => callback(data);
     ipcRenderer.on('update-status-changed', handler);

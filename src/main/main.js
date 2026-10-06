@@ -1,4 +1,4 @@
-const { app, ipcMain, Menu, session, shell } = require('electron');
+const { app, BrowserWindow, dialog, ipcMain, Menu, session, shell } = require('electron');
 const path = require('path');
 const fs = require('fs');
 
@@ -98,6 +98,36 @@ if (!gotTheLock) {
 
   ipcMain.on('close-settings', () => {
     settingsWindowManager.close();
+  });
+
+  ipcMain.handle('request-quit-app', async (event) => {
+    const ownerWindow = BrowserWindow.fromWebContents(event.sender);
+    const dialogOptions = {
+      type: 'warning',
+      title: 'Завершення роботи',
+      message: 'Завершити роботу AlertDesktop?',
+      detail: 'Моніторинг тривог і системні сповіщення буде зупинено. Незбережені зміни буде втрачено.',
+      buttons: ['Скасувати', 'Завершити роботу'],
+      defaultId: 0,
+      cancelId: 0,
+      noLink: true
+    };
+
+    try {
+      const result = ownerWindow && !ownerWindow.isDestroyed()
+        ? await dialog.showMessageBox(ownerWindow, dialogOptions)
+        : await dialog.showMessageBox(dialogOptions);
+
+      if (result.response !== 1) {
+        return { confirmed: false };
+      }
+
+      setImmediate(() => app.quit());
+      return { confirmed: true };
+    } catch (err) {
+      console.error('Не вдалося показати підтвердження завершення роботи:', err.message);
+      return { confirmed: false, error: 'confirmation_failed' };
+    }
   });
 
   ipcMain.on('open-external', (_event, url) => {
