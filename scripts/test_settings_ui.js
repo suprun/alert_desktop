@@ -345,6 +345,12 @@ const settingsHtml = fs.readFileSync(settingsHtmlPath, 'utf8');
   assert.ok(settingsCss.includes('.btn-danger-outline:hover:not(:disabled)'), 'danger-кнопка має видимий hover-стан');
   assert.ok(settingsCss.includes('.btn-danger-outline:focus-visible'), 'danger-кнопка має доступний focus-стан');
   assert.ok(settingsCss.includes('.btn-danger-outline:disabled'), 'danger-кнопка має disabled-стан під час підтвердження');
+  const quitButtonStyle = settingsCss.match(/\.btn-danger-outline\s*\{([^}]*)\}/)?.[1] || '';
+  const quitButtonHoverStyle = settingsCss.match(/\.btn-danger-outline:hover:not\(:disabled\)\s*\{([^}]*)\}/)?.[1] || '';
+  assert.ok(quitButtonStyle.includes('background-color: rgba(239, 68, 68, 0.1);'), 'danger-кнопка має фон кнопки Донат');
+  assert.ok(quitButtonStyle.includes('border: 1px solid rgba(239, 68, 68, 0.25);'), 'danger-кнопка має обводку кнопки Донат');
+  assert.ok(quitButtonHoverStyle.includes('background-color: rgba(239, 68, 68, 0.18);'), 'danger-кнопка має hover-фон кнопки Донат');
+  assert.ok(quitButtonHoverStyle.includes('border-color: rgba(239, 68, 68, 0.4);'), 'danger-кнопка має hover-обводку кнопки Донат');
 
   const quitHandlerStart = settingsJs.indexOf("btnQuitApp.addEventListener('click'");
   const quitHandlerEnd = settingsJs.indexOf('// Керування станом UI оновлень', quitHandlerStart);

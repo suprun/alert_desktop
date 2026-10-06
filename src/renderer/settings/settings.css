@@ -462,10 +462,10 @@ html.theme-light .selected-badge,
   justify-content: center;
   gap: 7px;
   flex-shrink: 0;
-  border: 1px solid #dc2626;
+  border: 1px solid rgba(239, 68, 68, 0.25);
   border-radius: 6px;
-  background-color: transparent;
-  color: #dc2626;
+  background-color: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
   font-family: inherit;
   font-size: 12px;
   font-weight: 600;
@@ -474,9 +474,9 @@ html.theme-light .selected-badge,
 }
 
 .btn-danger-outline:hover:not(:disabled) {
-  color: #ffffff;
-  background-color: #dc2626;
-  border-color: #dc2626;
+  color: #dc2626;
+  background-color: rgba(239, 68, 68, 0.18);
+  border-color: rgba(239, 68, 68, 0.4);
 }
 
 .btn-danger-outline:focus-visible {
