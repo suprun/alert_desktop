@@ -126,6 +126,7 @@ async function runTests() {
 
   // Тест 6: Сувора дедуплікація та виключення дублів між alerts та alert_events
   historyService._fallbackStats = [{ luid: 120, ac: 1, d: 600000, a: false }];
+  historyService._fallbackActiveAlerts = [];
   historyService._fallbackAlerts = [
     { i: 201, luid: 120, s: 151200000, at: 1, loi: 2 } // Алерт
   ];
@@ -147,6 +148,7 @@ async function runTests() {
     { i: 203, luid: 2,   s: 151250000, f: 151251000, t: 's', loi: 2 }  // Загальнообласна тривога Вінницької обл (має включитися)
   ];
   historyService._fallbackEvents = [];
+  historyService._fallbackActiveAlerts = [];
 
   const isolateRes = historyService._buildFallbackResponse('120', '2');
   assert.strictEqual(isolateRes.recentAlerts.length, 2, 'Має включити тільки тривогу свого району та загальнообласну');
@@ -162,6 +164,7 @@ async function runTests() {
     { i: 303, luid: 724, s: 151210200, t: 'c', loi: 14 }  // Громада іншого району Київської обл (чужа)
   ];
   historyService._fallbackEvents = [];
+  historyService._fallbackActiveAlerts = [];
   historyService._observedAlerts.clear();
 
   const raionRes = historyService._buildFallbackResponse('73', '14');
@@ -173,6 +176,7 @@ async function runTests() {
 
   // Тест 9: Перевірка коректного порожнього durationFormatted при 0 тривог (без безглуздого '0 хв')
   historyService._fallbackAlerts = [];
+  historyService._fallbackActiveAlerts = [];
   historyService._fallbackEvents = [];
   historyService._fallbackStats = [{ luid: 73, ac: 0, d: 0, a: false }];
   historyService._observedAlerts.clear();
@@ -185,6 +189,7 @@ async function runTests() {
 
   // Тест 10: Накопичувальний буфер спостережуваних тривог (ліміт: 500) та видача до 20 тривог
   historyService._observedAlerts.clear();
+  historyService._fallbackActiveAlerts = [];
   for (let i = 1; i <= 550; i++) {
     historyService._recordAlert({
       i: 1000 + i,
@@ -202,6 +207,7 @@ async function runTests() {
 
   // Тест 11: Консолідація одночасних записів («тривога —> загроза») без подвоєння у статистиці
   historyService._observedAlerts.clear();
+  historyService._fallbackActiveAlerts = [];
   historyService._fallbackStats = [{ luid: 400, ac: 2, d: 3240000, a: true }]; // Сирий статус міг містити подвійний запис
   const sCommon = Math.floor(Date.now() / 1000) - 1640000000 - 1620; // 27 хвилин тому
   historyService._fallbackAlerts = [
@@ -218,6 +224,37 @@ async function runTests() {
   assert.strictEqual(consolidatedRes.todayStats.alertCount, 1, 'Кількість тривог сьогодні має бути 1, а не 2');
   assert.strictEqual(consolidatedRes.todayStats.totalDurationMin, 27, 'Тривалість має бути 27 хв, а не подвоєні 54 хв');
   console.log("✔ Тест 11 пройдено (інтелектуальне об'єднання «тривога —> загроза» без дублювання карток і подвоєння часу)");
+
+  // Тест 12: Підтримка active.json, lruid (громади району) та типу області t: 'o'
+  historyService._observedAlerts.clear();
+  historyService._fallbackAlerts = [];
+  historyService._fallbackEvents = [];
+  historyService._fallbackStats = [];
+  historyService._fallbackActiveAlerts = [
+    {
+      i: 991,
+      luid: 1313, // Вовчанська громада
+      lruid: 122,  // Чугуївський район
+      loi: 20,    // Харківська область
+      s: sCommon,
+      at: 1,
+      t: 'c'
+    },
+    {
+      i: 992,
+      luid: 20,   // Харківська область
+      loi: 20,
+      s: sCommon,
+      at: 1,
+      t: 'o'      // Загальнообласна тривога з типом 'o'
+    }
+  ];
+
+  const activeRaionRes = historyService._buildFallbackResponse('122', '20');
+  assert.ok(activeRaionRes.recentAlerts.length > 0, 'Для району мають знаходитися активні тривоги його громад через lruid або область');
+  assert.strictEqual(activeRaionRes.todayStats.isActive, true, 'Район має бути позначений як активний');
+  assert.strictEqual(activeRaionRes.recentAlerts[0].isActive, true);
+  console.log("✔ Тест 12 пройдено (підтримка active.json, пошук за lruid громад для районів та обробка t: 'o')");
 
   console.log("🎉 Усі тести сервісу історії успішно пройдено!\n");
 }

@@ -207,6 +207,12 @@ assert.ok(rendererJs.includes('threatIcons.drone'), 'renderer.js повинен 
 assert.ok(windowJs.includes('windowBounds'), 'window.js повинен відновлювати та зберігати windowBounds');
 console.log('✔ Тест 21 пройдено (анімації карток, плавний лоадер, іконки загроз та збереження розміру вікна)');
 
+// Тест 22: Захист від збоїв рендерингу панелі історії та коректна змінна alertsListClean
+assert.ok(rendererJs.includes('alertsListClean.length <= 1'), 'renderer.js повинен коректно перевіряти alertsListClean замість неоголошеної alertsList');
+assert.ok(rendererJs.includes('catch (renderErr)'), 'renderer.js повинен мати try...catch обробник рендерингу історії');
+assert.ok(rendererJs.includes('Не вдалося завантажити деталі історії'), 'renderer.js повинен мати fallback UI при непередбачених помилках рендерингу');
+console.log('✔ Тест 22 пройдено (безпека рендерингу історії та усунення ReferenceError)');
+
 console.log('🎉 Усі тести панелі вкладок, тем та векторної карти успішно виконано!');
 
 

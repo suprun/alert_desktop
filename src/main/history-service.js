@@ -38,6 +38,7 @@ class HistoryService {
     this._fallbackCacheTime = 0;
     this._fallbackStats = [];
     this._fallbackAlerts = [];
+    this._fallbackActiveAlerts = [];
     this._fallbackEvents = [];
     this._cacheTtlMs = 60000;
     // Накопичувальний буфер спостережуваних тривог (ліміт: 500 записів)
@@ -62,6 +63,9 @@ class HistoryService {
       if (a.f && !existing.f) existing.f = a.f;
       if (a.at && !existing.at) existing.at = a.at;
       if (a.m && !existing.m) existing.m = a.m;
+      if (a.lruid && !existing.lruid) existing.lruid = a.lruid;
+      if (a.t && !existing.t) existing.t = a.t;
+      if (a.loi && !existing.loi) existing.loi = a.loi;
     }
     this._pruneObservedAlerts();
   }
@@ -124,6 +128,7 @@ class HistoryService {
         f: a.finished_at ? (Math.floor(new Date(a.finished_at).getTime() / 1000) - BASE_EPOCH_ALERTS_IN_UA) : (a.f || null),
         at: a.threat_type || a.at || 1,
         luid: a.location_uid || a.luid,
+        lruid: a.location_raion_uid || a.raion_uid || a.lruid || null,
         loi: a.oblast_uid || a.loi,
         t: a.location_type || a.t,
         m: a.message || a.m || null,
@@ -204,10 +209,11 @@ class HistoryService {
     }
 
     try {
-      const [statsRes, alertsRes, eventsRes] = await Promise.allSettled([
+      const [statsRes, alertsRes, eventsRes, activeRes] = await Promise.allSettled([
         this._fetchJson('https://api.alerts.in.ua/v3/stats/duration/today.json', 7000),
         this._fetchJson('https://api.alerts.in.ua/v3/alerts/recent.json', 7000),
-        this._fetchJson('https://api.alerts.in.ua/v3/alert_events/recent.json', 7000)
+        this._fetchJson('https://api.alerts.in.ua/v3/alert_events/recent.json', 7000),
+        this._fetchJson('https://api.alerts.in.ua/v3/alerts/active.json', 7000)
       ]);
 
       if (statsRes.status === 'fulfilled' && statsRes.value && Array.isArray(statsRes.value.data)) {
@@ -223,6 +229,12 @@ class HistoryService {
         this._fallbackEvents = eventsRes.value.alert_events;
         for (const e of this._fallbackEvents) {
           this._recordEvent(e);
+        }
+      }
+      if (activeRes.status === 'fulfilled' && activeRes.value && Array.isArray(activeRes.value.alerts)) {
+        this._fallbackActiveAlerts = activeRes.value.alerts;
+        for (const a of this._fallbackActiveAlerts) {
+          this._recordAlert(a);
         }
       }
 
@@ -423,6 +435,7 @@ class HistoryService {
 
     const isMatchingLocation = (item) => {
       const iLuid = String(item.luid || item.location_uid || '');
+      const iLruid = String(item.lruid || item.raion_uid || '');
       const iLoi = String(item.loi || item.oblast_uid || '');
       const iType = String(item.t || item.location_type || '');
 
@@ -437,17 +450,20 @@ class HistoryService {
       }
 
       // 3. Якщо обрано район, а тривога оголошена в одній з його громад
+      if (iLruid && iLruid === uidStr) {
+        return true;
+      }
       if (childHromadas && childHromadas.has(iLuid)) {
         return true;
       }
 
       // 4. Якщо обрано громаду, а тривога оголошена на весь її район
-      if (parentRaionUid && iLuid === parentRaionUid) {
+      if (parentRaionUid && (iLuid === parentRaionUid || iLruid === parentRaionUid)) {
         return true;
       }
 
       // 5. Загальнообласна тривога
-      if (oblastUidStr && (iType === 's' || iType === 'oblast') && (iLuid === oblastUidStr || iLoi === oblastUidStr)) {
+      if (oblastUidStr && (iType === 'o' || iType === 's' || iType === 'oblast') && (iLuid === oblastUidStr || iLoi === oblastUidStr)) {
         return true;
       }
 
@@ -466,7 +482,25 @@ class HistoryService {
       alertsByKey.set(key, { ...a });
     }
 
-    // 2. Додаємо накопичені спостереження з буфера
+    // 2. Додаємо записи з активних тривог (alerts/active.json)
+    for (const a of this._fallbackActiveAlerts) {
+      if (!isMatchingLocation(a)) continue;
+      const sRaw = a.s;
+      if (!sRaw) continue;
+      const aLuid = String(a.luid || a.location_uid || '');
+      const key = `${aLuid}_${sRaw}`;
+      if (!alertsByKey.has(key)) {
+        alertsByKey.set(key, { ...a });
+      } else {
+        const existing = alertsByKey.get(key);
+        if (a.f && !existing.f) existing.f = a.f;
+        if (a.at && !existing.at) existing.at = a.at;
+        if (a.m && !existing.m) existing.m = a.m;
+        if (a.lruid && !existing.lruid) existing.lruid = a.lruid;
+      }
+    }
+
+    // 3. Додаємо накопичені спостереження з буфера
     for (const a of this._observedAlerts.values()) {
       if (!isMatchingLocation(a)) continue;
       const sRaw = a.s;
@@ -478,10 +512,11 @@ class HistoryService {
       } else {
         const existing = alertsByKey.get(key);
         if (a.f && !existing.f) existing.f = a.f;
+        if (a.lruid && !existing.lruid) existing.lruid = a.lruid;
       }
     }
 
-    // 3. Додаємо/оновлюємо з alert_events
+    // 4. Додаємо/оновлюємо з alert_events
     for (const e of this._fallbackEvents) {
       if (!isMatchingLocation(e)) continue;
       const eLuid = String(e.luid || e.location_uid || '');
@@ -546,6 +581,7 @@ class HistoryService {
       matched.push({
         id: item.i || item.u || `${item.luid}_${sRaw}`,
         luid: item.luid || item.location_uid || null,
+        lruid: item.lruid || item.raion_uid || null,
         locType: item.t || item.location_type || null,
         loi: item.loi || item.oblast_uid || null,
         startedAt,
@@ -660,8 +696,8 @@ class HistoryService {
         const sameLocation = (item.luid && prev.luid && String(item.luid) === String(prev.luid)) || (!item.luid || !prev.luid);
         // 2. Один запис є загальною тривогою (1), а інший - конкретизованою загрозою (дрони, ракети тощо)
         const threatConsolidation = (item.threatType === 1 && prev.threatType > 1) || (item.threatType > 1 && prev.threatType === 1);
-        // 3. Ієрархічний зв'язок (один запис - загальнообласний 's', інший - районний або громади)
-        const isOneOblast = item.locType === 's' || prev.locType === 's';
+        // 3. Ієрархічний зв'язок (один запис - загальнообласний 'o'/'s', інший - районний або громади)
+        const isOneOblast = item.locType === 'o' || item.locType === 's' || prev.locType === 'o' || prev.locType === 's';
 
         // Не об'єднувати, якщо це дві окремі дочірні громади/райони з однаковим типом загрози
         const areDifferentSiblings = item.luid && prev.luid && String(item.luid) !== String(prev.luid) && !isOneOblast && !threatConsolidation;
@@ -682,6 +718,7 @@ class HistoryService {
         target.startedAt = mergedStart;
         target.startedText = this._formatTime(mergedStart);
         if (item.luid && !target.luid) target.luid = item.luid;
+        if (item.lruid && !target.lruid) target.lruid = item.lruid;
         if (item.locType && !target.locType) target.locType = item.locType;
         if (item.loi && !target.loi) target.loi = item.loi;
 

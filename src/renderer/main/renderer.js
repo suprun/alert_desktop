@@ -430,8 +430,8 @@ function closeHistoryDrawer() {
 
 function renderRegionHistory(data, meta) {
   if (!historyDrawerBody) return;
-
-  const { isAlert, alertType, alertLevel, startedAt } = meta;
+  try {
+    const { isAlert, alertType, alertLevel, startedAt } = meta;
 
   // 1. Поточний статус безпеки
   let statusCardClass = 'safe';
@@ -647,8 +647,11 @@ function renderRegionHistory(data, meta) {
     statsValueHtml = durationText ? `${countText} · ${durationText}` : countText;
   }
 
+  // 3. Недавні тривоги
+  let alertsListClean = (data && (data.recentAlerts || data.recent_alerts)) ? [...(data.recentAlerts || data.recent_alerts)] : [];
+
   // Якщо є дублікат підрахунку в статистиці через паралельний запис
-  if (isAlert && count > 1 && alertsList.length <= 1) {
+  if (isAlert && count > 1 && alertsListClean.length <= 1) {
     count = 1;
     totalMin = currentElapsedMin > 0 ? currentElapsedMin : totalMin;
     const countText = '1 тривога';
@@ -662,9 +665,6 @@ function renderRegionHistory(data, meta) {
       <span class="history-stats-values">${statsValueHtml}</span>
     </div>
   `;
-
-  // 3. Недавні тривоги
-  let alertsListClean = (data && (data.recentAlerts || data.recent_alerts)) ? [...(data.recentAlerts || data.recent_alerts)] : [];
 
   // Якщо тривога активна прямо зараз, синхронізуємо або додаємо її до списку без дублювання
   if (isAlert) {
@@ -796,7 +796,24 @@ function renderRegionHistory(data, meta) {
     </div>
   `;
 
-  historyDrawerBody.innerHTML = statusCardHtml + statsCardHtml + timelineSectionHtml;
+    historyDrawerBody.innerHTML = statusCardHtml + statsCardHtml + timelineSectionHtml;
+  } catch (renderErr) {
+    console.error('[Renderer] Помилка рендерингу історії регіону:', renderErr);
+    if (historyDrawerBody) {
+      historyDrawerBody.innerHTML = `
+        <div class="history-status-card ${meta && meta.isAlert ? 'alert' : 'safe'} drawer-animate-in">
+          <span class="status-icon">${meta && meta.isAlert ? icons.alert : icons.safe}</span>
+          <div class="history-status-info">
+            <span class="history-status-title">${meta && meta.isAlert ? 'Повітряна тривога' : 'Немає тривоги'}</span>
+            <span class="history-status-subtitle">${meta && meta.isAlert ? 'Активна тривога' : 'Наразі загрози не зафіксовано'}</span>
+          </div>
+        </div>
+        <div class="history-empty-state drawer-animate-in">
+          <span class="empty-history-desc">Не вдалося завантажити деталі історії (${escapeHtml(renderErr.message)}).</span>
+        </div>
+      `;
+    }
+  }
 }
 
 function escapeHtml(text) {
