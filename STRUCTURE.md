@@ -106,7 +106,7 @@ alert_desktop/
 │   ├── test_threat_utils.js              # Unit-тести парсингу характеру загроз та анти-тавтології
 │   ├── test_notifier.js                  # Unit-тести форматування часу та тривалості сповіщень Windows
 │   ├── test_oblast_aggregation.js        # Unit-тести агрегації тривог по районах для обраної області
-│   ├── test_updater.js                   # Unit-тести модуля UpdaterService (автооновлення)
+│   ├── test_updater.js                   # Unit-тести модуля UpdaterService (автооновлення, емуляція Metered Connection)
 │   ├── test_autostart_sync.js            # Unit-тести синхронізації автозапуску між ОС та config.json
 │   ├── test_ubilling_adapter.js          # Unit-тести адаптера Ubilling Aerial Alerts API (нормалізація, мапінг регіонів, ієрархія)
 │   ├── test_neptun_adapter.js            # Unit-тести адаптера NEPTUN API (нормалізація 136 районів/міст, WebSocket, ієрархія, загрози)
@@ -114,7 +114,7 @@ alert_desktop/
 │   ├── test_net_check.js                 # Unit-тести модуля перевірки зв'язку через Anycast IP Google та Cloudflare
 │   ├── test_fallback_resilience.js       # Unit-тести стійкості Fallback API, пріоритетів джерел, суворого режиму та відновлення
 │   ├── test_maps_tabs.js                 # Unit-тести панелі вкладок, геоданих векторної карти, повної відсутності емодзі та перемикання карт
-│   ├── test_settings_ui.js               # Unit-тести інтерфейсу вікна налаштувань (об'єднання About та оновлень, відсутність update-card, запобігання layout shift, readonly URL, відсутність емодзі)
+│   ├── test_settings_ui.js               # Unit-тести інтерфейсу вікна налаштувань (об'єднання About та оновлень, повноширинний статус, рокіровка Legal перед Policies, однорядкові посилання, запобігання layout shift, readonly URL, відсутність емодзі)
 │   └── test_history_service.js           # Unit-тести клієнтського сервісу історії тривог, форматування тривалості, перевірка gateway та fallback
 │
 ├── server/                               # Гібридний шлюз тривог на Python для Ubuntu (Webhook, WebSocket & Threats Enricher & History Proxy)
@@ -135,7 +135,7 @@ alert_desktop/
     │   ├── window.js                     # Менеджер головного вікна, пул переглядів веб-карт, мережевий adFilter, розрахунок footerHeight (44px) та синхронізація тем
     │   ├── settings-window.js            # Менеджер діалогового вікна налаштувань
     │   ├── tray.js                       # Керування системним треєм (іконка, tooltip, меню, динамічний пункт встановлення оновлення)
-    │   ├── updater.js                    # Сервіс перевірки, виявлення лімітованого підключення (Metered Connection) та встановлення автооновлень (electron-updater / GitHub Releases)
+    │   ├── updater.js                    # Сервіс перевірки, виявлення лімітованого підключення (Metered Connection через WinRT та емуляція --mock-metered) та встановлення автооновлень (electron-updater / GitHub Releases)
     │   ├── threat-utils.js               # Нормалізація типів загроз (дрони, ракети тощо), усунення тавтології та генерація текстів
     │   ├── api.js                        # WebSocket зв'язок (0s) + HTTP fallback + багаторівневе резервування + список усіх активних тривог allAlerts
     │   ├── history-service.js            # Дворівневий сервіс історії тривог адмінодиниць (шлюз /v1/history/region + fallback alerts.in.ua v3 з ієрархічним збігом громад районів та буфером 500 тривог)
@@ -157,8 +157,8 @@ alert_desktop/
         │   ├── style.css                 # Стилізація тем, кнопок 32x32px, статус-панелі, пігулкового тосту оновлень, висувної панелі історії, підписів областей з контрастним ореолом
         │   └── renderer.js               # Рендеринг районів, меж, підписів областей, багаторівневе забарвлення тривог, вибір району з історією, реакція на статус оновлень
         └── settings/                     # Діалогове вікно налаштувань
-            ├── settings.html             # Форма налаштувань (регіон, звук, автозапуск, однорядкові мета-кнопки, блок донату Monobank, блок оновлень із прогрес-баром, API, політики)
-            ├── settings.css              # Стилізація Windows Fluent, стабільний layout без стрибків (1-рядкові посилання, донат, min-height, spinUpdate, scrollbar-gutter: stable)
+            ├── settings.html             # Форма налаштувань (регіон, звук, автозапуск, однорядкові мета-кнопки, блок донату Monobank, повноширинний блок оновлень із прогрес-баром, API, правова інформація перед політиками)
+            ├── settings.css              # Стилізація Windows Fluent, стабільний layout без стрибків (1-рядкові посилання, донат, повноширинний статус min-height: 20px, spinUpdate, scrollbar-gutter: stable, рокіровка Legal/Policies)
             └── settings.js               # Керування параметрами, перевірка/завантаження оновлень, тест звуку, синхронізація теми
 ```
 

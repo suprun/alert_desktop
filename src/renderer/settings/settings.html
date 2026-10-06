@@ -213,12 +213,7 @@
           <!-- Блок "Оновлення застосунку" -->
           <div class="about-update-block">
             <div class="about-update-header-row">
-              <div class="about-update-info">
-                <span class="about-update-title">Оновлення застосунку</span>
-                <div class="about-status-row">
-                  <span id="updateStatusText" class="update-status-text">Остання версія встановлена</span>
-                </div>
-              </div>
+              <span class="about-update-title">Оновлення застосунку</span>
               <div class="about-actions-col">
                 <button type="button" id="btnCheckUpdate" class="btn-secondary btn-update-action" title="Перевірити наявність нових версій">
                   <svg class="update-icon" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -244,6 +239,11 @@
               </div>
             </div>
 
+            <!-- Рядок статусу на повну ширину без обмеження кнопкою -->
+            <div class="about-status-row">
+              <span id="updateStatusText" class="update-status-text">Остання версія встановлена</span>
+            </div>
+
             <!-- Тимчасовий прогрес-бар під час завантаження -->
             <div id="updateProgressWrapper" class="update-progress-wrapper" style="display: none;">
               <div class="update-progress-info">
@@ -262,9 +262,31 @@
                 Автоматично завантажувати оновлення через лімітоване з'єднання (metered connection)
               </label>
             </div>
-            <p class="field-hint" style="margin-top: 2px; margin-bottom: 0;">
+            <p class="field-hint" style="margin-top: 4px; margin-bottom: 0;">
               Якщо вимкнено, застосунок сповістить про нову версію, але не витрачатиме мобільний або обмежений трафік без вашої команди.
             </p>
+          </div>
+
+          <!-- Юридичні застереження та правова інформація -->
+          <div class="about-legal-box">
+            <div class="about-legal-item">
+              <span class="about-legal-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="10"/>
+                  <line x1="12" y1="16" x2="12" y2="12"/>
+                  <line x1="12" y1="8" x2="12.01" y2="8"/>
+                </svg>
+              </span>
+              <span><strong>Неофіційний клієнт:</strong> Веб-мапи надаються сторонніми сервісами. Клієнт зберігає налаштування виключно локально і не збирає персональні дані користувача.</span>
+            </div>
+            <div class="about-legal-item">
+              <span class="about-legal-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                </svg>
+              </span>
+              <span>Застосунок надається за принципом «ЯК Є» для інформування. Завжди орієнтуйтеся на офіційні сповіщення ДСНС та Повітряних Сил ЗСУ.</span>
+            </div>
           </div>
 
           <!-- Політики сервісів мап -->
@@ -305,27 +327,6 @@
                 </a>
               </li>
             </ul>
-          </div>
-
-          <div class="about-legal-box">
-            <div class="about-legal-item">
-              <span class="about-legal-icon" aria-hidden="true">
-                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <circle cx="12" cy="12" r="10"/>
-                  <line x1="12" y1="16" x2="12" y2="12"/>
-                  <line x1="12" y1="8" x2="12.01" y2="8"/>
-                </svg>
-              </span>
-              <span><strong>Неофіційний клієнт:</strong> Веб-мапи надаються сторонніми сервісами. Клієнт зберігає налаштування виключно локально і не збирає персональні дані користувача.</span>
-            </div>
-            <div class="about-legal-item">
-              <span class="about-legal-icon" aria-hidden="true">
-                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-                </svg>
-              </span>
-              <span>Застосунок надається за принципом «ЯК Є» для інформування. Завжди орієнтуйтеся на офіційні сповіщення ДСНС та Повітряних Сил ЗСУ.</span>
-            </div>
           </div>
         </div>
       </section>

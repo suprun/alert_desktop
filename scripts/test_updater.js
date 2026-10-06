@@ -33,4 +33,24 @@ console.log('✔ Тест 3 пройдено (безпечний виклик у
 updater.downloadUpdate();
 console.log('✔ Тест 4 пройдено (безпечний виклик downloadUpdate)');
 
-console.log('All updater tests passed successfully!');
+// Тест 5: Перевірка емуляції лімітованого з'єднання (MOCK_METERED)
+(async () => {
+  process.env.MOCK_METERED = '1';
+  try {
+    await updater.checkForUpdates(true);
+    const mockStatus = updater.getStatus();
+    assert.strictEqual(mockStatus.updateAvailable, true, 'updateAvailable має бути true при MOCK_METERED');
+    assert.strictEqual(mockStatus.needsManualDownload, true, 'needsManualDownload має бути true при autoDownloadMetered=false');
+    assert.strictEqual(mockStatus.availableVersion, '1.0.99', 'availableVersion має бути 1.0.99');
+
+    updater.downloadUpdate();
+    const downloadingStatus = updater.getStatus();
+    assert.strictEqual(downloadingStatus.isDownloading, true, 'isDownloading має стати true після запуску завантаження');
+    console.log('✔ Тест 5 пройдено (емуляція mock-metered та запуск завантаження)');
+  } finally {
+    delete process.env.MOCK_METERED;
+    updater.destroy();
+  }
+
+  console.log('All updater tests passed successfully!');
+})();

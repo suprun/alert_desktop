@@ -15,10 +15,24 @@ let lastMeteredResult = false;
 const METERED_CACHE_TTL_MS = 60000; // 60 секунд кешування для зменшення навантаження
 
 /**
+ * Перевірка, чи активовано тестовий режим емуляції лімітованого зв'язку розробником
+ */
+function isMockMetered() {
+  return (
+    (Array.isArray(process.argv) && process.argv.includes('--mock-metered')) ||
+    process.env.MOCK_METERED === '1' ||
+    process.env.MOCK_METERED === 'true'
+  );
+}
+
+/**
  * Перевірка, чи поточне активне з'єднання Windows є лімітованим (Metered Connection)
- * через WinRT GetConnectionCost()
+ * через WinRT GetConnectionCost() або через емуляцію розробником
  */
 function isWindowsMeteredConnection() {
+  if (isMockMetered()) {
+    return Promise.resolve(true);
+  }
   return new Promise((resolve) => {
     if (process.platform !== 'win32') {
       return resolve(false);
@@ -267,13 +281,31 @@ class UpdaterService {
 
   async checkForUpdates(isManual = false) {
     if (!app || !app.isPackaged) {
-      console.log('[Updater] Режим розробки (unpackaged): перевірка оновлень пропущена.');
-      if (isManual) {
-        const currentVersion = app && app.getVersion ? app.getVersion() : '1.0.0';
-        this.showSystemNotification(
-          'AlertDesktop (Режим розробки)',
-          `Поточна версія: v${currentVersion}. У режимі розробки перевірка релізів вимкнена.`
-        );
+      console.log('[Updater] Режим розробки (unpackaged): перевірка оновлень.');
+      if (isMockMetered()) {
+        console.log('[Updater] Емуляція Metered Connection активована (--mock-metered).');
+        this.isChecking = true;
+        this.lastError = null;
+        this.notifyStatusChange();
+
+        await new Promise((r) => setTimeout(r, 500));
+
+        this.isChecking = false;
+        this.isMetered = true;
+        this.availableVersion = '1.0.99';
+        this.updateAvailable = true;
+
+        const allowMetered = this.configManager ? Boolean(this.configManager.get('autoDownloadMetered')) : false;
+        if (allowMetered) {
+          console.log('[Updater] autoDownloadMetered увімкнено: старт емуляції завантаження.');
+          this.downloadUpdate();
+        } else {
+          console.log('[Updater] autoDownloadMetered вимкнено: очікування ручного завантаження.');
+          this.needsManualDownload = true;
+          this.isDownloading = false;
+          this.notifyStatusChange();
+        }
+        return this.getStatus();
       }
       return this.getStatus();
     }
@@ -305,6 +337,46 @@ class UpdaterService {
   }
 
   downloadUpdate() {
+    if (!app || !app.isPackaged) {
+      if (isMockMetered()) {
+        console.log('[Updater] Емуляція процесу завантаження оновлення користувачем...');
+        this.needsManualDownload = false;
+        this.isDownloading = true;
+        this.downloadPercent = 0;
+        this.lastError = null;
+        this.notifyStatusChange();
+
+        if (this._mockDownloadInterval) {
+          clearInterval(this._mockDownloadInterval);
+          this._mockDownloadInterval = null;
+        }
+
+        this._mockDownloadInterval = setInterval(() => {
+          this.downloadPercent += 10;
+          if (this.downloadPercent >= 100) {
+            clearInterval(this._mockDownloadInterval);
+            this._mockDownloadInterval = null;
+            this.downloadPercent = 100;
+            this.isDownloading = false;
+            this.updateDownloaded = true;
+            this.downloadedVersion = this.availableVersion || '1.0.99';
+            if (this.trayManager && typeof this.trayManager.setUpdateInfo === 'function') {
+              this.trayManager.setUpdateInfo({
+                downloaded: true,
+                version: this.downloadedVersion
+              });
+            }
+            console.log('[Updater] Емуляція завантаження v1.0.99 успішно завершена!');
+            this.notifyStatusChange();
+          } else {
+            this.notifyProgress({ percent: this.downloadPercent });
+            this.notifyStatusChange();
+          }
+        }, 200);
+        return;
+      }
+    }
+
     const updater = this.getAutoUpdater();
     if (!updater) return;
 
@@ -367,6 +439,10 @@ class UpdaterService {
   }
 
   destroy() {
+    if (this._mockDownloadInterval) {
+      clearInterval(this._mockDownloadInterval);
+      this._mockDownloadInterval = null;
+    }
     if (this.checkTimer) {
       clearInterval(this.checkTimer);
       this.checkTimer = null;

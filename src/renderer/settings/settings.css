@@ -882,11 +882,35 @@ html.theme-light .selected-badge,
   opacity: 1;
 }
 
-.about-policies-box {
-  margin-top: 8px;
-  margin-bottom: 2px;
-  padding: 8px 0;
+.about-legal-box {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  margin-top: 6px;
+  padding-top: 10px;
   border-top: 1px solid var(--border-color);
+}
+
+.about-legal-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.45;
+}
+
+.about-legal-icon {
+  flex-shrink: 0;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.about-policies-box {
+  margin-top: 6px;
+  margin-bottom: 2px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--border-color);
 }
 
 .about-policies-title {
@@ -907,30 +931,6 @@ html.theme-light .selected-badge,
 
 .about-policies-list li {
   margin-bottom: 4px;
-}
-
-.about-legal-box {
-  display: flex;
-  flex-direction: column;
-  gap: 7px;
-  margin-top: 4px;
-  padding-top: 8px;
-  border-top: 1px dashed var(--border-color);
-}
-
-.about-legal-item {
-  display: flex;
-  align-items: flex-start;
-  gap: 7px;
-  font-size: 12px;
-  color: var(--text-secondary);
-  line-height: 1.45;
-}
-
-.about-legal-icon {
-  flex-shrink: 0;
-  font-size: 12px;
-  line-height: 1.45;
 }
 
 .about-link {
@@ -955,12 +955,12 @@ html.theme-light .selected-badge,
 
 /* Елементи оновлення застосунку у блоці About */
 .about-update-block {
-  margin-top: 4px;
-  padding-top: 10px;
+  margin-top: 6px;
+  padding-top: 12px;
   border-top: 1px solid var(--border-color);
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
 }
 
 .about-update-header-row {
@@ -970,34 +970,30 @@ html.theme-light .selected-badge,
   gap: 12px;
 }
 
-.about-update-info {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 0;
-}
-
 .about-update-title {
-  font-size: 12.5px;
+  font-size: 13px;
   font-weight: 600;
   color: var(--text-primary);
 }
 
 .about-status-row {
-  min-height: 18px;
-  line-height: 18px;
+  min-height: 20px;
+  line-height: 20px;
   display: flex;
   align-items: center;
+  width: 100%;
+  margin-top: 1px;
 }
 
 .update-status-text {
-  font-size: 11.5px;
-  color: var(--text-muted);
+  font-size: 12px;
+  color: var(--text-secondary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   display: block;
-  line-height: 18px;
+  line-height: 20px;
+  width: 100%;
 }
 
 .about-actions-col {

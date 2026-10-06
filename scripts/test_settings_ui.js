@@ -207,8 +207,8 @@ const settingsHtml = fs.readFileSync(settingsHtmlPath, 'utf8');
     'settings.css має містити стилі рядка донату'
   );
   assert.ok(
-    settingsCss.includes('.about-status-row') && settingsCss.includes('min-height: 18px;'),
-    'settings.css має задавати min-height: 18px для .about-status-row для усунення стрибків layout'
+    settingsCss.includes('.about-status-row') && settingsCss.includes('min-height: 20px;'),
+    'settings.css має задавати min-height: 20px для .about-status-row для усунення стрибків layout'
   );
   assert.ok(
     settingsCss.includes('spinUpdate'),
@@ -224,6 +224,31 @@ const settingsHtml = fs.readFileSync(settingsHtmlPath, 'utf8');
   );
 
   console.log('✔ Тест 13 пройдено (кнопки About в 1 рядок, блок донату додано, блок оновлень перенесено після них без layout shift)');
+}
+
+// Тест 14: Перевірка рокіровки блоків About (Legal перед Policies) та просторого layout оновлень
+{
+  const legalIndex = settingsHtml.indexOf('class="about-legal-box"');
+  const policiesIndex = settingsHtml.indexOf('class="about-policies-box"');
+  assert.ok(legalIndex > 0 && policiesIndex > 0, 'Блоки about-legal-box та about-policies-box мають бути присутні');
+  assert.ok(legalIndex < policiesIndex, 'about-legal-box має розміщуватися ПЕРЕД about-policies-box');
+
+  const settingsCssPath = path.join(__dirname, '..', 'src', 'renderer', 'settings', 'settings.css');
+  const settingsCss = fs.readFileSync(settingsCssPath, 'utf8');
+  assert.ok(
+    settingsCss.includes('.about-status-row') && settingsCss.includes('width: 100%;'),
+    'settings.css має задавати width: 100% для .about-status-row щоб статус не стискався кнопкою'
+  );
+  assert.ok(
+    settingsCss.includes('.update-status-text') && settingsCss.includes('font-size: 12px;'),
+    'settings.css має задавати font-size: 12px для .update-status-text для комфортного читання'
+  );
+  assert.ok(
+    settingsCss.includes('.about-update-block') && settingsCss.includes('gap: 10px;'),
+    'settings.css має задавати gap: 10px для .about-update-block для просторого розміщення елементів'
+  );
+
+  console.log('✔ Тест 14 пройдено (рокіровка About-блоків та повноширинний просторий layout статусу оновлень)');
 }
 
 console.log('🎉 Усі тести інтерфейсу налаштувань успішно пройдено!');
