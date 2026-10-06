@@ -683,6 +683,7 @@ function applyUpdateStatusUI(status) {
     if (updateStatusText) updateStatusText.textContent = 'Перевірка наявності оновлень...';
     if (btnCheckUpdate) {
       btnCheckUpdate.disabled = true;
+      btnCheckUpdate.classList.add('checking');
       btnCheckUpdate.style.display = 'inline-flex';
     }
     if (btnDownloadUpdate) btnDownloadUpdate.style.display = 'none';
@@ -690,7 +691,10 @@ function applyUpdateStatusUI(status) {
     if (updateProgressWrapper) updateProgressWrapper.style.display = 'none';
   } else if (status.updateDownloaded) {
     if (updateStatusText) updateStatusText.textContent = `Оновлення v${status.downloadedVersion} завантажено та готове до встановлення`;
-    if (btnCheckUpdate) btnCheckUpdate.style.display = 'none';
+    if (btnCheckUpdate) {
+      btnCheckUpdate.classList.remove('checking');
+      btnCheckUpdate.style.display = 'none';
+    }
     if (btnDownloadUpdate) btnDownloadUpdate.style.display = 'none';
     if (btnInstallUpdate) {
       btnInstallUpdate.style.display = 'inline-flex';
@@ -699,7 +703,10 @@ function applyUpdateStatusUI(status) {
     if (updateProgressWrapper) updateProgressWrapper.style.display = 'none';
   } else if (status.isDownloading) {
     if (updateStatusText) updateStatusText.textContent = `Завантаження нової версії v${status.availableVersion || ''}...`;
-    if (btnCheckUpdate) btnCheckUpdate.style.display = 'none';
+    if (btnCheckUpdate) {
+      btnCheckUpdate.classList.remove('checking');
+      btnCheckUpdate.style.display = 'none';
+    }
     if (btnDownloadUpdate) btnDownloadUpdate.style.display = 'none';
     if (btnInstallUpdate) btnInstallUpdate.style.display = 'none';
     if (updateProgressWrapper) {
@@ -710,7 +717,10 @@ function applyUpdateStatusUI(status) {
     }
   } else if (status.needsManualDownload) {
     if (updateStatusText) updateStatusText.textContent = `Доступне оновлення v${status.availableVersion} (лімітоване з'єднання)`;
-    if (btnCheckUpdate) btnCheckUpdate.style.display = 'none';
+    if (btnCheckUpdate) {
+      btnCheckUpdate.classList.remove('checking');
+      btnCheckUpdate.style.display = 'none';
+    }
     if (btnDownloadUpdate) {
       btnDownloadUpdate.style.display = 'inline-flex';
       btnDownloadUpdate.disabled = false;
@@ -719,7 +729,10 @@ function applyUpdateStatusUI(status) {
     if (updateProgressWrapper) updateProgressWrapper.style.display = 'none';
   } else if (status.updateAvailable) {
     if (updateStatusText) updateStatusText.textContent = `Доступне оновлення v${status.availableVersion}. Початок завантаження...`;
-    if (btnCheckUpdate) btnCheckUpdate.style.display = 'none';
+    if (btnCheckUpdate) {
+      btnCheckUpdate.classList.remove('checking');
+      btnCheckUpdate.style.display = 'none';
+    }
     if (btnDownloadUpdate) btnDownloadUpdate.style.display = 'none';
     if (btnInstallUpdate) btnInstallUpdate.style.display = 'none';
   } else {
@@ -732,6 +745,7 @@ function applyUpdateStatusUI(status) {
     }
     if (btnCheckUpdate) {
       btnCheckUpdate.disabled = false;
+      btnCheckUpdate.classList.remove('checking');
       btnCheckUpdate.style.display = 'inline-flex';
     }
     if (btnDownloadUpdate) btnDownloadUpdate.style.display = 'none';
@@ -743,13 +757,15 @@ function applyUpdateStatusUI(status) {
 if (btnCheckUpdate) {
   btnCheckUpdate.addEventListener('click', async () => {
     btnCheckUpdate.disabled = true;
-    if (updateStatusText) updateStatusText.textContent = 'Перевірка...';
+    btnCheckUpdate.classList.add('checking');
+    if (updateStatusText) updateStatusText.textContent = 'Перевірка наявності оновлень...';
     try {
       const status = await window.settingsAPI.checkForUpdates();
       applyUpdateStatusUI(status);
     } catch (_) {
       if (updateStatusText) updateStatusText.textContent = 'Не вдалося перевірити оновлення';
       btnCheckUpdate.disabled = false;
+      btnCheckUpdate.classList.remove('checking');
     }
   });
 }

@@ -137,18 +137,18 @@
         </div>
       </section>
 
-      <!-- Розділ "Оновлення" -->
-      <section class="settings-group update-group">
-        <span class="group-label">Оновлення застосунку</span>
-        <div class="update-card">
-          <div class="update-header-row">
-            <div class="update-version-col">
-              <span class="update-version-label">Поточна версія: <strong id="updateCurrentVersion" class="update-version-value">v1.0.85</strong></span>
-              <span id="updateStatusText" class="update-status-text">Остання версія встановлена</span>
+      <!-- 4. Розділ "Про застосунок та оновлення" -->
+      <section class="settings-group about-group">
+        <span class="group-label">Про застосунок та оновлення</span>
+        <div class="about-card">
+          <div class="about-header-row">
+            <div class="about-header-main">
+              <span class="about-app-name">AlertDesktop <span id="updateCurrentVersion" class="about-version"></span></span>
+              <span class="about-license-badge">Apache-2.0</span>
             </div>
-            <div class="update-actions-col">
+            <div class="about-actions-col">
               <button type="button" id="btnCheckUpdate" class="btn-secondary btn-update-action" title="Перевірити наявність нових версій">
-                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <svg class="update-icon" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <polyline points="23 4 23 10 17 10"/>
                   <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
                 </svg>
@@ -171,6 +171,15 @@
             </div>
           </div>
 
+          <!-- Рядок статусу оновлень із фіксованою висотою без layout shift -->
+          <div class="about-status-row">
+            <span id="updateStatusText" class="update-status-text">Остання версія встановлена</span>
+          </div>
+
+          <p class="about-desc">
+            Вільний клієнт моніторингу повітряних тривог із відкритим вихідним кодом.
+          </p>
+
           <!-- Тимчасовий прогрес-бар під час завантаження -->
           <div id="updateProgressWrapper" class="update-progress-wrapper" style="display: none;">
             <div class="update-progress-info">
@@ -191,20 +200,6 @@
           </div>
           <p class="field-hint" style="margin-top: 2px; margin-bottom: 0;">
             Якщо вимкнено, застосунок сповістить про нову версію, але не витрачатиме мобільний або обмежений трафік без вашої команди.
-          </p>
-        </div>
-      </section>
-
-      <!-- 4. Розділ "Про застосунок та правова інформація" -->
-      <section class="settings-group about-group">
-        <span class="group-label">Про застосунок та сервіси мап</span>
-        <div class="about-card">
-          <div class="about-header-row">
-            <span class="about-app-name">AlertDesktop <span class="about-version"></span></span>
-            <span class="about-license-badge">Apache-2.0</span>
-          </div>
-          <p class="about-desc">
-            Вільний клієнт моніторингу повітряних тривог із відкритим вихідним кодом.
           </p>
 
           <!-- Мета-посилання проєкту (репозиторій, ліцензія, автор) -->

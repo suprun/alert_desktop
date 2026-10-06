@@ -157,17 +157,55 @@ const settingsHtml = fs.readFileSync(settingsHtmlPath, 'utf8');
   console.log('✔ Тест 12 пройдено (шрифти блоку About збільшено для комфортної читабельності)');
 }
 
-// Тест 13: Перевірка блоку "Оновлення застосунку" перед блоком "Про застосунок"
+// Тест 13: Перевірка об'єднання блоку оновлень із блоком "Про застосунок" (без внутрішньої картки .update-card та окремої секції)
 {
-  const updateIndex = settingsHtml.indexOf('class="settings-group update-group"');
+  assert.ok(
+    !settingsHtml.includes('class="settings-group update-group"'),
+    'Окрему секцію update-group має бути усунено на користь об\'єднання з about-group'
+  );
+  assert.ok(
+    !settingsHtml.includes('class="update-card"'),
+    'Внутрішню підкартку update-card має бути витягнуто (ліквідовано рамки і вкладеність)'
+  );
+  assert.ok(
+    settingsHtml.includes('Про застосунок та оновлення'),
+    'Заголовок секції має бути "Про застосунок та оновлення"'
+  );
+
   const aboutIndex = settingsHtml.indexOf('class="settings-group about-group"');
-  assert.ok(updateIndex !== -1, 'Секція update-group має бути знайдена');
-  assert.ok(updateIndex < aboutIndex, 'Блок оновлень має розташовуватися ПЕРЕД блоком "Про застосунок"');
-  assert.ok(settingsHtml.includes('id="btnCheckUpdate"'), 'Кнопка btnCheckUpdate має бути присутня');
-  assert.ok(settingsHtml.includes('id="btnDownloadUpdate"'), 'Кнопка btnDownloadUpdate має бути присутня');
-  assert.ok(settingsHtml.includes('id="btnInstallUpdate"'), 'Кнопка btnInstallUpdate має бути присутня');
-  assert.ok(settingsHtml.includes('id="chkAutoDownloadMetered"'), 'Чекбокс chkAutoDownloadMetered має бути присутній');
-  console.log('✔ Тест 13 пройдено (блок "Оновлення" розташований перед блоком "Про застосунок" з усіма елементами)');
+  const checkBtnIndex = settingsHtml.indexOf('id="btnCheckUpdate"');
+  const downloadBtnIndex = settingsHtml.indexOf('id="btnDownloadUpdate"');
+  const installBtnIndex = settingsHtml.indexOf('id="btnInstallUpdate"');
+  const meteredChkIndex = settingsHtml.indexOf('id="chkAutoDownloadMetered"');
+  const statusTextIndex = settingsHtml.indexOf('id="updateStatusText"');
+  const devGroupIndex = settingsHtml.indexOf('class="settings-group dev-settings-group"');
+
+  assert.ok(checkBtnIndex > aboutIndex && checkBtnIndex < devGroupIndex, 'btnCheckUpdate має бути всередині about-group');
+  assert.ok(downloadBtnIndex > aboutIndex && downloadBtnIndex < devGroupIndex, 'btnDownloadUpdate має бути всередині about-group');
+  assert.ok(installBtnIndex > aboutIndex && installBtnIndex < devGroupIndex, 'btnInstallUpdate має бути всередині about-group');
+  assert.ok(meteredChkIndex > aboutIndex && meteredChkIndex < devGroupIndex, 'chkAutoDownloadMetered має бути всередині about-group');
+  assert.ok(statusTextIndex > aboutIndex && statusTextIndex < devGroupIndex, 'updateStatusText має бути всередині about-group');
+
+  const settingsCssPath = path.join(__dirname, '..', 'src', 'renderer', 'settings', 'settings.css');
+  const settingsCss = fs.readFileSync(settingsCssPath, 'utf8');
+  assert.ok(
+    settingsCss.includes('.about-status-row') && settingsCss.includes('min-height: 18px;'),
+    'settings.css має задавати min-height: 18px для .about-status-row для усунення стрибків layout'
+  );
+  assert.ok(
+    settingsCss.includes('spinUpdate'),
+    'settings.css має містити анімацію spinUpdate для обертання значка оновлення під час перевірки'
+  );
+  assert.ok(
+    settingsCss.includes('scrollbar-gutter: stable;'),
+    'settings.css має містити scrollbar-gutter: stable для .settings-body для стабілізації ширини при скролі'
+  );
+  assert.ok(
+    !settingsCss.includes('.update-card {'),
+    'settings.css не повинен містити стилів застарілої плашки .update-card'
+  );
+
+  console.log('✔ Тест 13 пройдено (блок оновлень об\'єднано з About без внутрішньої картки, layout shift усунено)');
 }
 
 console.log('🎉 Усі тести інтерфейсу налаштувань успішно пройдено!');
