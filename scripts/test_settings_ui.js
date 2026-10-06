@@ -230,11 +230,23 @@ const settingsHtml = fs.readFileSync(settingsHtmlPath, 'utf8');
   console.log('✔ Тест 13 пройдено (кнопки About в 1 рядок, блок донату додано, заголовок About прибрано)');
 }
 
-// Тест 14: Перевірка рокіровки блоків About (Legal перед Policies) та просторого layout оновлень
+// Тест 14: Перевірка окремої картки політик та просторого layout оновлень
 {
+  const aboutGroupIndex = settingsHtml.indexOf('class="settings-group about-group"');
+  const policiesGroupIndex = settingsHtml.indexOf('class="settings-group policies-group"');
+  const devGroupIndex = settingsHtml.indexOf('class="settings-group dev-settings-group"');
+  const aboutSectionEndIndex = settingsHtml.indexOf('</section>', aboutGroupIndex);
+  const policiesTitleIndex = settingsHtml.indexOf('id="policiesTitle"');
   const legalIndex = settingsHtml.indexOf('class="about-legal-box"');
   const policiesIndex = settingsHtml.indexOf('class="about-policies-box"');
+  const unofficialClientIndex = settingsHtml.indexOf('<strong>Неофіційний клієнт:</strong>');
+
+  assert.ok(aboutGroupIndex > 0, 'Картка About має бути присутня');
+  assert.ok(policiesGroupIndex > aboutSectionEndIndex, 'Картка Політики має бути окремою від картки About');
+  assert.ok(devGroupIndex > policiesGroupIndex, 'Картка Політики має розміщуватися перед параметрами розробника');
+  assert.ok(policiesTitleIndex > policiesGroupIndex, 'Окрема картка має містити заголовок Політики');
   assert.ok(legalIndex > 0 && policiesIndex > 0, 'Блоки about-legal-box та about-policies-box мають бути присутні');
+  assert.ok(policiesTitleIndex < unofficialClientIndex, 'Заголовок Політики має розміщуватися над текстом Неофіційний клієнт');
   assert.ok(legalIndex < policiesIndex, 'about-legal-box має розміщуватися ПЕРЕД about-policies-box');
 
   const settingsCssPath = path.join(__dirname, '..', 'src', 'renderer', 'settings', 'settings.css');
@@ -252,7 +264,7 @@ const settingsHtml = fs.readFileSync(settingsHtmlPath, 'utf8');
     'settings.css має задавати gap: 10px для .about-update-block для просторого розміщення елементів'
   );
 
-  console.log('✔ Тест 14 пройдено (рокіровка About-блоків та повноширинний просторий layout статусу оновлень)');
+  console.log('✔ Тест 14 пройдено (окрема картка Політики та повноширинний просторий layout статусу оновлень)');
 }
 
 // Тест 15: Перевірка підтримки автопрокручування до блоку About
@@ -285,13 +297,28 @@ const settingsHtml = fs.readFileSync(settingsHtmlPath, 'utf8');
   assert.ok(settingsJs.includes('Введіть токен, щоб увімкнути перевірку.'), 'UI має пояснювати недоступність перевірки');
   assert.ok(settingsJs.includes('Щоб зберегти, спочатку перевірте токен API.'), 'UI має пояснювати недоступність збереження');
   assert.ok(settingsJs.includes("tokenVerificationState !== 'trusted'"), 'renderer має блокувати збереження неперевіреного токена');
+  assert.ok(settingsHtml.includes('id="inputApiKey"') && settingsHtml.includes('aria-invalid="false"'), 'поле токена має початковий доступний стан aria-invalid');
+  assert.ok(
+    settingsJs.includes("['empty', 'unverified', 'error'].includes(state)"),
+    'порожній, неперевірений і помилковий токен мають позначатися як невалідні'
+  );
+  assert.ok(settingsJs.includes("state === 'checking'"), 'активна перевірка токена має окремий стан оформлення');
+  assert.ok(settingsJs.includes("classList.toggle('is-token-invalid'"), 'renderer має перемикати червоний контур токена');
+  assert.ok(settingsJs.includes("classList.toggle('is-token-checking'"), 'renderer має перемикати синій контур під час перевірки');
+  assert.ok(settingsJs.includes("setAttribute('aria-invalid'"), 'renderer має синхронізувати aria-invalid зі станом токена');
+  assert.ok(settingsCss.includes('#inputApiKey.is-token-invalid:not(:disabled)'), 'CSS має містити червоний контур невалідного токена');
+  assert.ok(settingsCss.includes('#inputApiKey.is-token-checking:not(:disabled)'), 'CSS має містити синій контур токена під час перевірки');
   assert.ok(preloadContent.includes("ipcRenderer.invoke('verify-api-token'"), 'preload має надавати обмежений verify-api-token IPC');
   assert.ok(mainContent.includes('api.isApiTokenTrusted(newConfig)'), 'головний процес має захищати save-config від неперевіреного токена');
+  const checkboxHints = settingsHtml.match(/class="field-hint checkbox-hint"/g) || [];
+  const checkboxHintCss = settingsCss.match(/\.checkbox-hint\s*\{[^}]+\}/s);
+  assert.strictEqual(checkboxHints.length, 2, 'обидва пояснення чекбоксів мають використовувати спільне вирівнювання');
+  assert.ok(checkboxHintCss && checkboxHintCss[0].includes('padding-left: 26px;'), 'пояснення чекбоксів мають відступ 26px до вертикалі лейбла');
   const legalCss = settingsCss.match(/\.about-legal-box\s*\{[^}]+\}/s);
   const policiesCss = settingsCss.match(/\.about-policies-box\s*\{[^}]+\}/s);
   assert.ok(legalCss && legalCss[0].includes('border-top: none;'), 'розділювач перед юридичним блоком має бути прибраний');
   assert.ok(policiesCss && policiesCss[0].includes('border-top: none;'), 'розділювач перед політиками має бути прибраний');
-  console.log('✔ Тест 16 пройдено (стани токена, пояснення блокування та main-process guard присутні)');
+  console.log('✔ Тест 16 пройдено (контури токена, вирівнювання пояснень та main-process guard присутні)');
 }
 
 console.log('🎉 Усі тести інтерфейсу налаштувань успішно пройдено!');

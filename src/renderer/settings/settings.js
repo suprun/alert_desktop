@@ -165,6 +165,14 @@ function updateTokenVerificationUI(state, customMessage = '') {
     apiTokenStatusText.textContent = message;
   }
 
+  if (inputApiKey) {
+    const tokenInvalid = tokenRequired && ['empty', 'unverified', 'error'].includes(state);
+    const tokenChecking = tokenRequired && state === 'checking';
+    inputApiKey.classList.toggle('is-token-invalid', tokenInvalid);
+    inputApiKey.classList.toggle('is-token-checking', tokenChecking);
+    inputApiKey.setAttribute('aria-invalid', tokenInvalid ? 'true' : 'false');
+  }
+
   if (btnVerifyApiToken) {
     btnVerifyApiToken.style.display = tokenRequired ? 'inline-flex' : 'none';
     btnVerifyApiToken.classList.toggle('is-checking', state === 'checking');

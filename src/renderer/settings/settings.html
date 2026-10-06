@@ -261,13 +261,19 @@
                 Автоматично завантажувати оновлення через лімітоване з'єднання (metered connection)
               </label>
             </div>
-            <p class="field-hint" style="margin-top: 4px; margin-bottom: 0;">
+            <p class="field-hint checkbox-hint" style="margin-top: 4px; margin-bottom: 0;">
               Якщо вимкнено, застосунок сповістить про нову версію, але не витрачатиме мобільний або обмежений трафік без вашої команди.
             </p>
           </div>
+        </div>
+      </section>
 
-          <!-- Юридичні застереження та правова інформація -->
-          <div class="about-legal-box">
+      <!-- Політики застосунку та сторонніх сервісів мап -->
+      <section class="settings-group policies-group" aria-labelledby="policiesTitle">
+        <span id="policiesTitle" class="group-label">Політики</span>
+
+        <!-- Юридичні застереження та правова інформація -->
+        <div class="about-legal-box">
             <div class="about-legal-item">
               <span class="about-legal-icon" aria-hidden="true">
                 <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -286,11 +292,11 @@
               </span>
               <span>Застосунок надається за принципом «ЯК Є» для інформування. Завжди орієнтуйтеся на офіційні сповіщення ДСНС та Повітряних Сил ЗСУ.</span>
             </div>
-          </div>
+        </div>
 
-          <!-- Політики сервісів мап -->
-          <div class="about-policies-box">
-            <span class="about-policies-title">Політика конфіденційності та умови сервісів мап:</span>
+        <!-- Політики сервісів мап -->
+        <div class="about-policies-box">
+          <span class="about-policies-title">Політика конфіденційності та умови сервісів мап:</span>
             <ul class="about-policies-list">
               <li>
                 <strong>Alerts.in.ua:</strong>
@@ -326,7 +332,6 @@
                 </a>
               </li>
             </ul>
-          </div>
         </div>
       </section>
 
@@ -454,7 +459,7 @@
           <div class="form-field" id="fieldApiKey">
             <label for="inputApiKey" class="field-label">API ключ / токен доступу</label>
             <div class="api-token-row">
-              <input type="password" id="inputApiKey" class="form-input" aria-describedby="apiTokenStatus" placeholder="Токен не потрібен для вбудованого шлюзу" disabled>
+              <input type="password" id="inputApiKey" class="form-input" aria-describedby="apiTokenStatus" aria-invalid="false" placeholder="Токен не потрібен для вбудованого шлюзу" disabled>
               <button type="button" id="btnVerifyApiToken" class="btn-secondary btn-verify-token" aria-describedby="apiTokenStatus" style="display: none;">
                 <span class="token-verify-spinner" aria-hidden="true"></span>
                 <svg class="token-verify-check" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -484,7 +489,7 @@
               Автоматичний перехід на резервні джерела (Fallback) при збої
             </label>
           </div>
-          <p class="field-hint" style="margin-top: 0; margin-bottom: 4px;">
+          <p class="field-hint checkbox-hint" style="margin-top: 0; margin-bottom: 4px;">
             Якщо основне API не відповідає, але інтернет є (перевіряється через Cloudflare/Google IP), застосунок отримає дані з резервного джерела за черговістю надійності.
           </p>
         </div>

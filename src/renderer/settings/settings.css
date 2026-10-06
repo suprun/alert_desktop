@@ -522,6 +522,20 @@ html.theme-light .selected-badge,
   min-width: 0;
 }
 
+#inputApiKey.is-token-invalid:not(:disabled),
+#inputApiKey.is-token-invalid:not(:disabled):hover,
+#inputApiKey.is-token-invalid:not(:disabled):focus {
+  border-color: #dc2626;
+  box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.14);
+}
+
+#inputApiKey.is-token-checking:not(:disabled),
+#inputApiKey.is-token-checking:not(:disabled):hover,
+#inputApiKey.is-token-checking:not(:disabled):focus {
+  border-color: #0078d4;
+  box-shadow: 0 0 0 2px rgba(0, 120, 212, 0.2);
+}
+
 .btn-verify-token {
   width: 132px;
   min-width: 132px;
@@ -1022,9 +1036,13 @@ html.theme-light .selected-badge,
   display: flex;
   flex-direction: column;
   gap: 7px;
-  margin-top: 8px;
-  padding-top: 2px;
+  margin-top: 0;
+  padding-top: 0;
   border-top: none;
+}
+
+.policies-group {
+  gap: 10px;
 }
 
 .about-legal-item {
@@ -1220,5 +1238,9 @@ html.theme-light .selected-badge,
 
 .update-checkbox-row {
   margin-top: 2px;
+}
+
+.checkbox-hint {
+  padding-left: 26px;
 }
 
