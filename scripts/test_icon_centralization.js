@@ -57,9 +57,11 @@ assert.ok(!docsHtml.includes('id="link-linux-snap"') && !docsHtml.includes('id="
 assert.ok(docsApp.includes("label = `Завантажити зі Snap Store`") && docsApp.includes("smartStoreBtnText.textContent = 'Завантажити з Flathub'"), 'Linux hero must prioritize Snap Store and Flathub');
 assert.ok(docsApp.includes("smartStoreBtn.hidden = true"), 'macOS hero must keep the second store button hidden');
 assert.ok(docsApp.includes('window.previewOS = previewOS') && docsApp.includes('setupSmartCTA(os, previewDownloads, previewVersion)'), 'previewOS must update the complete OS-aware hero CTA');
-assert.ok(docsHtml.includes('id="smartStoreBtnIcon" class="site-icon icon-microsoft-store icon-size-22"'), 'Microsoft Store hero icon must use the enlarged size');
-assert.ok(docsHtml.includes('class="site-icon icon-microsoft-store icon-size-18"'), 'Microsoft Store card icon must use the enlarged size');
-assert.ok(docsApp.includes("setSiteIcon(smartStoreBtnIcon, 'microsoft-store', 22)"), 'Windows preview must preserve the enlarged Microsoft Store hero icon');
+assert.ok(docsHtml.includes('id="smartStoreBtnIcon" class="site-icon icon-microsoft-store icon-size-24"'), 'Microsoft Store hero icon must use the enlarged size');
+assert.ok(docsHtml.includes('class="site-icon icon-microsoft-store icon-size-20"'), 'Microsoft Store card icon must use the enlarged size');
+assert.ok(docsApp.includes("setSiteIcon(smartStoreBtnIcon, 'microsoft-store', 24)"), 'Windows preview must preserve the enlarged Microsoft Store hero icon');
+assert.ok(docsApp.includes("setSiteIcon(smartBtnIcon, 'download', 20)"), 'The primary hero button must always use the download icon');
+assert.ok(!/setSiteIcon\(smartBtnIcon, '(?:windows|apple|snap-store)'/.test(docsApp), 'The primary hero button must not switch icons with the detected OS');
 assert.ok(docsApp.includes('setupSmartCTA(detectOS(), DEFAULT_DOWNLOADS, FALLBACK_VERSION);'), 'OS-aware hero buttons must render before the release request completes');
 assert.strictEqual((docsHtml.match(/release-version-tag version-pending/g) || []).length, 2, 'Dynamic release badges must start hidden without collapsing their layout space');
 assert.ok(docsHtml.includes('id="smartBtnMeta" class="version-pending"'), 'Hero release metadata must start hidden');
@@ -68,10 +70,16 @@ assert.ok(!docsHtml.includes('v1.0.46'), 'GitHub Pages must not contain the stal
 assert.ok(/\.version-pending\s*\{\s*visibility:\s*hidden;\s*\}/.test(docsCss), 'Pending release metadata must reserve its layout space');
 assert.ok(docsApp.includes("document.querySelectorAll('.version-pending')") && docsApp.includes('revealReleaseVersion();'), 'Release metadata must be revealed after the release request settles');
 assert.ok(!docsHtml.includes('id="link-win-msix"') && !docsApp.includes('winMsix'), 'Windows download card must not expose the removed MSIX option');
-const windowsAltOrder = ['link-win-universal', 'link-win-x64', 'link-win-arm64', 'link-win-portable'];
+const windowsAltOrder = ['link-win-x64', 'link-win-arm64', 'link-win-universal', 'link-win-portable'];
 const windowsAltPositions = windowsAltOrder.map(id => docsHtml.indexOf(`id="${id}"`));
 assert.ok(windowsAltPositions.every(position => position >= 0), 'Windows card must contain all four requested alternative downloads');
-assert.deepStrictEqual([...windowsAltPositions].sort((a, b) => a - b), windowsAltPositions, 'Windows alternative downloads must be ordered as Universal, x64, ARM64, Portable');
+assert.deepStrictEqual([...windowsAltPositions].sort((a, b) => a - b), windowsAltPositions, 'Windows alternative downloads must be ordered as x64, ARM64, Universal, Portable');
+assert.strictEqual((docsHtml.match(/data-download-size=/g) || []).length, 9, 'Every GitHub release file button must show a compact file size');
+for (const sizeKey of ['winWeb', 'win', 'winX64', 'winArm64', 'winPortable', 'macDmg', 'macZip', 'linuxAppImage', 'linuxDeb']) {
+  assert.ok(docsHtml.includes(`data-download-size="${sizeKey}"`), `Missing file-size label for ${sizeKey}`);
+}
+assert.ok(docsApp.includes('asset.size') && docsApp.includes('formatFileSize'), 'GitHub release asset sizes must update the file buttons dynamically');
+assert.ok(docsCss.includes('.download-file-size') && docsCss.includes('white-space: nowrap'), 'Compact file-size labels must not split across lines');
 
 const docsAssetsDir = path.join(rootDir, 'docs', 'assets');
 const docsIconRules = [...docsCss.matchAll(/\.icon-([a-z0-9-]+)\s*\{\s*--icon-url:\s*url\('([^']+)'\);\s*\}/g)];

@@ -34,6 +34,17 @@
     linuxAppImage: `${GITHUB_RELEASES_URL}/download/${FALLBACK_VERSION}/AlertDesktop-x86_64-${FALLBACK_VERSION}.AppImage`,
     linuxDeb: `${GITHUB_RELEASES_URL}/download/${FALLBACK_VERSION}/AlertDesktop-amd64-${FALLBACK_VERSION}.deb`
   };
+  const DEFAULT_DOWNLOAD_SIZES = {
+    winWeb: 622318,
+    win: 155421921,
+    winX64: 79228794,
+    winArm64: 76689018,
+    winPortable: 71671641,
+    macDmg: 179485245,
+    macZip: 179439863,
+    linuxAppImage: 110289883,
+    linuxDeb: 86449860
+  };
   let previewDownloads = { ...DEFAULT_DOWNLOADS };
   let previewVersion = FALLBACK_VERSION;
 
@@ -92,9 +103,11 @@
     if (!smartBtn) return;
 
     let targetUrl = links.winWeb || links.win;
-    let label = `Завантажити Web Setup (.exe)`;
-    let meta = `Web Setup (${version}) • Легкий мережевий інсталятор`;
+    let label = `Завантажити для Windows`;
+    let meta = `Windows 10 / 11 (x64 та ARM64) • Легкий мережевий інсталятор`;
     let isPrimaryExternal = false;
+
+    setSiteIcon(smartBtnIcon, 'download', 20);
 
     if (smartStoreBtn) {
       smartStoreBtn.hidden = false;
@@ -102,25 +115,21 @@
       setExternalLink(smartStoreBtn, true);
     }
     if (smartStoreBtnText) smartStoreBtnText.textContent = 'Завантажити з Microsoft Store';
-    setSiteIcon(smartStoreBtnIcon, 'microsoft-store', 22);
+    setSiteIcon(smartStoreBtnIcon, 'microsoft-store', 24);
 
     if (os === 'macos') {
       targetUrl = links.macDmg;
       label = `Завантажити для macOS`;
-      meta = `Universal DMG (${version}) • Apple Silicon & Intel`;
-      setSiteIcon(smartBtnIcon, 'apple', 20);
+      meta = `Образ диска DMG • Apple Silicon & Intel`;
       if (smartStoreBtn) smartStoreBtn.hidden = true;
     } else if (os === 'linux') {
       targetUrl = STORE_URLS.snap;
       label = `Завантажити зі Snap Store`;
       meta = `Snap Store • Flathub • Linux`;
       isPrimaryExternal = true;
-      setSiteIcon(smartBtnIcon, 'snap-store', 20);
       if (smartStoreBtn) smartStoreBtn.href = STORE_URLS.flathub;
       if (smartStoreBtnText) smartStoreBtnText.textContent = 'Завантажити з Flathub';
       setSiteIcon(smartStoreBtnIcon, 'flathub', 20);
-    } else {
-      setSiteIcon(smartBtnIcon, 'windows', 20);
     }
 
     smartBtn.href = targetUrl;
@@ -158,6 +167,7 @@
   async function fetchLatestRelease() {
     const releaseVersionBadges = document.querySelectorAll('.release-version-tag');
     let currentLinks = { ...DEFAULT_DOWNLOADS };
+    let currentSizes = { ...DEFAULT_DOWNLOAD_SIZES };
     let latestVersion = FALLBACK_VERSION;
 
     try {
@@ -178,30 +188,43 @@
 
             if (name.includes('web-setup') && name.endsWith('.exe')) {
               currentLinks.winWeb = url;
+              currentSizes.winWeb = asset.size;
             } else if (name.includes('x64-setup') && name.endsWith('.exe')) {
               currentLinks.winX64 = url;
+              currentSizes.winX64 = asset.size;
             } else if (name.includes('arm64-setup') && name.endsWith('.exe')) {
               currentLinks.winArm64 = url;
+              currentSizes.winArm64 = asset.size;
             } else if (name.includes('portable') && name.endsWith('.exe')) {
               currentLinks.winPortable = url;
+              currentSizes.winPortable = asset.size;
             } else if (name.includes('setup') && name.endsWith('.exe')) {
               currentLinks.win = url;
+              currentSizes.win = asset.size;
             } else if (name.includes('universal') && name.endsWith('.dmg')) {
               currentLinks.macDmg = url;
+              currentSizes.macDmg = asset.size;
             } else if (!currentLinks.macDmg && name.endsWith('.dmg')) {
               currentLinks.macDmg = url;
+              currentSizes.macDmg = asset.size;
             } else if (name.includes('universal') && name.endsWith('.zip')) {
               currentLinks.macZip = url;
+              currentSizes.macZip = asset.size;
             } else if (!currentLinks.macZip && name.endsWith('.zip')) {
               currentLinks.macZip = url;
+              currentSizes.macZip = asset.size;
             } else if ((name.includes('x86_64') || name.includes('amd64')) && name.endsWith('.appimage')) {
               currentLinks.linuxAppImage = url;
+              currentSizes.linuxAppImage = asset.size;
             } else if (!currentLinks.linuxAppImage && name.endsWith('.appimage')) {
               currentLinks.linuxAppImage = url;
+              currentSizes.linuxAppImage = asset.size;
             } else if ((name.includes('amd64') || name.includes('x86_64')) && name.endsWith('.deb')) {
               currentLinks.linuxDeb = url;
+              currentSizes.linuxDeb = asset.size;
             } else if (!currentLinks.linuxDeb && name.endsWith('.deb')) {
               currentLinks.linuxDeb = url;
+              currentSizes.linuxDeb = asset.size;
             }
           }
         }
@@ -216,7 +239,7 @@
     });
 
     // Оновлюємо прямі лінки в картках
-    updatePlatformLinks(currentLinks);
+    updatePlatformLinks(currentLinks, currentSizes);
 
     previewDownloads = currentLinks;
     previewVersion = latestVersion;
@@ -227,21 +250,36 @@
     revealReleaseVersion();
   }
 
-  function updatePlatformLinks(links) {
-    const setHref = (id, url) => {
+  function formatFileSize(bytes) {
+    if (!Number.isFinite(bytes) || bytes <= 0) return '';
+
+    if (bytes < 1024 * 1024) {
+      return `${Math.round(bytes / 1024)} КБ`;
+    }
+
+    const megabytes = bytes / (1024 * 1024);
+    const value = megabytes >= 100 ? Math.round(megabytes).toString() : megabytes.toFixed(1).replace(/\.0$/, '');
+    return `${value.replace('.', ',')} МБ`;
+  }
+
+  function updatePlatformLinks(links, sizes) {
+    const setDownload = (id, key) => {
       const el = document.getElementById(id);
-      if (el && url) el.href = url;
+      if (el && links[key]) el.href = links[key];
+
+      const size = document.querySelector(`[data-download-size="${key}"]`);
+      if (size) size.textContent = `(${formatFileSize(sizes[key])})`;
     };
 
-    setHref('link-win-main', links.winWeb || links.win);
-    setHref('link-win-x64', links.winX64);
-    setHref('link-win-arm64', links.winArm64);
-    setHref('link-win-universal', links.win);
-    setHref('link-win-portable', links.winPortable);
-    setHref('link-mac-main', links.macDmg);
-    setHref('link-mac-zip', links.macZip);
-    setHref('link-linux-main', links.linuxAppImage);
-    setHref('link-linux-deb', links.linuxDeb);
+    setDownload('link-win-main', links.winWeb ? 'winWeb' : 'win');
+    setDownload('link-win-x64', 'winX64');
+    setDownload('link-win-arm64', 'winArm64');
+    setDownload('link-win-universal', 'win');
+    setDownload('link-win-portable', 'winPortable');
+    setDownload('link-mac-main', 'macDmg');
+    setDownload('link-mac-zip', 'macZip');
+    setDownload('link-linux-main', 'linuxAppImage');
+    setDownload('link-linux-deb', 'linuxDeb');
   }
 
   // 5. Системні годинники для панелей псевдо-ОС

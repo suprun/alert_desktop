@@ -1335,6 +1335,13 @@ html.theme-light .mockup-map-overlay {
   background: var(--accent-hover);
 }
 
+.download-file-size {
+  font-size: 0.86em;
+  font-weight: 500;
+  opacity: 0.82;
+  white-space: nowrap;
+}
+
 .platform-icon-macos .site-icon {
   transform: translateY(-2px);
 }
