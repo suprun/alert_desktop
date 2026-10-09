@@ -61,6 +61,12 @@ assert.ok(docsHtml.includes('id="smartStoreBtnIcon" class="site-icon icon-micros
 assert.ok(docsHtml.includes('class="site-icon icon-microsoft-store icon-size-18"'), 'Microsoft Store card icon must use the enlarged size');
 assert.ok(docsApp.includes("setSiteIcon(smartStoreBtnIcon, 'microsoft-store', 22)"), 'Windows preview must preserve the enlarged Microsoft Store hero icon');
 assert.ok(docsApp.includes('setupSmartCTA(detectOS(), DEFAULT_DOWNLOADS, FALLBACK_VERSION);'), 'OS-aware hero buttons must render before the release request completes');
+assert.strictEqual((docsHtml.match(/release-version-tag version-pending/g) || []).length, 2, 'Dynamic release badges must start hidden without collapsing their layout space');
+assert.ok(docsHtml.includes('id="smartBtnMeta" class="version-pending"'), 'Hero release metadata must start hidden');
+assert.strictEqual((docsHtml.match(/version-pending/g) || []).length, 4, 'Both release badges, hero metadata, and its separator must share the pending state');
+assert.ok(!docsHtml.includes('v1.0.46'), 'GitHub Pages must not contain the stale v1.0.46 fallback');
+assert.ok(/\.version-pending\s*\{\s*visibility:\s*hidden;\s*\}/.test(docsCss), 'Pending release metadata must reserve its layout space');
+assert.ok(docsApp.includes("document.querySelectorAll('.version-pending')") && docsApp.includes('revealReleaseVersion();'), 'Release metadata must be revealed after the release request settles');
 
 const docsAssetsDir = path.join(rootDir, 'docs', 'assets');
 const docsIconRules = [...docsCss.matchAll(/\.icon-([a-z0-9-]+)\s*\{\s*--icon-url:\s*url\('([^']+)'\);\s*\}/g)];

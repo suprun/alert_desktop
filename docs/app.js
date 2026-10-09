@@ -149,6 +149,12 @@
 
   window.previewOS = previewOS;
 
+  function revealReleaseVersion() {
+    document.querySelectorAll('.version-pending').forEach(element => {
+      element.classList.remove('version-pending');
+    });
+  }
+
   // 4. Запит до GitHub Releases API
   async function fetchLatestRelease() {
     const releaseVersionBadges = document.querySelectorAll('.release-version-tag');
@@ -223,6 +229,7 @@
     // Оновлюємо головні кнопки Smart CTA
     const userOS = detectOS();
     setupSmartCTA(userOS, currentLinks, latestVersion);
+    revealReleaseVersion();
   }
 
   function updatePlatformLinks(links) {

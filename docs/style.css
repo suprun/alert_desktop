@@ -118,6 +118,10 @@ html.theme-light {
 .icon-size-24 { width: 24px; height: 24px; }
 .icon-size-28 { width: 28px; height: 28px; }
 
+.version-pending {
+  visibility: hidden;
+}
+
 .icon-apple { --icon-url: url('assets/apple.svg'); }
 .icon-apple-menu { --icon-url: url('assets/apple.svg'); }
 .icon-arrow-right { --icon-url: url('assets/arrow-right.svg'); }
