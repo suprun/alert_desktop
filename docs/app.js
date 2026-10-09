@@ -16,6 +16,11 @@
   const FALLBACK_VERSION = 'v1.0.57';
   const GITHUB_RELEASES_URL = `https://github.com/${GITHUB_REPO}/releases`;
   const GITHUB_LATEST_API = `https://api.github.com/repos/${GITHUB_REPO}/releases/latest`;
+  const STORE_URLS = {
+    microsoft: 'https://apps.microsoft.com/search?query=AlertDesktop',
+    snap: 'https://snapcraft.io/alert-desktop',
+    flathub: 'https://flathub.org/apps/ua.in.alerts.desktop'
+  };
 
   // Статичні fallback-посилання на випадок відсутності зв'язку або ліміту API
   const DEFAULT_DOWNLOADS = {
@@ -28,9 +33,7 @@
     macDmg: `${GITHUB_RELEASES_URL}/download/${FALLBACK_VERSION}/AlertDesktop-universal-${FALLBACK_VERSION}.dmg`,
     macZip: `${GITHUB_RELEASES_URL}/download/${FALLBACK_VERSION}/AlertDesktop-universal-${FALLBACK_VERSION}.zip`,
     linuxAppImage: `${GITHUB_RELEASES_URL}/download/${FALLBACK_VERSION}/AlertDesktop-x86_64-${FALLBACK_VERSION}.AppImage`,
-    linuxDeb: `${GITHUB_RELEASES_URL}/download/${FALLBACK_VERSION}/AlertDesktop-amd64-${FALLBACK_VERSION}.deb`,
-    linuxSnap: `${GITHUB_RELEASES_URL}/download/${FALLBACK_VERSION}/AlertDesktop-amd64-${FALLBACK_VERSION}.snap`,
-    linuxFlatpak: `${GITHUB_RELEASES_URL}/download/${FALLBACK_VERSION}/AlertDesktop-x86_64-${FALLBACK_VERSION}.flatpak`
+    linuxDeb: `${GITHUB_RELEASES_URL}/download/${FALLBACK_VERSION}/AlertDesktop-amd64-${FALLBACK_VERSION}.deb`
   };
 
   // 1. Визначення операційної системи відвідувача
@@ -64,34 +67,63 @@
     element.setAttribute('aria-hidden', 'true');
   }
 
-  // 3. Оновлення головної кнопки Smart CTA
+  function setExternalLink(element, isExternal) {
+    if (!element) return;
+    if (isExternal) {
+      element.target = '_blank';
+      element.rel = 'noopener noreferrer';
+      return;
+    }
+    element.removeAttribute('target');
+    element.removeAttribute('rel');
+  }
+
+  // 3. Оновлення головних кнопок Smart CTA
   function setupSmartCTA(os, links, version) {
     const smartBtn = document.getElementById('smartDownloadBtn');
     const smartBtnText = document.getElementById('smartBtnText');
     const smartBtnMeta = document.getElementById('smartBtnMeta');
     const smartBtnIcon = document.getElementById('smartBtnIcon');
+    const smartStoreBtn = document.getElementById('smartStoreBtn');
+    const smartStoreBtnText = document.getElementById('smartStoreBtnText');
+    const smartStoreBtnIcon = document.getElementById('smartStoreBtnIcon');
 
     if (!smartBtn) return;
 
     let targetUrl = links.winWeb || links.win;
     let label = `Завантажити Web Setup (.exe)`;
     let meta = `Web Setup (${version}) • Легкий мережевий інсталятор`;
+    let isPrimaryExternal = false;
+
+    if (smartStoreBtn) {
+      smartStoreBtn.hidden = false;
+      smartStoreBtn.href = STORE_URLS.microsoft;
+      setExternalLink(smartStoreBtn, true);
+    }
+    if (smartStoreBtnText) smartStoreBtnText.textContent = 'Завантажити з Microsoft Store';
+    setSiteIcon(smartStoreBtnIcon, 'microsoft-store', 20);
 
     if (os === 'macos') {
       targetUrl = links.macDmg;
       label = `Завантажити для macOS`;
       meta = `Universal DMG (${version}) • Apple Silicon & Intel`;
       setSiteIcon(smartBtnIcon, 'apple', 20);
+      if (smartStoreBtn) smartStoreBtn.hidden = true;
     } else if (os === 'linux') {
-      targetUrl = links.linuxAppImage;
-      label = `Завантажити для Linux`;
-      meta = `AppImage (${version}) • x86_64`;
-      setSiteIcon(smartBtnIcon, 'linux', 20);
+      targetUrl = STORE_URLS.snap;
+      label = `Завантажити зі Snap Store`;
+      meta = `Snap Store • Flathub • Linux`;
+      isPrimaryExternal = true;
+      setSiteIcon(smartBtnIcon, 'snap-store', 20);
+      if (smartStoreBtn) smartStoreBtn.href = STORE_URLS.flathub;
+      if (smartStoreBtnText) smartStoreBtnText.textContent = 'Завантажити з Flathub';
+      setSiteIcon(smartStoreBtnIcon, 'flathub', 20);
     } else {
       setSiteIcon(smartBtnIcon, 'windows', 20);
     }
 
     smartBtn.href = targetUrl;
+    setExternalLink(smartBtn, isPrimaryExternal);
     if (smartBtnText) smartBtnText.textContent = label;
     if (smartBtnMeta) smartBtnMeta.textContent = meta;
 
@@ -143,10 +175,6 @@
               if (name.includes('x64') || !currentLinks.winMsix) {
                 currentLinks.winMsix = url;
               }
-            } else if (name.endsWith('.snap')) {
-              currentLinks.linuxSnap = url;
-            } else if (name.endsWith('.flatpak')) {
-              currentLinks.linuxFlatpak = url;
             } else if (name.includes('universal') && name.endsWith('.dmg')) {
               currentLinks.macDmg = url;
             } else if (!currentLinks.macDmg && name.endsWith('.dmg')) {
@@ -200,8 +228,6 @@
     setHref('link-mac-zip', links.macZip);
     setHref('link-linux-main', links.linuxAppImage);
     setHref('link-linux-deb', links.linuxDeb);
-    setHref('link-linux-snap', links.linuxSnap);
-    setHref('link-linux-flatpak', links.linuxFlatpak);
   }
 
   // 5. Системні годинники для панелей псевдо-ОС

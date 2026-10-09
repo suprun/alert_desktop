@@ -78,7 +78,7 @@ alert_desktop/
 │   ├── index.html                        # Лендинг із вибором інсталяторів, мапою та окремими псевдо-вікнами Windows/macOS/GNOME
 │   ├── style.css                         # Дизайн-система, CSS-mask іконки, ОС-специфічне оформлення та стилі карти
 │   ├── app.js                            # Логіка визначення ОС, GitHub Releases API та перемикача тем
-│   └── assets/                           # Канонічні SVG-ресурси GitHub Pages: UI-іконки, платформи, app-icon та векторна карта ukraine-map.svg
+│   └── assets/                           # Канонічні SVG-ресурси GitHub Pages: UI-, store- та platform-іконки, app-icon і векторна карта ukraine-map.svg
 │
 ├── flathub/                              # Комплект для офіційної публікації у глобальному каталозі Flathub
 │   ├── ua.in.alerts.desktop.yaml         # Маніфест збірки Flatpak

@@ -31,9 +31,30 @@ assert.ok(docsCss.includes('.os-linux .desktop-toast-card') && docsCss.includes(
 assert.ok(docsCss.includes('.os-macos .desktop-toast-card') && docsCss.includes('right: 20px'), 'macOS notification must remain in the top-right corner');
 assert.ok(!/\.os-macos \.desktop-toast-card,\s*\.os-linux \.desktop-toast-card/.test(docsCss), 'macOS and Linux toast positioning must not share one rule');
 
-for (const iconName of ['network-wireless', 'volume-system', 'power-system', 'window-minimize', 'window-maximize', 'window-close']) {
+for (const iconName of [
+  'network-wireless', 'volume-system', 'power-system',
+  'window-minimize', 'window-maximize', 'window-close',
+  'microsoft-store', 'snap-store', 'flathub'
+]) {
   assert.ok(docsHtml.includes(`icon-${iconName}`), `GitHub Pages markup must use the GNOME icon ${iconName}`);
 }
+
+const storeLinks = [
+  'https://apps.microsoft.com/search?query=AlertDesktop',
+  'https://snapcraft.io/alert-desktop',
+  'https://flathub.org/apps/ua.in.alerts.desktop'
+];
+for (const storeUrl of storeLinks) {
+  const escapedUrl = storeUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  assert.ok(new RegExp(`<a[^>]+href="${escapedUrl}"[^>]+target="_blank"[^>]+rel="noopener noreferrer"`).test(docsHtml), `${storeUrl} must open safely in a new tab`);
+  assert.ok(docsApp.includes(storeUrl), `${storeUrl} must be available to the OS-aware hero CTA`);
+}
+
+assert.ok(docsHtml.includes('sudo snap install alert-desktop'), 'Linux card must show the Snap installation command');
+assert.ok(docsHtml.includes('flatpak install flathub ua.in.alerts.desktop'), 'Linux card must show the Flathub installation command');
+assert.ok(!docsHtml.includes('id="link-linux-snap"') && !docsHtml.includes('id="link-linux-flatpak"'), 'Store buttons must replace duplicate direct Snap and Flatpak links');
+assert.ok(docsApp.includes("label = `Завантажити зі Snap Store`") && docsApp.includes("smartStoreBtnText.textContent = 'Завантажити з Flathub'"), 'Linux hero must prioritize Snap Store and Flathub');
+assert.ok(docsApp.includes("smartStoreBtn.hidden = true"), 'macOS hero must keep the second store button hidden');
 
 const docsAssetsDir = path.join(rootDir, 'docs', 'assets');
 const docsIconRules = [...docsCss.matchAll(/\.icon-([a-z0-9-]+)\s*\{\s*--icon-url:\s*url\('([^']+)'\);\s*\}/g)];

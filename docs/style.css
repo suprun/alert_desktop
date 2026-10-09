@@ -129,6 +129,7 @@ html.theme-light {
 .icon-download { --icon-url: url('assets/download.svg'); }
 .icon-drone { --icon-url: url('assets/drone.svg'); }
 .icon-external-link { --icon-url: url('assets/external-link.svg'); }
+.icon-flathub { --icon-url: url('assets/flathub.svg'); }
 .icon-github { --icon-url: url('assets/github.svg'); }
 .icon-info { --icon-url: url('assets/info.svg'); }
 .icon-lightning { --icon-url: url('assets/lightning.svg'); }
@@ -137,6 +138,7 @@ html.theme-light {
 .icon-lock { --icon-url: url('assets/lock.svg'); }
 .icon-map { --icon-url: url('assets/map.svg'); }
 .icon-missile { --icon-url: url('assets/missile.svg'); }
+.icon-microsoft-store { --icon-url: url('assets/microsoft-store.svg'); }
 .icon-moon { --icon-url: url('assets/moon.svg'); }
 .icon-network-wireless { --icon-url: url('assets/network-wireless.svg'); }
 .icon-power-system { --icon-url: url('assets/power-system.svg'); }
@@ -145,6 +147,7 @@ html.theme-light {
 .icon-settings { --icon-url: url('assets/settings.svg'); }
 .icon-shield { --icon-url: url('assets/shield.svg'); }
 .icon-shield-check { --icon-url: url('assets/shield-check.svg'); }
+.icon-snap-store { --icon-url: url('assets/snap-store.svg'); }
 .icon-sun { --icon-url: url('assets/sun.svg'); }
 .icon-volume-system { --icon-url: url('assets/volume-system.svg'); }
 .icon-window-close { --icon-url: url('assets/window-close.svg'); }
@@ -423,7 +426,11 @@ body {
   cursor: pointer;
 }
 
-#smartBtnIcon {
+.btn-primary-smart[hidden] {
+  display: none;
+}
+
+.btn-primary-smart .site-icon {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -431,7 +438,7 @@ body {
   flex-shrink: 0;
 }
 
-#smartBtnText {
+.btn-primary-smart span:last-child {
   display: inline-flex;
   align-items: center;
   line-height: 1;
@@ -1274,6 +1281,47 @@ html.theme-light .mockup-map-overlay {
   transition: all var(--transition-fast);
 }
 
+.platform-primary-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.platform-primary-actions .platform-btn-main {
+  margin-bottom: 0;
+}
+
+.platform-store-option {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.platform-install-command {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  color: var(--text-muted);
+  font-size: 0.76rem;
+  line-height: 1.35;
+  text-align: center;
+}
+
+.platform-install-command code {
+  display: block;
+  width: 100%;
+  padding: 7px 8px;
+  overflow-wrap: anywhere;
+  color: var(--text-secondary);
+  background: var(--bg-input);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  font-family: ui-monospace, SFMono-Regular, Consolas, 'Liberation Mono', monospace;
+  font-size: 0.72rem;
+}
+
 .platform-btn-main:hover {
   background: var(--accent-hover);
 }
@@ -1764,6 +1812,17 @@ html.theme-light .legal-item-icon {
   }
   .hero-subtitle {
     font-size: 1.05rem;
+  }
+  .cta-group {
+    width: 100%;
+    flex-direction: column;
+  }
+  .cta-group > a {
+    width: min(100%, 340px);
+  }
+  .cta-caption {
+    justify-content: center;
+    flex-wrap: wrap;
   }
   .mockup-map-body {
     height: 280px;
