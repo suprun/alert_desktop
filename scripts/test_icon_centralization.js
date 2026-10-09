@@ -67,6 +67,11 @@ assert.strictEqual((docsHtml.match(/version-pending/g) || []).length, 4, 'Both r
 assert.ok(!docsHtml.includes('v1.0.46'), 'GitHub Pages must not contain the stale v1.0.46 fallback');
 assert.ok(/\.version-pending\s*\{\s*visibility:\s*hidden;\s*\}/.test(docsCss), 'Pending release metadata must reserve its layout space');
 assert.ok(docsApp.includes("document.querySelectorAll('.version-pending')") && docsApp.includes('revealReleaseVersion();'), 'Release metadata must be revealed after the release request settles');
+assert.ok(!docsHtml.includes('id="link-win-msix"') && !docsApp.includes('winMsix'), 'Windows download card must not expose the removed MSIX option');
+const windowsAltOrder = ['link-win-universal', 'link-win-x64', 'link-win-arm64', 'link-win-portable'];
+const windowsAltPositions = windowsAltOrder.map(id => docsHtml.indexOf(`id="${id}"`));
+assert.ok(windowsAltPositions.every(position => position >= 0), 'Windows card must contain all four requested alternative downloads');
+assert.deepStrictEqual([...windowsAltPositions].sort((a, b) => a - b), windowsAltPositions, 'Windows alternative downloads must be ordered as Universal, x64, ARM64, Portable');
 
 const docsAssetsDir = path.join(rootDir, 'docs', 'assets');
 const docsIconRules = [...docsCss.matchAll(/\.icon-([a-z0-9-]+)\s*\{\s*--icon-url:\s*url\('([^']+)'\);\s*\}/g)];
