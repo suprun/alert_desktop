@@ -25,6 +25,15 @@ assert.ok(!/<svg\b/.test(settingsHtml), 'У settings.html не повинно б
 assert.strictEqual((docsHtml.match(/<svg\b/g) || []).length, 1, 'GitHub Pages HTML may only keep the interactive map SVG inline');
 assert.ok(docsHtml.includes('class="ukraine-admin-map"'), 'The remaining GitHub Pages inline SVG must be the interactive Ukraine map');
 assert.ok(!/<svg\b|data:image\/svg/i.test(docsApp), 'GitHub Pages JavaScript must not contain inline SVG geometry');
+assert.ok(docsHtml.includes('topbar-macos-left') && docsHtml.includes('topbar-linux-left'), 'GitHub Pages must contain separate macOS and Linux top bars');
+assert.ok(docsHtml.includes('linux-window-title') && docsHtml.includes('linux-window-controls'), 'Linux mockup must contain a GNOME title and right-side window controls');
+assert.ok(docsCss.includes('.os-linux .desktop-toast-card') && docsCss.includes('transform: translate(-50%, -18px)'), 'Linux notification must be positioned at the top center');
+assert.ok(docsCss.includes('.os-macos .desktop-toast-card') && docsCss.includes('right: 20px'), 'macOS notification must remain in the top-right corner');
+assert.ok(!/\.os-macos \.desktop-toast-card,\s*\.os-linux \.desktop-toast-card/.test(docsCss), 'macOS and Linux toast positioning must not share one rule');
+
+for (const iconName of ['network-wireless', 'volume-system', 'power-system', 'window-minimize', 'window-maximize', 'window-close']) {
+  assert.ok(docsHtml.includes(`icon-${iconName}`), `GitHub Pages markup must use the GNOME icon ${iconName}`);
+}
 
 const docsAssetsDir = path.join(rootDir, 'docs', 'assets');
 const docsIconRules = [...docsCss.matchAll(/\.icon-([a-z0-9-]+)\s*\{\s*--icon-url:\s*url\('([^']+)'\);\s*\}/g)];

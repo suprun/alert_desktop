@@ -107,6 +107,7 @@ html.theme-light {
   mask-size: contain;
 }
 
+.icon-size-11 { width: 11px; height: 11px; }
 .icon-size-12 { width: 12px; height: 12px; }
 .icon-size-13 { width: 13px; height: 13px; }
 .icon-size-14 { width: 14px; height: 14px; }
@@ -137,12 +138,18 @@ html.theme-light {
 .icon-map { --icon-url: url('assets/map.svg'); }
 .icon-missile { --icon-url: url('assets/missile.svg'); }
 .icon-moon { --icon-url: url('assets/moon.svg'); }
+.icon-network-wireless { --icon-url: url('assets/network-wireless.svg'); }
+.icon-power-system { --icon-url: url('assets/power-system.svg'); }
 .icon-refresh { --icon-url: url('assets/refresh.svg'); }
 .icon-search { --icon-url: url('assets/search.svg'); }
 .icon-settings { --icon-url: url('assets/settings.svg'); }
 .icon-shield { --icon-url: url('assets/shield.svg'); }
 .icon-shield-check { --icon-url: url('assets/shield-check.svg'); }
 .icon-sun { --icon-url: url('assets/sun.svg'); }
+.icon-volume-system { --icon-url: url('assets/volume-system.svg'); }
+.icon-window-close { --icon-url: url('assets/window-close.svg'); }
+.icon-window-maximize { --icon-url: url('assets/window-maximize.svg'); }
+.icon-window-minimize { --icon-url: url('assets/window-minimize.svg'); }
 .icon-windows { --icon-url: url('assets/windows.svg'); }
 
 /* ==========================================================================
@@ -503,13 +510,17 @@ html.theme-light .desktop-screen-mockup {
   box-shadow: 0 24px 60px -15px rgba(0, 0, 0, 0.14), inset 0 1px 0 rgba(255, 255, 255, 0.8);
 }
 
-/* macOS / Linux версія екрана */
-.desktop-screen-mockup.os-macos,
-.desktop-screen-mockup.os-linux {
+/* macOS версія екрана */
+.desktop-screen-mockup.os-macos {
   padding: 58px 24px 30px 24px;
 }
 
-/* Верхня панель (macOS / Linux) */
+/* GNOME / Ubuntu версія екрана */
+.desktop-screen-mockup.os-linux {
+  padding: 60px 24px 32px 24px;
+}
+
+/* Системна верхня панель */
 .desktop-topbar {
   display: none;
   position: absolute;
@@ -535,15 +546,54 @@ html.theme-light .desktop-topbar {
   color: var(--text-primary);
 }
 
-.os-macos .desktop-topbar,
+.os-macos .desktop-topbar {
+  display: flex;
+}
+
 .os-linux .desktop-topbar {
   display: flex;
+  height: 38px;
+  padding: 0 14px;
+  background: rgba(31, 31, 31, 0.96);
+  color: rgba(255, 255, 255, 0.9);
+}
+
+html.theme-light .os-linux .desktop-topbar {
+  background: rgba(238, 238, 238, 0.96);
+  color: #202020;
 }
 
 .topbar-left {
   display: flex;
   align-items: center;
   gap: 16px;
+}
+
+.topbar-macos-left,
+.topbar-linux-left,
+.topbar-macos-status,
+.topbar-linux-status {
+  display: none;
+}
+
+.os-macos .topbar-macos-left,
+.os-macos .topbar-macos-status,
+.os-linux .topbar-linux-left,
+.os-linux .topbar-linux-status {
+  align-items: center;
+}
+
+.os-macos .topbar-macos-left,
+.os-macos .topbar-macos-status,
+.os-linux .topbar-linux-left,
+.os-linux .topbar-linux-status {
+  display: flex;
+}
+
+.linux-activities {
+  color: inherit;
+  font-size: 0.78rem;
+  font-weight: 700;
 }
 
 .topbar-brand-icon {
@@ -568,6 +618,24 @@ html.theme-light .desktop-topbar {
   display: flex;
   align-items: center;
   gap: 12px;
+}
+
+.topbar-macos-status {
+  gap: 12px;
+}
+
+.topbar-linux-status {
+  gap: 10px;
+  color: inherit;
+}
+
+.os-linux .topbar-clock {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  color: inherit;
+  font-size: 0.78rem;
+  font-weight: 650;
 }
 
 .topbar-tray-dot {
@@ -721,19 +789,31 @@ html.theme-light .desktop-toast-card {
   transform: translateY(18px);
 }
 
-/* Розташування для macOS / Linux: у правому верхньому куті */
-.os-macos .desktop-toast-card,
-.os-linux .desktop-toast-card {
+/* Розташування для macOS: у правому верхньому куті */
+.os-macos .desktop-toast-card {
   top: 46px;
   right: 20px;
   left: auto;
   transform: translateY(-18px);
 }
 
+/* Розташування для GNOME: зверху по центру */
+.os-linux .desktop-toast-card {
+  top: 50px;
+  right: auto;
+  left: 50%;
+  border-radius: 14px;
+  transform: translate(-50%, -18px);
+}
+
 .desktop-toast-card.toast-visible {
   opacity: 1;
   pointer-events: auto;
   transform: translateY(0);
+}
+
+.os-linux .desktop-toast-card.toast-visible {
+  transform: translate(-50%, 0);
 }
 
 .toast-card-icon img {
@@ -790,6 +870,7 @@ html.theme-light .desktop-toast-card {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  position: relative;
   padding: 12px 18px;
   background-color: var(--bg-card);
   border-bottom: 1px solid var(--border-color);
@@ -798,6 +879,86 @@ html.theme-light .desktop-toast-card {
 .mockup-controls {
   display: flex;
   gap: 7px;
+}
+
+.linux-window-title,
+.linux-window-controls {
+  display: none;
+}
+
+.os-linux .mockup-titlebar {
+  min-height: 52px;
+  padding: 8px 10px 8px 16px;
+  background: #2d2d2d;
+}
+
+html.theme-light .os-linux .mockup-titlebar {
+  background: #f0f0f0;
+}
+
+.os-linux .mockup-controls {
+  display: none;
+}
+
+.os-linux .linux-window-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 132px;
+  color: var(--text-primary);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.os-linux .linux-window-title img {
+  display: block;
+  border-radius: 4px;
+}
+
+.os-linux .mockup-status-center {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.os-linux .mockup-actions-right {
+  margin-left: auto;
+}
+
+.os-linux .linux-window-controls {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: 6px;
+}
+
+.linux-window-control {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+html.theme-light .linux-window-control {
+  color: #3a3a3a;
+  background: rgba(0, 0, 0, 0.06);
+  border-color: rgba(0, 0, 0, 0.08);
+}
+
+.linux-window-close {
+  color: #ffffff;
+  background: #e95420;
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+html.theme-light .linux-window-close {
+  color: #ffffff;
+  background: #e95420;
 }
 
 .mockup-dot {
@@ -1606,6 +1767,12 @@ html.theme-light .legal-item-icon {
   }
   .mockup-map-body {
     height: 280px;
+  }
+  .os-linux .mockup-status-center {
+    display: none;
+  }
+  .os-linux .linux-window-title {
+    min-width: 0;
   }
   .downloads-all-cta {
     flex-direction: column;

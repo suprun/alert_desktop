@@ -100,7 +100,7 @@
         <div class="desktop-screen-mockup os-windows" id="desktopScreenMockup">
           <!-- Верхній рядок меню (для macOS / Linux) -->
           <div class="desktop-topbar" id="desktopTopbar">
-            <div class="topbar-left">
+            <div class="topbar-left topbar-macos-left">
               <span class="topbar-brand-icon">
                 <span class="site-icon icon-apple-menu icon-size-14" aria-hidden="true"></span>
               </span>
@@ -110,10 +110,20 @@
               <span class="topbar-menu-label">Вікно</span>
               <span class="topbar-menu-label">Довідка</span>
             </div>
+            <div class="topbar-left topbar-linux-left">
+              <span class="linux-activities">Діяльність</span>
+            </div>
             <div class="topbar-right">
-              <span class="topbar-tray-dot" title="Статус: Моніторинг активний"></span>
-              <span class="topbar-status-icon">
-                <img src="assets/app-icon.svg" alt="AlertDesktop" width="13" height="13">
+              <span class="topbar-macos-status">
+                <span class="topbar-tray-dot" title="Статус: Моніторинг активний"></span>
+                <span class="topbar-status-icon">
+                  <img src="assets/app-icon.svg" alt="AlertDesktop" width="13" height="13">
+                </span>
+              </span>
+              <span class="topbar-linux-status" aria-hidden="true">
+                <span class="site-icon icon-network-wireless icon-size-13"></span>
+                <span class="site-icon icon-volume-system icon-size-13"></span>
+                <span class="site-icon icon-power-system icon-size-13"></span>
               </span>
               <span class="topbar-clock" id="topbarClock">12:00</span>
             </div>
@@ -138,9 +148,14 @@
           <div class="app-mockup">
           <div class="mockup-titlebar">
             <div class="mockup-controls">
-              <span class="mockup-dot close"></span>
-              <span class="mockup-dot min"></span>
-              <span class="mockup-dot max"></span>
+              <span class="mockup-dot close" aria-hidden="true"></span>
+              <span class="mockup-dot min" aria-hidden="true"></span>
+              <span class="mockup-dot max" aria-hidden="true"></span>
+            </div>
+
+            <div class="linux-window-title">
+              <img src="assets/app-icon.svg" alt="" width="15" height="15">
+              <span>AlertDesktop</span>
             </div>
 
             <div class="mockup-status-center">
@@ -157,6 +172,11 @@
 
             <div class="mockup-actions-right">
               <span class="site-icon icon-settings icon-size-16" aria-hidden="true"></span>
+              <span class="linux-window-controls" aria-hidden="true">
+                <span class="linux-window-control"><span class="site-icon icon-window-minimize icon-size-11"></span></span>
+                <span class="linux-window-control"><span class="site-icon icon-window-maximize icon-size-11"></span></span>
+                <span class="linux-window-control linux-window-close"><span class="site-icon icon-window-close icon-size-11"></span></span>
+              </span>
             </div>
           </div>
 
