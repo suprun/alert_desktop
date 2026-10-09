@@ -14,10 +14,27 @@ const settingsCss = read('src', 'renderer', 'settings', 'settings.css');
 const iconsCss = read('src', 'renderer', 'shared', 'icons.css');
 const preloadMap = read('src', 'preload', 'preload-map.js');
 const windowManager = read('src', 'main', 'window.js');
+const docsHtml = read('docs', 'index.html');
+const docsApp = read('docs', 'app.js');
+const docsCss = read('docs', 'style.css');
 
 assert.strictEqual((mainHtml.match(/<svg\b/g) || []).length, 1, 'У головному HTML дозволено лише кореневий SVG інтерактивної карти');
 assert.ok(mainHtml.includes('<svg id="ukraineVectorSvg"'), 'Єдиний inline SVG має бути інтерактивною картою України');
 assert.ok(!/<svg\b/.test(settingsHtml), 'У settings.html не повинно бути inline SVG');
+
+assert.strictEqual((docsHtml.match(/<svg\b/g) || []).length, 1, 'GitHub Pages HTML may only keep the interactive map SVG inline');
+assert.ok(docsHtml.includes('class="ukraine-admin-map"'), 'The remaining GitHub Pages inline SVG must be the interactive Ukraine map');
+assert.ok(!/<svg\b|data:image\/svg/i.test(docsApp), 'GitHub Pages JavaScript must not contain inline SVG geometry');
+
+const docsAssetsDir = path.join(rootDir, 'docs', 'assets');
+const docsIconRules = [...docsCss.matchAll(/\.icon-([a-z0-9-]+)\s*\{\s*--icon-url:\s*url\('([^']+)'\);\s*\}/g)];
+assert.ok(docsIconRules.length >= 20, 'GitHub Pages CSS must register the complete standalone icon set');
+for (const [, iconName, relativePath] of docsIconRules) {
+  const assetPath = path.resolve(path.join(rootDir, 'docs'), relativePath);
+  assert.ok(assetPath.startsWith(`${docsAssetsDir}${path.sep}`), `.icon-${iconName} must reference docs/assets`);
+  assert.ok(fs.existsSync(assetPath), `Missing GitHub Pages icon asset for .icon-${iconName}: ${assetPath}`);
+  assert.ok(fs.readFileSync(assetPath, 'utf8').includes('<svg'), `${assetPath} must be an SVG file`);
+}
 
 for (const [name, content] of [
   ['main renderer', mainRenderer],
