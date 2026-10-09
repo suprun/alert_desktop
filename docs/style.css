@@ -119,7 +119,7 @@ html.theme-light {
 .icon-size-28 { width: 28px; height: 28px; }
 
 .icon-apple { --icon-url: url('assets/apple.svg'); }
-.icon-apple-menu { --icon-url: url('assets/apple-menu.svg'); }
+.icon-apple-menu { --icon-url: url('assets/apple.svg'); }
 .icon-arrow-right { --icon-url: url('assets/arrow-right.svg'); }
 .icon-audio-speaker { --icon-url: url('assets/audio-speaker.svg'); }
 .icon-audio-wave-1 { --icon-url: url('assets/audio-wave-1.svg'); }
