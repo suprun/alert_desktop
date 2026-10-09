@@ -77,7 +77,7 @@ alert_desktop/
 ├── docs/                                 # Офіційна веб-сторінка проєкту для GitHub Pages
 │   ├── index.html                        # Лендинг із вибором інсталяторів, мапою та окремими псевдо-вікнами Windows/macOS/GNOME
 │   ├── style.css                         # Дизайн-система, CSS-mask іконки, ОС-специфічне оформлення та стилі карти
-│   ├── app.js                            # Логіка визначення ОС, GitHub Releases API та перемикача тем
+│   ├── app.js                            # Визначення ОС, GitHub Releases API, тема та previewOS() для повного перегляду ОС-варіантів CTA
 │   └── assets/                           # Канонічні SVG-ресурси GitHub Pages: UI-, store- та platform-іконки, app-icon і векторна карта ukraine-map.svg
 │
 ├── flathub/                              # Комплект для офіційної публікації у глобальному каталозі Flathub

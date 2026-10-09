@@ -52,9 +52,11 @@ for (const storeUrl of storeLinks) {
 
 assert.ok(docsHtml.includes('sudo snap install alert-desktop'), 'Linux card must show the Snap installation command');
 assert.ok(docsHtml.includes('flatpak install flathub ua.in.alerts.desktop'), 'Linux card must show the Flathub installation command');
+assert.strictEqual((docsHtml.match(/platform-store-option platform-option-divider/g) || []).length, 2, 'Linux store blocks must have dashed separators after AppImage and Snap Store');
 assert.ok(!docsHtml.includes('id="link-linux-snap"') && !docsHtml.includes('id="link-linux-flatpak"'), 'Store buttons must replace duplicate direct Snap and Flatpak links');
 assert.ok(docsApp.includes("label = `Завантажити зі Snap Store`") && docsApp.includes("smartStoreBtnText.textContent = 'Завантажити з Flathub'"), 'Linux hero must prioritize Snap Store and Flathub');
 assert.ok(docsApp.includes("smartStoreBtn.hidden = true"), 'macOS hero must keep the second store button hidden');
+assert.ok(docsApp.includes('window.previewOS = previewOS') && docsApp.includes('setupSmartCTA(os, previewDownloads, previewVersion)'), 'previewOS must update the complete OS-aware hero CTA');
 
 const docsAssetsDir = path.join(rootDir, 'docs', 'assets');
 const docsIconRules = [...docsCss.matchAll(/\.icon-([a-z0-9-]+)\s*\{\s*--icon-url:\s*url\('([^']+)'\);\s*\}/g)];

@@ -1,3 +1,7 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-  <path d="M5 2.5 14.2 12 5 21.5V2.5Zm2.4 4.1v10.8l5.2-5.4-5.2-5.4Zm1-4.1 10.8 5.6-4 2.5-6.8-8.1Zm6.8 10.9 4 2.5-10.8 5.6 6.8-8.1Z"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192" fill="currentColor">
+  <!-- Vectorized from https://img.icons8.com/?size=192&amp;id=ryxZ6DC24YiD&amp;format=png -->
+  <path d="M0 4 106 43v67L0 4Z"/>
+  <path d="m111 45 42 19-42 42V45Z"/>
+  <path d="m113 43 62 .2L192 80l-79-37Z"/>
+  <path d="m81 90 25 24-77 74 52-98Z"/>
 </svg>

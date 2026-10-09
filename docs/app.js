@@ -35,6 +35,8 @@
     linuxAppImage: `${GITHUB_RELEASES_URL}/download/${FALLBACK_VERSION}/AlertDesktop-x86_64-${FALLBACK_VERSION}.AppImage`,
     linuxDeb: `${GITHUB_RELEASES_URL}/download/${FALLBACK_VERSION}/AlertDesktop-amd64-${FALLBACK_VERSION}.deb`
   };
+  let previewDownloads = { ...DEFAULT_DOWNLOADS };
+  let previewVersion = FALLBACK_VERSION;
 
   // 1. Визначення операційної системи відвідувача
   function detectOS() {
@@ -139,6 +141,14 @@
     applyDesktopOS(os);
   }
 
+  function previewOS(os) {
+    if (!['windows', 'macos', 'linux'].includes(os)) return false;
+    setupSmartCTA(os, previewDownloads, previewVersion);
+    return true;
+  }
+
+  window.previewOS = previewOS;
+
   // 4. Запит до GitHub Releases API
   async function fetchLatestRelease() {
     const releaseVersionBadges = document.querySelectorAll('.release-version-tag');
@@ -207,7 +217,10 @@
     // Оновлюємо прямі лінки в картках
     updatePlatformLinks(currentLinks);
 
-    // Оновлюємо головну кнопку Smart CTA
+    previewDownloads = currentLinks;
+    previewVersion = latestVersion;
+
+    // Оновлюємо головні кнопки Smart CTA
     const userOS = detectOS();
     setupSmartCTA(userOS, currentLinks, latestVersion);
   }

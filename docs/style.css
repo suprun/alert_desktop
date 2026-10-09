@@ -1298,6 +1298,11 @@ html.theme-light .mockup-map-overlay {
   gap: 7px;
 }
 
+.platform-option-divider {
+  padding-top: 12px;
+  border-top: 1px dashed var(--border-color);
+}
+
 .platform-install-command {
   display: flex;
   flex-direction: column;
