@@ -103,7 +103,7 @@
       setExternalLink(smartStoreBtn, true);
     }
     if (smartStoreBtnText) smartStoreBtnText.textContent = 'Завантажити з Microsoft Store';
-    setSiteIcon(smartStoreBtnIcon, 'microsoft-store', 20);
+    setSiteIcon(smartStoreBtnIcon, 'microsoft-store', 22);
 
     if (os === 'macos') {
       targetUrl = links.macDmg;
@@ -454,6 +454,7 @@
   // 11. Ініціалізація компонентів при завантаженні DOM
   document.addEventListener('DOMContentLoaded', () => {
     initTheme();
+    setupSmartCTA(detectOS(), DEFAULT_DOWNLOADS, FALLBACK_VERSION);
     fetchLatestRelease();
     updateDesktopClocks();
     setInterval(updateDesktopClocks, 10000);

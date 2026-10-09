@@ -57,6 +57,10 @@ assert.ok(!docsHtml.includes('id="link-linux-snap"') && !docsHtml.includes('id="
 assert.ok(docsApp.includes("label = `Завантажити зі Snap Store`") && docsApp.includes("smartStoreBtnText.textContent = 'Завантажити з Flathub'"), 'Linux hero must prioritize Snap Store and Flathub');
 assert.ok(docsApp.includes("smartStoreBtn.hidden = true"), 'macOS hero must keep the second store button hidden');
 assert.ok(docsApp.includes('window.previewOS = previewOS') && docsApp.includes('setupSmartCTA(os, previewDownloads, previewVersion)'), 'previewOS must update the complete OS-aware hero CTA');
+assert.ok(docsHtml.includes('id="smartStoreBtnIcon" class="site-icon icon-microsoft-store icon-size-22"'), 'Microsoft Store hero icon must use the enlarged size');
+assert.ok(docsHtml.includes('class="site-icon icon-microsoft-store icon-size-18"'), 'Microsoft Store card icon must use the enlarged size');
+assert.ok(docsApp.includes("setSiteIcon(smartStoreBtnIcon, 'microsoft-store', 22)"), 'Windows preview must preserve the enlarged Microsoft Store hero icon');
+assert.ok(docsApp.includes('setupSmartCTA(detectOS(), DEFAULT_DOWNLOADS, FALLBACK_VERSION);'), 'OS-aware hero buttons must render before the release request completes');
 
 const docsAssetsDir = path.join(rootDir, 'docs', 'assets');
 const docsIconRules = [...docsCss.matchAll(/\.icon-([a-z0-9-]+)\s*\{\s*--icon-url:\s*url\('([^']+)'\);\s*\}/g)];
@@ -65,7 +69,9 @@ for (const [, iconName, relativePath] of docsIconRules) {
   const assetPath = path.resolve(path.join(rootDir, 'docs'), relativePath);
   assert.ok(assetPath.startsWith(`${docsAssetsDir}${path.sep}`), `.icon-${iconName} must reference docs/assets`);
   assert.ok(fs.existsSync(assetPath), `Missing GitHub Pages icon asset for .icon-${iconName}: ${assetPath}`);
-  assert.ok(fs.readFileSync(assetPath, 'utf8').includes('<svg'), `${assetPath} must be an SVG file`);
+  const svgContent = fs.readFileSync(assetPath, 'utf8');
+  assert.strictEqual((svgContent.match(/<svg\b/gi) || []).length, 1, `${assetPath} must contain exactly one SVG root`);
+  assert.ok(/<svg\b[^>]*>[\s\S]*<\/svg>\s*$/i.test(svgContent), `${assetPath} must have a complete, non-self-closing SVG root`);
 }
 
 for (const [name, content] of [
